@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AIProvider } from './context/AIContext';
+import AIAssistant, { AIFloatingButton } from './components/ai/AIAssistant';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
@@ -22,6 +24,7 @@ import Stats from './pages/Stats';
 import Lessons from './pages/Lessons';
 import Exams from './pages/Exams';
 import Goals from './pages/Goals';
+import YKS from './pages/YKS';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
@@ -34,6 +37,7 @@ const PAGE_TITLES = {
   '/stats': 'İstatistikler',
   '/lessons': 'Dersler',
   '/exams': 'Sınav Takvimi',
+  '/yks': 'YKS Merkezi',
   '/goals': 'Hedefler',
 };
 
@@ -75,6 +79,7 @@ function AppLayout() {
               <Route path="/stats" element={<PageTransition><Stats /></PageTransition>} />
               <Route path="/lessons" element={<PageTransition><Lessons /></PageTransition>} />
               <Route path="/exams" element={<PageTransition><Exams /></PageTransition>} />
+              <Route path="/yks" element={<PageTransition><YKS /></PageTransition>} />
               <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
             </Routes>
           </AnimatePresence>
@@ -87,6 +92,8 @@ function AppLayout() {
       </div>
 
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
+      <AIAssistant />
+      <AIFloatingButton />
     </div>
   );
 }
@@ -138,7 +145,9 @@ function AuthGate() {
           className="h-screen"
         >
           <BrowserRouter>
-            <AppLayout />
+            <AIProvider>
+              <AppLayout />
+            </AIProvider>
           </BrowserRouter>
         </motion.div>
       )}

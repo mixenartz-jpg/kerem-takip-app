@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
-  BookOpen, ClipboardList, Target,
+  BookOpen, ClipboardList, Target, Brain,
   ChevronLeft, ChevronRight, LogOut,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -27,6 +27,7 @@ const NAV_GROUPS = [
     items: [
       { to: '/lessons', icon: BookOpen, label: 'Dersler' },
       { to: '/exams', icon: ClipboardList, label: 'Sınav Takvimi' },
+      { to: '/yks', icon: Brain, label: 'YKS Merkezi' },
       { to: '/goals', icon: Target, label: 'Hedefler' },
     ],
   },

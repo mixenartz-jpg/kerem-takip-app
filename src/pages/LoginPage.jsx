@@ -1,9 +1,8 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Globe2, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Globe2, ArrowRight, Sparkles, MailCheck, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-/* ── Floating orb ── */
 function Orb({ cx, cy, r, color, delay = 0 }) {
   return (
     <motion.div
@@ -15,7 +14,6 @@ function Orb({ cx, cy, r, color, delay = 0 }) {
   );
 }
 
-/* ── Tilt card wrapper ── */
 function TiltCard({ children }) {
   const ref = useRef(null);
   const x = useMotionValue(0);
@@ -42,7 +40,6 @@ function TiltCard({ children }) {
   );
 }
 
-/* ── Input field ── */
 function Field({ icon: Icon, type, placeholder, value, onChange, right }) {
   return (
     <div className="relative group">
@@ -59,7 +56,6 @@ function Field({ icon: Icon, type, placeholder, value, onChange, right }) {
   );
 }
 
-/* ── Google button ── */
 function GoogleBtn({ onClick, disabled }) {
   return (
     <motion.button
@@ -76,7 +72,6 @@ function GoogleBtn({ onClick, disabled }) {
   );
 }
 
-/* ── Error message ── */
 function ErrorMsg({ msg }) {
   return (
     <AnimatePresence>
@@ -103,6 +98,8 @@ const firebaseErrorMap = {
   'auth/invalid-credential': 'E-posta veya şifre hatalı.',
   'auth/too-many-requests': 'Çok fazla deneme. Lütfen bekleyin.',
   'auth/popup-closed-by-user': 'Google girişi iptal edildi.',
+  'auth/popup-blocked': 'Popup engellendi. Tarayıcı ayarlarını kontrol et.',
+  'auth/cancelled-popup-request': 'Google girişi iptal edildi.',
 };
 
 function toReadable(err) {
@@ -111,25 +108,129 @@ function toReadable(err) {
   return firebaseErrorMap[code] || err.message || 'Bir hata oluştu.';
 }
 
+/* ── Email Verification Screen ── */
+function VerifyEmailScreen({ email, onRefresh, onLogout }) {
+  const { resendVerification } = useAuth();
+  const [resent, setResent] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [resentLoading, setResentLoading] = useState(false);
+
+  const handleResend = async () => {
+    setResentLoading(true);
+    try {
+      await resendVerification();
+      setResent(true);
+      setTimeout(() => setResent(false), 5000);
+    } catch {
+      // ignore
+    } finally {
+      setResentLoading(false);
+    }
+  };
+
+  const handleCheck = async () => {
+    setChecking(true);
+    await onRefresh();
+    setTimeout(() => setChecking(false), 1500);
+  };
+
+  return (
+    <TiltCard>
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+        className="relative w-full max-w-sm bg-zinc-950/90 backdrop-blur-xl border border-zinc-800/60 rounded-2xl p-8 shadow-2xl shadow-black/60"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-600/5 to-transparent pointer-events-none" />
+
+        <motion.div
+          className="flex flex-col items-center mb-6"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <motion.div
+            className="w-16 h-16 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center mb-4"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <MailCheck size={28} className="text-violet-400" />
+          </motion.div>
+          <h2 className="text-lg font-bold text-zinc-100">E-postanı Doğrula</h2>
+          <p className="text-zinc-500 text-xs text-center mt-2 leading-relaxed">
+            <span className="text-violet-400">{email}</span> adresine doğrulama maili gönderdik. Linke tıkladıktan sonra aşağıdan devam et.
+          </p>
+        </motion.div>
+
+        <div className="flex flex-col gap-2">
+          <motion.button
+            onClick={handleCheck}
+            disabled={checking}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 text-white font-semibold rounded-xl py-3 text-sm transition-all shadow-md shadow-violet-500/25"
+          >
+            {checking
+              ? <motion.div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} />
+              : <><RefreshCw size={15} /> Doğruladım, devam et</>
+            }
+          </motion.button>
+
+          <button
+            onClick={handleResend}
+            disabled={resentLoading || resent}
+            className="w-full py-2.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            {resent ? '✓ Mail tekrar gönderildi!' : resentLoading ? 'Gönderiliyor...' : 'Maili tekrar gönder'}
+          </button>
+
+          <button
+            onClick={onLogout}
+            className="w-full py-2 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            Farklı hesapla giriş yap
+          </button>
+        </div>
+      </motion.div>
+    </TiltCard>
+  );
+}
+
 /* ══════════════════════════════════════════════
    MAIN
 ══════════════════════════════════════════════ */
 export default function LoginPage() {
-  const { login, register, loginWithGoogle } = useAuth();
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const { login, register, loginWithGoogle, logout, refreshUser, user } = useAuth();
+  const [mode, setMode] = useState('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+
+  // If user is logged in but not verified
+  if (user && !user.emailVerified && pendingVerification) {
+    return (
+      <div className="min-h-screen bg-[#0f0f11] flex items-center justify-center p-4 relative overflow-hidden">
+        <Orb cx="10%" cy="20%" r={200} color="radial-gradient(circle, #7c3aed 0%, transparent 70%)" />
+        <Orb cx="85%" cy="70%" r={250} color="radial-gradient(circle, #4f46e5 0%, transparent 70%)" delay={2} />
+        <VerifyEmailScreen
+          email={pendingEmail || user.email}
+          onRefresh={refreshUser}
+          onLogout={() => { logout(); setPendingVerification(false); }}
+        />
+      </div>
+    );
+  }
 
   const switchMode = () => {
     setMode(m => m === 'login' ? 'register' : 'login');
-    setError('');
-    setName('');
-    setEmail('');
-    setPassword('');
+    setError(''); setName(''); setEmail(''); setPassword('');
   };
 
   const handleSubmit = async (e) => {
@@ -139,8 +240,15 @@ export default function LoginPage() {
     try {
       if (mode === 'register') {
         await register(email, password, name);
+        setPendingEmail(email);
+        setPendingVerification(true);
       } else {
-        await login(email, password);
+        const cred = await login(email, password);
+        // If email not verified, show verification screen
+        if (cred?.user && !cred.user.emailVerified) {
+          setPendingEmail(email);
+          setPendingVerification(true);
+        }
       }
     } catch (err) {
       setError(toReadable(err));
@@ -154,6 +262,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await loginWithGoogle();
+      // Google logins are always verified
     } catch (err) {
       setError(toReadable(err));
     } finally {
@@ -163,12 +272,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0f0f11] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background orbs */}
       <Orb cx="10%" cy="20%" r={200} color="radial-gradient(circle, #7c3aed 0%, transparent 70%)" delay={0} />
       <Orb cx="85%" cy="70%" r={250} color="radial-gradient(circle, #4f46e5 0%, transparent 70%)" delay={2} />
       <Orb cx="50%" cy="90%" r={180} color="radial-gradient(circle, #7c3aed 0%, transparent 70%)" delay={4} />
 
-      {/* Grid lines */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -177,7 +284,6 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Floating particles */}
       {[...Array(8)].map((_, i) => (
         <motion.div
           key={i}
@@ -188,7 +294,6 @@ export default function LoginPage() {
         />
       ))}
 
-      {/* Card */}
       <TiltCard>
         <motion.div
           key={mode}
@@ -199,10 +304,8 @@ export default function LoginPage() {
           className="relative w-full max-w-sm bg-zinc-950/90 backdrop-blur-xl border border-zinc-800/60 rounded-2xl p-8 shadow-2xl shadow-black/60"
           style={{ transformStyle: 'preserve-3d' }}
         >
-          {/* Inner glow */}
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-600/5 to-transparent pointer-events-none" />
 
-          {/* Logo */}
           <motion.div
             className="flex flex-col items-center mb-8"
             initial={{ opacity: 0, y: -10 }}
@@ -222,16 +325,13 @@ export default function LoginPage() {
             </p>
           </motion.div>
 
-          {/* Mode tabs */}
           <div className="flex bg-zinc-900 rounded-xl p-1 mb-6 gap-1">
             {['login', 'register'].map((m) => (
               <button
                 key={m}
                 onClick={() => { if (m !== mode) switchMode(); }}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  mode === m
-                    ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                  mode === m ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 {m === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
@@ -239,35 +339,22 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <AnimatePresence mode="wait">
               {mode === 'register' && (
                 <motion.div
                   key="name"
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Field
-                    icon={User}
-                    type="text"
-                    placeholder="Ad Soyad"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                  />
+                  <Field icon={User} type="text" placeholder="Ad Soyad" value={name} onChange={e => setName(e.target.value)} />
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <Field
-              icon={Mail}
-              type="email"
-              placeholder="E-posta"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
+            <Field icon={Mail} type="email" placeholder="E-posta" value={email} onChange={e => setEmail(e.target.value)} />
 
             <Field
               icon={Lock}
@@ -276,11 +363,7 @@ export default function LoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               right={
-                <button
-                  type="button"
-                  onClick={() => setShowPass(s => !s)}
-                  className="text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
+                <button type="button" onClick={() => setShowPass(s => !s)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               }
@@ -296,31 +379,21 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 text-sm transition-all shadow-md shadow-violet-500/25 mt-1"
             >
               {loading ? (
-                <motion.div
-                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                />
+                <motion.div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} />
               ) : (
-                <>
-                  {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
-                  <ArrowRight size={15} />
-                </>
+                <>{mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}<ArrowRight size={15} /></>
               )}
             </motion.button>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px bg-zinc-800" />
             <span className="text-zinc-600 text-xs">veya</span>
             <div className="flex-1 h-px bg-zinc-800" />
           </div>
 
-          {/* Google */}
           <GoogleBtn onClick={handleGoogle} disabled={loading} />
 
-          {/* Footer note */}
           <p className="text-center text-zinc-600 text-xs mt-6">
             {mode === 'login' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'}{' '}
             <button onClick={switchMode} className="text-violet-400 hover:text-violet-300 font-medium transition-colors">

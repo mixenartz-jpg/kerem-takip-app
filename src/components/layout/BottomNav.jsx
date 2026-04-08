@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
-  BookOpen, ClipboardList, Target, MoreHorizontal,
+  BookOpen, ClipboardList, Target, MoreHorizontal, Brain,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ const MORE_NAV = [
   { to: '/pomodoro', icon: Timer, label: 'Pomodoro' },
   { to: '/lessons', icon: BookOpen, label: 'Dersler' },
   { to: '/exams', icon: ClipboardList, label: 'Sınavlar' },
+  { to: '/yks', icon: Brain, label: 'YKS' },
   { to: '/goals', icon: Target, label: 'Hedefler' },
   { to: '/stats', icon: BarChart2, label: 'İstatistik' },
 ];

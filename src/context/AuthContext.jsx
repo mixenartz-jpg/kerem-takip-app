@@ -5,6 +5,8 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
+  sendEmailVerification,
+  reload,
 } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, googleProvider } from '../firebase';
@@ -17,6 +19,7 @@ export function AuthProvider({ children }) {
   const register = async (email, password, displayName) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName });
+    await sendEmailVerification(cred.user);
     return cred.user;
   };
 
@@ -28,8 +31,20 @@ export function AuthProvider({ children }) {
 
   const logout = () => signOut(auth);
 
+  const resendVerification = async () => {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+    }
+  };
+
+  const refreshUser = async () => {
+    if (auth.currentUser) {
+      await reload(auth.currentUser);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, register, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, register, login, loginWithGoogle, logout, resendVerification, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
