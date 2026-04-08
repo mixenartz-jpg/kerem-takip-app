@@ -4,9 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
@@ -21,28 +19,106 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #18181b; }
-::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #52525b; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #7c3aed66; }
 
-/* Animations */
+/* ── Selection ── */
+::selection { background: #7c3aed; color: white; }
+
+/* ── Glass card ── */
+.glass {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── Glow effects ── */
+.glow-violet { box-shadow: 0 0 24px -4px rgba(124,58,237,0.4); }
+.glow-violet-sm { box-shadow: 0 0 12px -2px rgba(124,58,237,0.3); }
+.glow-green  { box-shadow: 0 0 24px -4px rgba(74,222,128,0.3); }
+.glow-blue   { box-shadow: 0 0 24px -4px rgba(96,165,250,0.3); }
+.glow-orange { box-shadow: 0 0 24px -4px rgba(251,146,60,0.3); }
+.glow-red    { box-shadow: 0 0 24px -4px rgba(248,113,113,0.3); }
+
+/* ── Animated gradient border ── */
+.grad-border {
+  position: relative;
+  z-index: 0;
+}
+.grad-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #7c3aed44, #4f46e544, transparent 60%);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.grad-border:hover::before { opacity: 1; }
+
+/* ── 3D card perspective ── */
+.perspective { perspective: 1000px; }
+.preserve-3d { transform-style: preserve-3d; }
+
+/* ── Shimmer loading ── */
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ── Animations ── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-6px); }
+  from { opacity: 0; transform: translateX(-8px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.93); }
   to   { opacity: 1; transform: scale(1); }
 }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes pulse-violet {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(124,58,237,0); }
+}
 
-.animate-fadeIn  { animation: fadeIn  0.18s ease-out; }
-.animate-slideIn { animation: slideIn 0.18s ease-out; }
-.animate-scaleIn { animation: scaleIn 0.15s ease-out; }
+.animate-fadeIn  { animation: fadeIn  0.22s ease-out both; }
+.animate-slideIn { animation: slideIn 0.22s ease-out both; }
+.animate-scaleIn { animation: scaleIn 0.18s ease-out both; }
+.animate-float   { animation: float 4s ease-in-out infinite; }
+.animate-pulse-violet { animation: pulse-violet 2s ease-in-out infinite; }
 
-::selection { background: #7c3aed; color: white; }
+/* stagger helpers */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
+
+/* ── Noise texture overlay ── */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+}

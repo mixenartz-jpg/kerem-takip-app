@@ -7,6 +7,7 @@ import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
 import CommandPalette from './components/layout/CommandPalette';
+import PageTransition from './components/layout/PageTransition';
 import SplashScreen from './components/SplashScreen';
 import OnboardingScreen from './components/OnboardingScreen';
 import LoginPage from './pages/LoginPage';
@@ -61,20 +62,22 @@ function AppLayout() {
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header onSearchOpen={() => setCmdOpen(true)} title={title} />
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/habits" element={<Habits />} />
-            <Route path="/pomodoro" element={<Pomodoro />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/lessons" element={<Lessons />} />
-            <Route path="/exams" element={<Exams />} />
-            <Route path="/goals" element={<Goals />} />
-          </Routes>
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 relative">
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
+              <Route path="/tasks" element={<PageTransition><Tasks /></PageTransition>} />
+              <Route path="/calendar" element={<PageTransition><Calendar /></PageTransition>} />
+              <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
+              <Route path="/projects" element={<PageTransition><Projects /></PageTransition>} />
+              <Route path="/habits" element={<PageTransition><Habits /></PageTransition>} />
+              <Route path="/pomodoro" element={<PageTransition><Pomodoro /></PageTransition>} />
+              <Route path="/stats" element={<PageTransition><Stats /></PageTransition>} />
+              <Route path="/lessons" element={<PageTransition><Lessons /></PageTransition>} />
+              <Route path="/exams" element={<PageTransition><Exams /></PageTransition>} />
+              <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
+            </Routes>
+          </AnimatePresence>
         </main>
       </div>
 
