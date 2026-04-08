@@ -1,0 +1,167 @@
+<h2>Giriş Ekranı — Tasarım Yaklaşımı</h2>
+<p class="subtitle">Tema: Koyu arka plan · Violet accent · Türkçe UI. Hangisi daha iyi hissettiriyor?</p>
+
+<style>
+  .preview-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .preview-card {
+    border: 2px solid #27272a;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    background: #0f0f11;
+  }
+  .preview-card:hover { border-color: #7c3aed; transform: translateY(-4px); }
+  .preview-card.selected { border-color: #7c3aed; box-shadow: 0 0 0 3px #7c3aed44; }
+  .preview-screen {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-label {
+    padding: 14px 16px;
+    background: #18181b;
+    border-top: 1px solid #27272a;
+  }
+  .preview-label h3 { margin: 0 0 4px; font-size: 15px; color: #e4e4e7; }
+  .preview-label p { margin: 0; font-size: 12px; color: #71717a; line-height: 1.5; }
+
+  /* Option A — Minimal Glow */
+  .opt-a { background: radial-gradient(ellipse at 50% 60%, #1a0a2e 0%, #0f0f11 70%); }
+  .opt-a .logo-ring {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 2px solid #7c3aed88;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 30px #7c3aed66, 0 0 60px #7c3aed22;
+    margin-bottom: 16px;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  .opt-a .logo-ring span { font-size: 24px; }
+  .opt-a .app-name { color: #e4e4e7; font-size: 18px; font-weight: 600; letter-spacing: 0.05em; }
+  .opt-a .app-sub { color: #7c3aed; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px; }
+  .opt-a .dots { display: flex; gap: 6px; margin-top: 20px; }
+  .opt-a .dot { width: 6px; height: 6px; border-radius: 50%; background: #7c3aed44; }
+  .opt-a .dot.active { background: #7c3aed; }
+  @keyframes pulse-glow { 0%,100%{box-shadow:0 0 30px #7c3aed66, 0 0 60px #7c3aed22} 50%{box-shadow:0 0 40px #7c3aed99, 0 0 80px #7c3aed44} }
+
+  /* Option B — 3D Perspective */
+  .opt-b { background: #0a0a0f; perspective: 500px; }
+  .opt-b .card-3d {
+    width: 140px; height: 90px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transform: rotateX(20deg) rotateY(-15deg);
+    box-shadow: -8px 12px 30px #00000088, 0 0 0 1px #7c3aed44;
+    position: relative;
+  }
+  .opt-b .card-3d::after {
+    content: '';
+    position: absolute; bottom: -12px; left: 10px; right: 10px;
+    height: 12px;
+    background: linear-gradient(to bottom, #00000066, transparent);
+    border-radius: 0 0 8px 8px;
+    filter: blur(4px);
+  }
+  .opt-b .card-3d .icon { font-size: 24px; margin-bottom: 8px; }
+  .opt-b .card-3d .name { color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+  .opt-b .card-3d .sub { color: #a78bfa; font-size: 10px; }
+  .opt-b .particles { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; }
+  .opt-b .p { position: absolute; width: 2px; height: 2px; background: #7c3aed; border-radius: 50%; opacity: 0.4; animation: float-p 3s ease-in-out infinite; }
+
+  /* Option C — Particle Constellation */
+  .opt-c { background: #050508; }
+  .opt-c .constellation { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  .opt-c .star { position: absolute; border-radius: 50%; background: #a78bfa; animation: twinkle 2s ease-in-out infinite; }
+  .opt-c .center-text { position: relative; z-index: 2; text-align: center; }
+  .opt-c .big-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; background: linear-gradient(135deg, #a78bfa, #7c3aed, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .opt-c .tagline { font-size: 11px; color: #52525b; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+  .opt-c .glow-bar { width: 60px; height: 2px; background: linear-gradient(to right, transparent, #7c3aed, transparent); margin: 10px auto 0; border-radius: 1px; animation: glow-pulse 1.5s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0.3} 50%{opacity:1} }
+  @keyframes glow-pulse { 0%,100%{opacity:0.4;width:40px} 50%{opacity:1;width:80px} }
+  @keyframes float-p { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+</style>
+
+<div class="preview-cards">
+
+  <!-- OPTION A -->
+  <div class="preview-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="preview-screen opt-a">
+      <div class="logo-ring"><span>📅</span></div>
+      <div class="app-name">Günlük Takip</div>
+      <div class="app-sub">Kişisel Üretkenlik</div>
+      <div class="dots">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+    <div class="preview-label">
+      <h3>A — Minimal Glow</h3>
+      <p>Pulsing violet halo, fade-in animasyonu, onboarding adımları altında nokta göstergesi. Sade ve şık.</p>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="preview-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="preview-screen opt-b">
+      <div class="particles">
+        <div class="p" style="top:20%;left:15%;animation-delay:0s"></div>
+        <div class="p" style="top:70%;left:80%;animation-delay:0.5s"></div>
+        <div class="p" style="top:40%;left:90%;animation-delay:1s"></div>
+        <div class="p" style="top:80%;left:25%;animation-delay:1.5s"></div>
+      </div>
+      <div class="card-3d">
+        <div class="icon">📋</div>
+        <div class="name">GÜNLÜK TAKİP</div>
+        <div class="sub">v1.0</div>
+      </div>
+    </div>
+    <div class="preview-label">
+      <h3>B — 3D Kart</h3>
+      <p>CSS perspective ile 3D dönen/yükselen kart. Giriş sırasında rotate + scale animasyonu, ardından ekrana geçiş.</p>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="preview-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="preview-screen opt-c">
+      <div class="constellation">
+        <div class="star" style="width:3px;height:3px;top:15%;left:20%;animation-delay:0s"></div>
+        <div class="star" style="width:2px;height:2px;top:25%;left:75%;animation-delay:0.3s"></div>
+        <div class="star" style="width:4px;height:4px;top:60%;left:10%;animation-delay:0.7s"></div>
+        <div class="star" style="width:2px;height:2px;top:75%;left:85%;animation-delay:1.1s"></div>
+        <div class="star" style="width:3px;height:3px;top:40%;left:60%;animation-delay:0.5s"></div>
+        <div class="star" style="width:2px;height:2px;top:85%;left:40%;animation-delay:1.4s"></div>
+        <div class="star" style="width:3px;height:3px;top:10%;left:50%;animation-delay:0.9s"></div>
+        <div class="star" style="width:2px;height:2px;top:55%;left:30%;animation-delay:1.8s"></div>
+      </div>
+      <div class="center-text">
+        <div class="big-title">Günlük Takip</div>
+        <div class="tagline">Her günü yakala</div>
+        <div class="glow-bar"></div>
+      </div>
+    </div>
+    <div class="preview-label">
+      <h3>C — Yıldız Haritası</h3>
+      <p>Violet yıldız parçacıkları arkaplan, gradient metin başlığı, animasyonlu glow bar. En dramatik etki.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section">
+  <p class="label">Not</p>
+  <p style="color:#71717a;font-size:13px;line-height:1.6">
+    Tüm yaklaşımlara onboarding adımları (Hoş Geldin → Özellik Tanıtımı → Başla) eklenecek.
+    Framer Motion ile <strong style="color:#a1a1aa">smooth geçiş animasyonları</strong> yapılacak.
+    Seçtiğiniz yaklaşım özellikle giriş ekranının <em>ruhunu</em> belirliyor.
+  </p>
+</div>
