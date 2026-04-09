@@ -24,7 +24,7 @@ export const DEFAULT_STATE = {
   goals: [],
   yks: {
     examDate: null,
-    examType: 'tyt_ayt', // 'tyt_only' | 'tyt_ayt'
+    examType: 'tyt_ayt',
     targetNets: {
       tyt_turkce: 35, tyt_mat: 35, tyt_fen: 17, tyt_sosyal: 17,
       ayt_mat: 30, ayt_fizik: 12, ayt_kimya: 12, ayt_biyoloji: 12,
@@ -32,6 +32,10 @@ export const DEFAULT_STATE = {
     trials: [],
     topics: {},
   },
+  hataDefteriItems: [],
+  aiPlanCache: null,
+  aiStreak: { count: 0, lastDate: null },
+  badges: [],
 };
 
 export function AppProvider({ children }) {
@@ -307,6 +311,86 @@ export function AppProvider({ children }) {
     targetNets: { ...yks.targetNets, [key]: value }
   }));
 
+  // ── HATA DEFTERİ ───────────────────────────────────────
+  const addHataDefteri = (data) => update('hataDefteriItems', items => [
+    ...items,
+    {
+      id: genId(),
+      subject: '', topic: '', question: '', myAnswer: '', correctAnswer: '',
+      interval: 1, repetitions: 0, easeFactor: 2.5,
+      nextReview: format(new Date(), 'yyyy-MM-dd'),
+      lastReviewedAt: null, createdAt: now(),
+      ...data,
+    }
+  ]);
+  const updateHataDefteri = (id, data) => update('hataDefteriItems', items =>
+    items.map(i => i.id === id ? { ...i, ...data } : i)
+  );
+  const deleteHataDefteri = (id) => {
+    localStorage.removeItem(`hataDefteriPhoto_${id}`);
+    update('hataDefteriItems', items => items.filter(i => i.id !== id));
+  };
+  const reviewHataDefteri = (id, quality) => update('hataDefteriItems', items =>
+    items.map(i => {
+      if (i.id !== id) return i;
+      let { repetitions, interval, easeFactor } = i;
+      if (quality >= 3) {
+        if (repetitions === 0) interval = 1;
+        else if (repetitions === 1) interval = 6;
+        else interval = Math.round(interval * easeFactor);
+        repetitions += 1;
+        easeFactor = Math.max(1.3, easeFactor + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      } else {
+        repetitions = 0;
+        interval = 1;
+        easeFactor = Math.max(1.3, easeFactor - 0.2);
+      }
+      const nextReview = format(
+        new Date(Date.now() + interval * 86400000), 'yyyy-MM-dd'
+      );
+      return { ...i, repetitions, interval, easeFactor, nextReview, lastReviewedAt: now() };
+    })
+  );
+
+  // ── AI PLAN CACHE ──────────────────────────────────────
+  const setAIPlanCache = (data) => update('aiPlanCache', () => data);
+  const toggleAIPlanBlock = (blockId) => {
+    setState(prev => {
+      const cache = prev.aiPlanCache;
+      if (!cache) return prev;
+      const completed = cache.completedBlockIds || [];
+      const newCompleted = completed.includes(blockId)
+        ? completed.filter(id => id !== blockId)
+        : [...completed, blockId];
+      const totalBlocks = cache.plan?.blocks?.length || 1;
+      const completionRate = newCompleted.length / totalBlocks;
+      const today = format(new Date(), 'yyyy-MM-dd');
+      let streak = prev.aiStreak || { count: 0, lastDate: null };
+      let badges = prev.badges || [];
+      if (completionRate >= 0.6 && streak.lastDate !== today) {
+        const yesterday = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
+        const newCount = streak.lastDate === yesterday ? streak.count + 1 : 1;
+        streak = { count: newCount, lastDate: today };
+        if (newCount === 3 && !badges.includes('streak_3')) badges = [...badges, 'streak_3'];
+        if (newCount === 7 && !badges.includes('streak_7')) badges = [...badges, 'streak_7'];
+        if (newCount === 30 && !badges.includes('streak_30')) badges = [...badges, 'streak_30'];
+      }
+      const next = {
+        ...prev,
+        aiPlanCache: { ...cache, completedBlockIds: newCompleted },
+        aiStreak: streak,
+        badges,
+      };
+      if (user) saveToFirestore(user.uid, next);
+      return next;
+    });
+  };
+
+  // ── BADGES ─────────────────────────────────────────────
+  const addBadge = (badgeId) => update('badges', badges =>
+    badges.includes(badgeId) ? badges : [...badges, badgeId]
+  );
+
   const value = {
     state,
     dbLoading,
@@ -320,6 +404,10 @@ export function AppProvider({ children }) {
     exams: state.exams,
     goals: state.goals,
     yks: state.yks,
+    hataDefteriItems: state.hataDefteriItems,
+    aiPlanCache: state.aiPlanCache,
+    aiStreak: state.aiStreak,
+    badges: state.badges,
     // Task actions
     addTask, updateTask, deleteTask, toggleTask, addSubtask, toggleSubtask,
     // Event actions
@@ -341,6 +429,10 @@ export function AppProvider({ children }) {
     // YKS actions
     updateYKS, addYKSTrial, updateYKSTrial, deleteYKSTrial,
     toggleYKSTopic, setYKSExamDate, setYKSTargetNet,
+    // Hata defteri actions
+    addHataDefteri, updateHataDefteri, deleteHataDefteri, reviewHataDefteri,
+    // AI plan actions
+    setAIPlanCache, toggleAIPlanBlock, addBadge,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

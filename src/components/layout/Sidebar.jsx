@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
-  BookOpen, ClipboardList, Target, Brain,
+  BookOpen, ClipboardList, Target, Brain, Sparkles,
   ChevronLeft, ChevronRight, LogOut,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -28,6 +28,7 @@ const NAV_GROUPS = [
       { to: '/lessons', icon: BookOpen, label: 'Dersler' },
       { to: '/exams', icon: ClipboardList, label: 'Sınav Takvimi' },
       { to: '/yks', icon: Brain, label: 'YKS Merkezi' },
+      { to: '/ai', icon: Sparkles, label: 'AI Merkezi' },
       { to: '/goals', icon: Target, label: 'Hedefler' },
     ],
   },
@@ -66,12 +67,13 @@ export default function Sidebar() {
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/5 relative z-10 ${collapsed ? 'justify-center px-2' : ''}`}>
         <motion.div
-          className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shrink-0"
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
           style={{ boxShadow: '0 0 16px rgba(124,58,237,0.5)' }}
           whileHover={{ scale: 1.08, rotate: 5 }}
-          transition={{ type: 'spring', stiffness: 300 }}
+          animate={{ filter: ['drop-shadow(0 0 4px #7c3aed66)', 'drop-shadow(0 0 10px #7c3aedaa)', 'drop-shadow(0 0 4px #7c3aed66)'] }}
+          transition={{ type: 'spring', stiffness: 300, filter: { duration: 3, repeat: Infinity, ease: 'easeInOut' } }}
         >
-          <span className="text-white font-bold text-xs">GT</span>
+          <img src="/logo-white.png" alt="Dash YKS" className="w-full h-full object-contain p-0.5" />
         </motion.div>
         <AnimatePresence>
           {!collapsed && (
@@ -82,7 +84,7 @@ export default function Sidebar() {
               transition={{ duration: 0.2 }}
               className="font-semibold text-zinc-100 text-sm whitespace-nowrap"
             >
-              Günlük Takip
+              Dash YKS
             </motion.span>
           )}
         </AnimatePresence>

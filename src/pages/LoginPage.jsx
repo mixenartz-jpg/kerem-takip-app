@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Globe2, ArrowRight, Sparkles, MailCheck, RefreshCw } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Globe2, ArrowRight, MailCheck, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 function Orb({ cx, cy, r, color, delay = 0 }) {
@@ -100,6 +100,7 @@ const firebaseErrorMap = {
   'auth/popup-closed-by-user': 'Google girişi iptal edildi.',
   'auth/popup-blocked': 'Popup engellendi. Tarayıcı ayarlarını kontrol et.',
   'auth/cancelled-popup-request': 'Google girişi iptal edildi.',
+  'auth/account-exists-with-different-credential': 'Bu e-posta başka bir yöntemle kayıtlı. E-posta ve şifre ile giriş yap.',
 };
 
 function toReadable(err) {
@@ -313,13 +314,15 @@ export default function LoginPage() {
             transition={{ delay: 0.1 }}
           >
             <motion.div
-              className="w-14 h-14 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30 mb-4"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 overflow-hidden"
+              style={{ boxShadow: '0 0 24px rgba(124,58,237,0.5)' }}
               whileHover={{ rotate: [0, -5, 5, 0], scale: 1.05 }}
-              transition={{ duration: 0.4 }}
+              animate={{ filter: ['drop-shadow(0 0 6px #7c3aed88)', 'drop-shadow(0 0 18px #7c3aedcc)', 'drop-shadow(0 0 6px #7c3aed88)'] }}
+              transition={{ duration: 0.4, filter: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } }}
             >
-              <Sparkles size={24} className="text-white" />
+              <img src="/logo.png" alt="Dash YKS" className="w-full h-full object-contain" />
             </motion.div>
-            <h1 className="text-xl font-bold text-zinc-100">Günlük Takip</h1>
+            <h1 className="text-xl font-bold text-zinc-100">Dash YKS</h1>
             <p className="text-zinc-500 text-sm mt-1">
               {mode === 'login' ? 'Hesabınıza giriş yapın' : 'Hesap oluşturun'}
             </p>

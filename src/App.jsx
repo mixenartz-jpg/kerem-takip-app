@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { MailCheck, RefreshCw } from 'lucide-react';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AIProvider } from './context/AIContext';
@@ -25,6 +26,7 @@ import Lessons from './pages/Lessons';
 import Exams from './pages/Exams';
 import Goals from './pages/Goals';
 import YKS from './pages/YKS';
+import AIMerkezi from './pages/AIMerkezi';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
@@ -39,6 +41,7 @@ const PAGE_TITLES = {
   '/exams': 'Sınav Takvimi',
   '/yks': 'YKS Merkezi',
   '/goals': 'Hedefler',
+  '/ai': 'AI Merkezi',
 };
 
 function AppLayout() {
@@ -81,6 +84,7 @@ function AppLayout() {
               <Route path="/exams" element={<PageTransition><Exams /></PageTransition>} />
               <Route path="/yks" element={<PageTransition><YKS /></PageTransition>} />
               <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
+              <Route path="/ai" element={<PageTransition><AIMerkezi /></PageTransition>} />
             </Routes>
           </AnimatePresence>
         </main>
@@ -98,6 +102,80 @@ function AppLayout() {
   );
 }
 
+/* ── Email verification screen (shown when user signed up with email but hasn't verified) ── */
+function VerifyGate() {
+  const { user, logout, resendVerification, refreshUser } = useAuth();
+  const [checking, setChecking] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resentLoading, setResentLoading] = useState(false);
+
+  const handleCheck = async () => {
+    setChecking(true);
+    await refreshUser();
+    setTimeout(() => setChecking(false), 1500);
+  };
+
+  const handleResend = async () => {
+    setResentLoading(true);
+    try {
+      await resendVerification();
+      setResent(true);
+      setTimeout(() => setResent(false), 5000);
+    } catch { /* ignore */ }
+    finally { setResentLoading(false); }
+  };
+
+  return (
+    <motion.div
+      key="verify"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-[#0f0f11] flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+        className="w-full max-w-sm bg-zinc-950/90 backdrop-blur-xl border border-zinc-800/60 rounded-2xl p-8 shadow-2xl shadow-black/60"
+      >
+        <div className="flex flex-col items-center mb-6">
+          <motion.div
+            className="w-16 h-16 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center mb-4"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <MailCheck size={28} className="text-violet-400" />
+          </motion.div>
+          <h2 className="text-lg font-bold text-zinc-100">E-postanı Doğrula</h2>
+          <p className="text-zinc-500 text-xs text-center mt-2 leading-relaxed">
+            <span className="text-violet-400">{user?.email}</span> adresine doğrulama maili gönderdik. Linke tıkladıktan sonra devam et.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <motion.button
+            onClick={handleCheck}
+            disabled={checking}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 text-white font-semibold rounded-xl py-3 text-sm transition-all"
+          >
+            {checking
+              ? <motion.div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} />
+              : <><RefreshCw size={15} /> Doğruladım, devam et</>}
+          </motion.button>
+          <button onClick={handleResend} disabled={resentLoading || resent} className="w-full py-2.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
+            {resent ? '✓ Mail tekrar gönderildi!' : resentLoading ? 'Gönderiliyor...' : 'Maili tekrar gönder'}
+          </button>
+          <button onClick={logout} className="w-full py-2 text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+            Farklı hesapla giriş yap
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 /* ── Auth-aware inner app ── */
 function AuthGate() {
   const { user, loading } = useAuth();
@@ -109,9 +187,14 @@ function AuthGate() {
       setPhase('login');
       return;
     }
+    // Google users are always verified; email users must verify
+    if (!user.emailVerified) {
+      setPhase('verify');
+      return;
+    }
     const key = `gt-onboarded-${user.uid}`;
     setPhase(localStorage.getItem(key) ? 'app' : 'onboarding');
-  }, [user, loading]);
+  }, [user, loading, user?.emailVerified]);
 
   const handleOnboardingDone = () => {
     localStorage.setItem(`gt-onboarded-${user.uid}`, '1');
@@ -133,6 +216,7 @@ function AuthGate() {
   return (
     <AnimatePresence mode="wait">
       {phase === 'login' && <LoginPage key="login" />}
+      {phase === 'verify' && <VerifyGate key="verify" />}
       {phase === 'onboarding' && (
         <OnboardingScreen key="onboarding" onFinish={handleOnboardingDone} />
       )}

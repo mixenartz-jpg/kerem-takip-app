@@ -105,13 +105,15 @@ export default function SplashScreen({ onFinish }) {
               transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
             />
 
-            {/* Core */}
-            <div
-              className="absolute flex items-center justify-center rounded-full text-3xl z-10"
-              style={{ inset: 36, background: 'radial-gradient(circle, #1e1b4b, #0a0a0f)', boxShadow: '0 0 30px #7c3aed66' }}
+            {/* Core — logo */}
+            <motion.div
+              className="absolute z-10 flex items-center justify-center"
+              style={{ inset: 30 }}
+              animate={{ filter: ['drop-shadow(0 0 8px #7c3aed88)', 'drop-shadow(0 0 20px #7c3aedcc)', 'drop-shadow(0 0 8px #7c3aed88)'] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             >
-              📅
-            </div>
+              <img src="/logo-white.png" alt="Dash YKS" className="w-full h-full object-contain" />
+            </motion.div>
           </motion.div>
 
           {/* App name */}
@@ -122,7 +124,7 @@ export default function SplashScreen({ onFinish }) {
             transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
             <h1 className="text-3xl font-bold text-zinc-100 tracking-tight relative overflow-hidden">
-              Günlük Takip
+              Dash YKS
               <motion.span
                 className="absolute inset-0"
                 style={{ background: 'linear-gradient(90deg, transparent 0%, #ffffff18 50%, transparent 100%)', skewX: -20 }}
