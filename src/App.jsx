@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MailCheck, RefreshCw } from 'lucide-react';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AIProvider } from './context/AIContext';
 import AIAssistant, { AIFloatingButton } from './components/ai/AIAssistant';
@@ -13,6 +13,8 @@ import CommandPalette from './components/layout/CommandPalette';
 import PageTransition from './components/layout/PageTransition';
 import SplashScreen from './components/SplashScreen';
 import OnboardingScreen from './components/OnboardingScreen';
+import ModeSelectScreen from './components/ModeSelectScreen';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
@@ -179,12 +181,13 @@ function VerifyGate() {
 /* ── Auth-aware inner app ── */
 function AuthGate() {
   const { user, loading } = useAuth();
+  const { updateUserMode } = useApp();
   const [phase, setPhase] = useState(null); // null = checking
 
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      setPhase('login');
+      setPhase('landing');
       return;
     }
     // Google users are always verified; email users must verify
@@ -192,9 +195,28 @@ function AuthGate() {
       setPhase('verify');
       return;
     }
-    const key = `gt-onboarded-${user.uid}`;
-    setPhase(localStorage.getItem(key) ? 'app' : 'onboarding');
+    const modeKey      = `gt-mode-${user.uid}`;
+    const onboardedKey = `gt-onboarded-${user.uid}`;
+    if (!localStorage.getItem(modeKey)) {
+      setPhase('mode-select');
+    } else if (!localStorage.getItem(onboardedKey)) {
+      setPhase('onboarding');
+    } else {
+      setPhase('app');
+    }
   }, [user, loading, user?.emailVerified]);
+
+  const handleModeSelect = async (mode) => {
+    await updateUserMode(mode);
+    const onboardedKey = `gt-onboarded-${user.uid}`;
+    setPhase(localStorage.getItem(onboardedKey) ? 'app' : 'onboarding');
+  };
+
+  const handleModeSkip = () => {
+    updateUserMode('daily');
+    const onboardedKey = `gt-onboarded-${user.uid}`;
+    setPhase(localStorage.getItem(onboardedKey) ? 'app' : 'onboarding');
+  };
 
   const handleOnboardingDone = () => {
     localStorage.setItem(`gt-onboarded-${user.uid}`, '1');
@@ -215,6 +237,17 @@ function AuthGate() {
 
   return (
     <AnimatePresence mode="wait">
+      {phase === 'landing' && (
+        <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
+          <LandingPage
+            onLogin={() => setPhase('login')}
+            onSignup={() => setPhase('login')}
+          />
+        </motion.div>
+      )}
+      {phase === 'mode-select' && (
+        <ModeSelectScreen key="mode-select" onSelect={handleModeSelect} onSkip={handleModeSkip} />
+      )}
       {phase === 'login' && <LoginPage key="login" />}
       {phase === 'verify' && <VerifyGate key="verify" />}
       {phase === 'onboarding' && (

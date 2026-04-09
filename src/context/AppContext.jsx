@@ -36,6 +36,7 @@ export const DEFAULT_STATE = {
   aiPlanCache: null,
   aiStreak: { count: 0, lastDate: null },
   badges: [],
+  userMode: null, // 'yks' | 'daily' | null
 };
 
 export function AppProvider({ children }) {
@@ -391,6 +392,20 @@ export function AppProvider({ children }) {
     badges.includes(badgeId) ? badges : [...badges, badgeId]
   );
 
+  // ── USER MODE ──────────────────────────────────────────
+  const updateUserMode = useCallback(async (mode) => {
+    setState(prev => ({ ...prev, userMode: mode }));
+    if (user) localStorage.setItem(`gt-mode-${user.uid}`, mode);
+    if (user) {
+      const docRef = doc(db, 'users', user.uid);
+      try {
+        await setDoc(docRef, { userMode: mode }, { merge: true });
+      } catch (err) {
+        console.error('updateUserMode Firestore error:', err);
+      }
+    }
+  }, [user]);
+
   const value = {
     state,
     dbLoading,
@@ -433,6 +448,9 @@ export function AppProvider({ children }) {
     addHataDefteri, updateHataDefteri, deleteHataDefteri, reviewHataDefteri,
     // AI plan actions
     setAIPlanCache, toggleAIPlanBlock, addBadge,
+    // User mode
+    updateUserMode,
+    userMode: state.userMode,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

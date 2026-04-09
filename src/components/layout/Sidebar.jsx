@@ -8,41 +8,44 @@ import {
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useApp } from '../../context/AppContext';
 
-const NAV_GROUPS = [
-  {
-    label: 'PLANLAMA',
-    items: [
-      { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/tasks', icon: CheckSquare, label: 'Görevler' },
-      { to: '/calendar', icon: Calendar, label: 'Takvim' },
-      { to: '/notes', icon: FileText, label: 'Notlar' },
-      { to: '/projects', icon: FolderKanban, label: 'Projeler' },
-      { to: '/habits', icon: Activity, label: 'Alışkanlıklar' },
-      { to: '/pomodoro', icon: Timer, label: 'Pomodoro' },
-    ],
-  },
-  {
-    label: 'ÖĞRENME',
-    items: [
-      { to: '/lessons', icon: BookOpen, label: 'Dersler' },
-      { to: '/exams', icon: ClipboardList, label: 'Sınav Takvimi' },
-      { to: '/yks', icon: Brain, label: 'YKS Merkezi' },
-      { to: '/ai', icon: Sparkles, label: 'AI Merkezi' },
-      { to: '/goals', icon: Target, label: 'Hedefler' },
-    ],
-  },
-  {
-    label: 'ANALİZ',
-    items: [
-      { to: '/stats', icon: BarChart2, label: 'İstatistikler' },
-    ],
-  },
-];
+const ALL_ITEMS = {
+  dashboard: { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+  tasks:     { to: '/tasks',     icon: CheckSquare,     label: 'Görevler' },
+  calendar:  { to: '/calendar',  icon: Calendar,        label: 'Takvim' },
+  notes:     { to: '/notes',     icon: FileText,        label: 'Notlar' },
+  projects:  { to: '/projects',  icon: FolderKanban,    label: 'Projeler' },
+  habits:    { to: '/habits',    icon: Activity,        label: 'Alışkanlıklar' },
+  pomodoro:  { to: '/pomodoro',  icon: Timer,           label: 'Pomodoro' },
+  lessons:   { to: '/lessons',   icon: BookOpen,        label: 'Dersler' },
+  exams:     { to: '/exams',     icon: ClipboardList,   label: 'Sınav Takvimi' },
+  yks:       { to: '/yks',       icon: Brain,           label: 'YKS Merkezi' },
+  ai:        { to: '/ai',        icon: Sparkles,        label: 'AI Merkezi' },
+  goals:     { to: '/goals',     icon: Target,          label: 'Hedefler' },
+  stats:     { to: '/stats',     icon: BarChart2,       label: 'İstatistikler' },
+};
+
+function getNavGroups(mode) {
+  if (mode === 'yks') {
+    return [
+      { label: 'YKS HAZIRLIK', items: ['yks', 'lessons', 'exams', 'ai', 'goals'].map(k => ALL_ITEMS[k]) },
+      { label: 'PLANLAMA',     items: ['pomodoro', 'tasks', 'habits', 'calendar'].map(k => ALL_ITEMS[k]) },
+      { label: 'ANALİZ',       items: ['stats', 'dashboard'].map(k => ALL_ITEMS[k]) },
+    ];
+  }
+  return [
+    { label: 'PLANLAMA', items: ['dashboard', 'tasks', 'calendar', 'notes', 'projects', 'habits', 'pomodoro'].map(k => ALL_ITEMS[k]) },
+    { label: 'ÖĞRENME',  items: ['lessons', 'exams', 'yks', 'ai', 'goals'].map(k => ALL_ITEMS[k]) },
+    { label: 'ANALİZ',   items: ['stats'].map(k => ALL_ITEMS[k]) },
+  ];
+}
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
+  const { userMode, updateUserMode } = useApp();
+  const navGroups = getNavGroups(userMode);
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -92,7 +95,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 py-3 px-2 flex flex-col gap-3 overflow-y-auto overflow-x-hidden relative z-10">
-        {NAV_GROUPS.map((group) => (
+        {navGroups.map((group) => (
           <div key={group.label}>
             <AnimatePresence>
               {!collapsed && (
@@ -174,6 +177,33 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Mode toggle pill */}
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="px-3 pb-2 relative z-10"
+          >
+            <div className="flex rounded-xl overflow-hidden border border-white/7 bg-white/[0.02]">
+              {[['yks', '🎯', 'YKS'], ['daily', '⚡', 'Günlük']].map(([m, icon, lbl]) => (
+                <button
+                  key={m}
+                  onClick={() => updateUserMode(m)}
+                  className="flex-1 py-1.5 text-[11px] font-semibold transition-all"
+                  style={{
+                    background: userMode === m ? 'rgba(139,92,246,0.2)' : 'transparent',
+                    color: userMode === m ? '#a78bfa' : 'rgba(255,255,255,0.3)',
+                    border: 'none', cursor: 'pointer',
+                  }}
+                >
+                  {icon} {lbl}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* User + Logout */}
       <div className="border-t border-white/5 p-2 space-y-1 relative z-10">
