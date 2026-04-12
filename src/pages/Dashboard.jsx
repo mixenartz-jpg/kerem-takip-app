@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { CheckSquare, Clock, Activity, FolderKanban, Flame, TrendingUp,
-  BookOpen, ClipboardList, Target, AlertCircle, ArrowRight, Zap } from 'lucide-react';
+  BookOpen, ClipboardList, Target, AlertCircle, ArrowRight, Zap,
+  Brain, Sparkles, ListTodo, Timer, BarChart2, Youtube, Trophy } from 'lucide-react';
 import { differenceInDays, parseISO, isPast } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -135,7 +136,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stat cards */}
-      <motion.div variants={container} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div variants={container} className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <StatCard icon={CheckSquare} label="Bugün tamamlandı" value={completedToday}
           sub={`${pendingTasks} bekliyor`} color="blue" delay={0.05}
           onClick={() => navigate('/tasks')} />
@@ -148,6 +149,34 @@ export default function Dashboard() {
         <StatCard icon={Flame} label="En uzun seri" value={topStreak}
           sub="gün üst üste" color="red" delay={0.2}
           onClick={() => navigate('/habits')} />
+      </motion.div>
+
+      {/* Hızlı Erişim */}
+      <motion.div variants={cardVariants}>
+        <h3 className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase mb-2.5 px-0.5">Hızlı Erişim</h3>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {[
+            { to: '/daily-todos', icon: ListTodo, label: 'Yapılacaklar', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+            { to: '/ai', icon: Sparkles, label: 'AI Merkezi', color: 'text-pink-400', bg: 'bg-pink-500/10' },
+            { to: '/yks', icon: Brain, label: 'YKS', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+            { to: '/pomodoro', icon: Timer, label: 'Pomodoro', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+            { to: '/leaderboard', icon: Trophy, label: 'Sıralama', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+            { to: '/stats', icon: BarChart2, label: 'İstatistik', color: 'text-green-400', bg: 'bg-green-500/10' },
+          ].map(({ to, icon: Icon, label, color, bg }) => (
+            <motion.button
+              key={to}
+              onClick={() => navigate(to)}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors"
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${bg}`}>
+                <Icon size={16} className={color} />
+              </div>
+              <span className="text-[10px] text-zinc-500 font-medium leading-tight text-center">{label}</span>
+            </motion.button>
+          ))}
+        </div>
       </motion.div>
 
       {/* Grid */}

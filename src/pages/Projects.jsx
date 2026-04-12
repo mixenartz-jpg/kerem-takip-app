@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, MoreHorizontal, ChevronLeft } from 'lucide-react';
-import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useApp } from '../context/AppContext';
@@ -114,13 +114,14 @@ function KanbanCard({ card, projectId, columnId, onEdit, onDelete }) {
   );
 }
 
-function KanbanColumn({ column, project, onAddCard }) {
+function KanbanColumn({ column, project, onAddCard, isOver }) {
   const { deleteCard, updateCard, deleteColumn } = useApp();
   const [addOpen, setAddOpen] = useState(false);
   const [editCard, setEditCard] = useState(null);
+  const { setNodeRef } = useDroppable({ id: column.id });
 
   return (
-    <div className="w-72 shrink-0 flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl">
+    <div className={`w-72 shrink-0 flex flex-col bg-zinc-900 border rounded-xl transition-colors ${isOver ? 'border-violet-500/60' : 'border-zinc-800'}`}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <span className="font-medium text-zinc-200 text-sm">{column.name}</span>
@@ -137,7 +138,7 @@ function KanbanColumn({ column, project, onAddCard }) {
       </div>
 
       <SortableContext items={column.cards.map(c => c.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-16">
+        <div ref={setNodeRef} className={`flex-1 overflow-y-auto p-3 space-y-2 min-h-16 ${isOver && column.cards.length === 0 ? 'bg-violet-500/5 rounded-b-xl' : ''}`}>
           {column.cards.map(card => (
             <KanbanCard
               key={card.id} card={card}
@@ -183,6 +184,7 @@ export default function Projects() {
   const [newColName, setNewColName] = useState('');
   const [addingCol, setAddingCol] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
+  const [overColId, setOverColId] = useState(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -191,17 +193,33 @@ export default function Projects() {
   const totalCards = (p) => p.columns.reduce((a, c) => a + c.cards.length, 0);
   const doneCards = (p) => p.columns.find(c => c.name === 'Tamamlandı')?.cards.length || 0;
 
+  // Find which column a card or column id belongs to
+  const findColumn = (id) => {
+    if (!project) return null;
+    // Direct column id match
+    const col = project.columns.find(c => c.id === id);
+    if (col) return col;
+    // Card id match
+    return project.columns.find(c => c.cards.some(card => card.id === id)) || null;
+  };
+
+  const handleDragOver = (e) => {
+    const { over } = e;
+    if (!over || !project) { setOverColId(null); return; }
+    const col = findColumn(over.id);
+    setOverColId(col?.id || null);
+  };
+
   const handleDragEnd = (e) => {
     const { active, over } = e;
-    if (!over || active.id === over.id || !project) return;
+    setOverColId(null);
+    if (!over || !project) return;
 
-    let fromCol, fromCard, toCol;
-    for (const col of project.columns) {
-      const card = col.cards.find(c => c.id === active.id);
-      if (card) { fromCol = col; fromCard = card; }
-      if (col.cards.find(c => c.id === over.id) || col.id === over.id) toCol = col;
-    }
+    const fromCol = findColumn(active.id);
+    const toCol = findColumn(over.id);
     if (!fromCol || !toCol) return;
+    if (fromCol.id === toCol.id && active.id === over.id) return;
+
     const toIndex = toCol.cards.findIndex(c => c.id === over.id);
     moveCard(project.id, fromCol.id, toCol.id, active.id, toIndex === -1 ? toCol.cards.length : toIndex);
   };

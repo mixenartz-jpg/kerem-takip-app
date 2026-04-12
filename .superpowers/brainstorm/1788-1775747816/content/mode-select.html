@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mod Seçimi Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter',sans-serif;
+  background:#06050f; color:#f1f0fb;
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Aurora BG */
+.aurora{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);animation:drift 18s ease-in-out infinite;}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+
+.container{
+  position:relative;z-index:1;
+  max-width:760px;width:100%;padding:40px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:32px;
+  text-align:center;
+}
+
+.step-badge{
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(167,139,250,0.7);font-family:'Inter',sans-serif;
+}
+
+h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(28px,5vw,46px);font-weight:800;line-height:1.12;letter-spacing:-.03em;
+}
+.sub{font-size:15px;color:rgba(241,240,251,0.55);line-height:1.6;max-width:460px;}
+
+/* Cards */
+.cards{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;
+}
+.mode-card{
+  padding:32px 28px;border-radius:20px;
+  background:rgba(255,255,255,0.03);
+  border:2px solid rgba(255,255,255,0.08);
+  cursor:pointer;transition:all .25s;text-align:left;
+  position:relative;overflow:hidden;
+}
+.mode-card::before{
+  content:'';position:absolute;inset:0;border-radius:20px;
+  opacity:0;transition:opacity .3s;
+}
+.mode-card.yks::before{
+  background:radial-gradient(circle at 20% 20%,rgba(52,211,153,0.08),transparent 60%);
+}
+.mode-card.daily::before{
+  background:radial-gradient(circle at 20% 20%,rgba(139,92,246,0.08),transparent 60%);
+}
+.mode-card:hover{transform:translateY(-4px);}
+.mode-card.yks:hover{border-color:rgba(52,211,153,0.35);}
+.mode-card.daily:hover{border-color:rgba(139,92,246,0.35);}
+
+.mode-card.selected-yks{
+  border-color:#34d399;
+  background:rgba(52,211,153,0.06);
+  box-shadow:0 0 0 1px rgba(52,211,153,0.15),0 16px 40px rgba(52,211,153,0.1);
+}
+.mode-card.selected-daily{
+  border-color:#8b5cf6;
+  background:rgba(139,92,246,0.08);
+  box-shadow:0 0 0 1px rgba(139,92,246,0.2),0 16px 40px rgba(139,92,246,0.12);
+}
+
+.mode-emoji{font-size:40px;display:block;margin-bottom:16px;}
+.mode-title{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+  letter-spacing:-.02em;margin-bottom:8px;
+}
+.mode-desc{font-size:13px;color:rgba(241,240,251,0.55);line-height:1.55;margin-bottom:16px;}
+
+.mode-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.tag{
+  padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;font-family:'Inter',sans-serif;
+}
+.tag-mint{background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.2);}
+.tag-violet{background:rgba(139,92,246,0.1);color:#a78bfa;border:1px solid rgba(139,92,246,0.2);}
+
+.check-ring{
+  position:absolute;top:16px;right:16px;
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;transition:all .25s;
+}
+.mode-card.selected-yks .check-ring{
+  background:#34d399;border-color:#34d399;color:#06050f;font-weight:700;
+}
+.mode-card.selected-daily .check-ring{
+  background:#8b5cf6;border-color:#8b5cf6;color:#fff;font-weight:700;
+}
+
+/* Sidebar preview */
+.preview-row{
+  width:100%;display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.preview-card{
+  border-radius:14px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.07);
+  opacity:.3;transition:opacity .4s;
+}
+.preview-card.active{opacity:1;}
+.preview-header{
+  padding:8px 12px;font-size:11px;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+  font-family:'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;
+}
+.preview-body{padding:10px;display:flex;flex-direction:column;gap:4px;}
+.sidebar-item{
+  padding:7px 10px;border-radius:7px;font-size:12px;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.03);font-weight:500;
+}
+.sidebar-item.active-item{background:rgba(52,211,153,0.1);color:#34d399;}
+.sidebar-item.active-item.violet{background:rgba(139,92,246,0.1);color:#a78bfa;}
+.si-icon{font-size:14px;}
+
+/* CTA button */
+.cta-btn{
+  padding:14px 40px;border-radius:12px;
+  background:linear-gradient(135deg,#8b5cf6,#6366f1);
+  color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;letter-spacing:-.01em;
+  box-shadow:0 4px 20px rgba(139,92,246,0.35);
+  transition:all .2s;opacity:.4;
+}
+.cta-btn.ready{opacity:1;}
+.cta-btn.ready:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,0.45);}
+
+.skip-txt{font-size:12px;color:rgba(241,240,251,0.3);cursor:pointer;}
+.skip-txt:hover{color:rgba(241,240,251,0.6);}
+</style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="blob" style="width:400px;height:400px;background:rgba(139,92,246,0.08);top:-10%;left:60%"></div>
+  <div class="blob" style="width:300px;height:300px;background:rgba(52,211,153,0.05);top:60%;left:5%;animation-delay:-9s"></div>
+</div>
+
+<div class="container">
+  <div class="step-badge">Adım 1 / 1 · Kurulum</div>
+
+  <h1>Dash YKS'yi nasıl<br>kullanmak istiyorsun?</h1>
+  <p class="sub">Seçimin arayüzü ve önerileri kişiselleştirir. İstediğin zaman değiştirebilirsin.</p>
+
+  <div class="cards">
+    <!-- YKS -->
+    <div class="mode-card yks" id="cardYks" onclick="select('yks')">
+      <div class="check-ring" id="chkYks">✓</div>
+      <span class="mode-emoji">🎯</span>
+      <div class="mode-title">YKS Odaklı</div>
+      <div class="mode-desc">TYT / AYT hazırlığı için optimize edilmiş. Deneme analizi, hata defteri ve AI çalışma planı ön planda.</div>
+      <div class="mode-tags">
+        <span class="tag tag-mint">Deneme Analizi</span>
+        <span class="tag tag-mint">Hata Defteri</span>
+        <span class="tag tag-mint">Net Takibi</span>
+        <span class="tag tag-mint">AI Plan</span>
+      </div>
+    </div>
+
+    <!-- Günlük -->
+    <div class="mode-card daily" id="cardDaily" onclick="select('daily')">
+      <div class="check-ring" id="chkDaily">✓</div>
+      <span class="mode-emoji">⚡</span>
+      <div class="mode-title">Genel Üretkenlik</div>
+      <div class="mode-desc">Görevler, projeler, alışkanlıklar ve notlar ön planda. YKS araçlarına erişim hâlâ var.</div>
+      <div class="mode-tags">
+        <span class="tag tag-violet">Görev Yönetimi</span>
+        <span class="tag tag-violet">Kanban</span>
+        <span class="tag tag-violet">Alışkanlıklar</span>
+        <span class="tag tag-violet">Notlar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar preview -->
+  <div class="preview-row">
+    <div class="preview-card" id="prevYks">
+      <div class="preview-header" style="background:rgba(52,211,153,0.08);color:#34d399">
+        <span>🎯</span> YKS Modu Sidebar
+      </div>
+      <div class="preview-body">
+        <div class="sidebar-item active-item"><span class="si-icon">🎯</span>YKS Merkezi</div>
+        <div class="sidebar-item active-item"><span class="si-icon">📓</span>Hata Defteri</div>
+        <div class="sidebar-item active-item"><span class="si-icon">📚</span>Dersler</div>
+        <div class="sidebar-item active-item"><span class="si-icon">📝</span>Sınavlar</div>
+        <div class="sidebar-item" style="opacity:.4"><span class="si-icon">📊</span>Dashboard</div>
+        <div class="sidebar-item" style="opacity:.4"><span class="si-icon">✅</span>Görevler</div>
+      </div>
+    </div>
+    <div class="preview-card" id="prevDaily">
+      <div class="preview-header" style="background:rgba(139,92,246,0.08);color:#a78bfa">
+        <span>⚡</span> Genel Mod Sidebar
+      </div>
+      <div class="preview-body">
+        <div class="sidebar-item active-item violet"><span class="si-icon">📊</span>Dashboard</div>
+        <div class="sidebar-item active-item violet"><span class="si-icon">✅</span>Görevler</div>
+        <div class="sidebar-item active-item violet"><span class="si-icon">🔥</span>Alışkanlıklar</div>
+        <div class="sidebar-item active-item violet"><span class="si-icon">📁</span>Projeler</div>
+        <div class="sidebar-item" style="opacity:.4"><span class="si-icon">🎯</span>YKS Merkezi</div>
+        <div class="sidebar-item" style="opacity:.4"><span class="si-icon">📓</span>Hata Defteri</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="cta-btn" id="ctaBtn">Başlayalım →</button>
+  <span class="skip-txt">Şimdi değil, sonra ayarlardan değiştiririm</span>
+</div>
+
+<script>
+let chosen = null;
+function select(mode) {
+  chosen = mode;
+  const cy = document.getElementById('cardYks');
+  const cd = document.getElementById('cardDaily');
+  const py = document.getElementById('prevYks');
+  const pd = document.getElementById('prevDaily');
+  const btn = document.getElementById('ctaBtn');
+
+  cy.className = 'mode-card yks' + (mode==='yks'?' selected-yks':'');
+  cd.className = 'mode-card daily' + (mode==='daily'?' selected-daily':'');
+  py.classList.toggle('active', mode==='yks');
+  pd.classList.toggle('active', mode==='daily');
+  btn.classList.toggle('ready', true);
+  btn.textContent = mode==='yks' ? '🎯 YKS Moduna Geç →' : '⚡ Üretkenlik Moduna Geç →';
+}
+</script>
+</body>
+</html>

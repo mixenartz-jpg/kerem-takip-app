@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dash YKS — Landing Page v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   RESET & TOKENS
+══════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  /* Palette — deep space with electric violet + mint spark */
+  --bg:       #06050f;      /* near-black, blue-tinted */
+  --bg2:      #08070f;
+  --surface:  rgba(255,255,255,0.035);
+  --border:   rgba(255,255,255,0.07);
+  --border-v: rgba(139,92,246,0.25);
+
+  --violet:   #8b5cf6;      /* primary accent */
+  --violet-l: #a78bfa;      /* lighter */
+  --violet-d: #6d28d9;      /* darker */
+  --indigo:   #6366f1;      /* secondary */
+  --mint:     #34d399;      /* highlight / success */
+  --mint-d:   #10b981;
+
+  --text:     #f1f0fb;
+  --muted:    rgba(241,240,251,0.45);
+  --sub:      rgba(241,240,251,0.65);
+
+  /* Font */
+  --f-display: 'Syne', sans-serif;
+  --f-body:    'Inter', system-ui, sans-serif;
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--f-body);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2,h3,h4,
+.logo-name,
+.nav-cta,
+.btn-primary,
+.btn-secondary,
+.hstat-num,
+.pc-price,
+.remotion-title,
+.cta-title { font-family: var(--f-display); }
+
+/* ══════════════════════════════════════════
+   NOISE TEXTURE (subtle)
+══════════════════════════════════════════ */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.4;
+}
+
+/* ══════════════════════════════════════════
+   NAV
+══════════════════════════════════════════ */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 0 48px; height: 64px;
+  background: rgba(6,5,15,0.65);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-icon {
+  width:34px; height:34px; border-radius:9px;
+  background: linear-gradient(135deg, var(--violet), var(--indigo));
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+  box-shadow: 0 0 16px rgba(139,92,246,0.35);
+}
+.logo-name { font-size:17px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
+.nav-links { display:flex; gap:28px; }
+.nav-links a {
+  font-size:14px; font-weight:500; color:var(--muted);
+  text-decoration:none; transition:color .2s;
+}
+.nav-links a:hover { color:var(--text); }
+.nav-right { display:flex; align-items:center; gap:12px; }
+.nav-login {
+  font-size:14px; font-weight:500; color:var(--muted);
+  background:none; border:none; cursor:pointer; transition:color .2s;
+}
+.nav-login:hover { color:var(--text); }
+.nav-cta {
+  padding: 8px 20px; border-radius:9px;
+  background: linear-gradient(135deg, var(--violet), var(--indigo));
+  color:#fff; font-size:14px; font-weight:700;
+  border:none; cursor:pointer; letter-spacing:-0.01em;
+  box-shadow: 0 2px 12px rgba(139,92,246,0.3);
+  transition: box-shadow .2s, transform .15s;
+}
+.nav-cta:hover { transform:translateY(-1px); box-shadow: 0 4px 20px rgba(139,92,246,0.45); }
+
+/* ══════════════════════════════════════════
+   SECTION BASE
+══════════════════════════════════════════ */
+section {
+  scroll-snap-align: start;
+  min-height: 100vh;
+  position: relative;
+  display: flex; align-items:center; justify-content:center;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 1 — HERO
+══════════════════════════════════════════ */
+#hero { background: var(--bg); }
+
+/* Video layer */
+.video-bg {
+  position:absolute; inset:0; z-index:1; overflow:hidden;
+}
+.video-bg video {
+  width:100%; height:100%; object-fit:cover;
+  opacity:0.28;
+}
+/* Multi-layer overlay: darken edges, push colour */
+.video-overlay {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 10%,  rgba(99,102,241,0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 85% 75%,  rgba(139,92,246,0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 80%,  rgba(52,211,153,0.06) 0%, transparent 50%),
+    linear-gradient(to bottom, rgba(6,5,15,0.25) 0%, rgba(6,5,15,0.88) 100%);
+}
+
+/* Animated grid */
+.grid-overlay {
+  position:absolute; inset:0; z-index:2;
+  background-image:
+    linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: gridPulse 5s ease-in-out infinite;
+}
+@keyframes gridPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+/* Aurora blobs */
+.aurora {
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+}
+.aurora-blob {
+  position:absolute; border-radius:50%; filter:blur(80px);
+  animation: drift linear infinite;
+}
+@keyframes drift {
+  0%   { transform: translate(0,0) scale(1); }
+  33%  { transform: translate(30px,-20px) scale(1.05); }
+  66%  { transform: translate(-20px,15px) scale(0.97); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+/* Particles */
+.particles { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.particle {
+  position:absolute; border-radius:50%;
+  animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+  0%   { opacity:0; transform:translateY(0) scale(0); }
+  8%   { opacity:.7; transform:scale(1); }
+  90%  { opacity:.2; }
+  100% { opacity:0; transform:translateY(-140px) scale(.2); }
+}
+
+/* Hero content */
+.hero-content {
+  position:relative; z-index:3;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; max-width:840px;
+  padding: 80px 24px 0;
+}
+
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding: 5px 16px 5px 10px; border-radius:100px;
+  background: rgba(139,92,246,0.1);
+  border: 1px solid rgba(139,92,246,0.28);
+  font-size:11px; font-weight:600; color:var(--violet-l);
+  letter-spacing:.06em; text-transform:uppercase;
+  margin-bottom:32px;
+  animation: fadeUp .7s ease both;
+}
+.badge-pill {
+  background: var(--violet); border-radius:100px;
+  padding: 2px 8px; font-size:10px; color:#fff;
+  font-weight:700; letter-spacing:.03em;
+}
+.badge-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--mint); flex-shrink:0;
+  animation: blink 1.8s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--mint);
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+
+h1 {
+  font-size: clamp(42px,6.5vw,78px);
+  font-weight:800; line-height:1.08;
+  letter-spacing:-.03em;
+  margin-bottom:22px;
+  animation: fadeUp .7s .1s ease both;
+}
+.grad {
+  background: linear-gradient(135deg, #c4b5fd 0%, #818cf8 35%, var(--mint) 75%, #34d399 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.hero-sub {
+  font-size:18px; font-weight:400; color:var(--sub);
+  line-height:1.65; margin-bottom:44px; max-width:580px;
+  animation: fadeUp .7s .2s ease both;
+}
+
+.hero-ctas {
+  display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+  animation: fadeUp .7s .3s ease both;
+}
+.btn-primary {
+  padding:13px 30px; border-radius:11px;
+  background: linear-gradient(135deg, var(--violet), var(--indigo));
+  color:#fff; font-size:15px; font-weight:700; letter-spacing:-.01em;
+  border:none; cursor:pointer;
+  box-shadow: 0 4px 20px rgba(139,92,246,0.38);
+  transition: transform .2s, box-shadow .2s;
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow: 0 8px 28px rgba(139,92,246,0.5); }
+.btn-secondary {
+  padding:13px 30px; border-radius:11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color:var(--sub); font-size:15px; font-weight:600; letter-spacing:-.01em;
+  cursor:pointer; backdrop-filter:blur(8px);
+  transition: all .2s;
+}
+.btn-secondary:hover { border-color:var(--violet-l); color:var(--violet-l); background:rgba(139,92,246,0.08); }
+
+/* Stats row */
+.hero-stats {
+  display:flex; gap:0; margin-top:56px;
+  border: 1px solid var(--border);
+  border-radius:16px; overflow:hidden;
+  backdrop-filter:blur(12px);
+  background:rgba(255,255,255,0.025);
+  animation: fadeUp .7s .4s ease both;
+}
+.hstat {
+  padding: 20px 36px; text-align:center;
+  border-right: 1px solid var(--border);
+}
+.hstat:last-child { border-right:none; }
+.hstat-num {
+  font-size:26px; font-weight:800; letter-spacing:-.02em;
+  background: linear-gradient(135deg, var(--violet-l), var(--mint));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.hstat-lbl { font-size:11px; color:var(--muted); margin-top:2px; font-weight:500; }
+
+.scroll-hint {
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  z-index:3; display:flex; flex-direction:column; align-items:center; gap:8px;
+  color:var(--muted); font-size:10px; letter-spacing:.12em; font-weight:600;
+  animation: scrollBounce 2.2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%,100% { transform:translateX(-50%) translateY(0); }
+  50%      { transform:translateX(-50%) translateY(7px); }
+}
+.scroll-line {
+  width:1px; height:36px;
+  background: linear-gradient(to bottom, rgba(139,92,246,0.6), transparent);
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ══════════════════════════════════════════
+   SECTION 2 — FEATURES
+══════════════════════════════════════════ */
+#features {
+  background: linear-gradient(180deg, var(--bg) 0%, #090719 100%);
+  flex-direction:column; gap:52px; padding:100px 48px;
+}
+.section-label {
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--mint); font-weight:700; text-align:center;
+  font-family: var(--f-body);
+}
+.section-title {
+  font-size: clamp(30px,4vw,50px);
+  font-weight:800; text-align:center; line-height:1.15;
+  letter-spacing:-.03em;
+}
+
+.features-grid {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:14px; max-width:980px; width:100%;
+}
+.feat-card {
+  padding:26px; border-radius:16px;
+  background:var(--surface); border:1px solid var(--border);
+  transition: all .3s; position:relative; overflow:hidden;
+}
+.feat-card::before {
+  content:''; position:absolute; inset:0; border-radius:16px;
+  background: radial-gradient(circle at 0% 0%, rgba(139,92,246,0.08), transparent 60%);
+  opacity:0; transition:opacity .3s;
+}
+.feat-card:hover { border-color:var(--border-v); transform:translateY(-5px); }
+.feat-card:hover::before { opacity:1; }
+.feat-icon { font-size:26px; margin-bottom:14px; display:block; }
+.feat-title { font-size:15px; font-weight:700; margin-bottom:7px; letter-spacing:-.01em; font-family:var(--f-display); }
+.feat-desc { font-size:13px; color:var(--muted); line-height:1.55; }
+.feat-tag {
+  display:inline-flex; align-items:center; gap:4px;
+  margin-top:14px; padding:3px 10px; border-radius:100px;
+  font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  font-family:var(--f-body);
+}
+.feat-tag.yks { background:rgba(52,211,153,0.1); color:var(--mint); border:1px solid rgba(52,211,153,0.2); }
+.feat-tag.daily { background:rgba(139,92,246,0.1); color:var(--violet-l); border:1px solid rgba(139,92,246,0.2); }
+.feat-tag.ai { background:rgba(99,102,241,0.1); color:#a5b4fc; border:1px solid rgba(99,102,241,0.2); }
+
+/* ══════════════════════════════════════════
+   SECTION 3 — REMOTION / KİŞİSEL VIDEO
+══════════════════════════════════════════ */
+#remotion-section {
+  background: linear-gradient(135deg, #090719 0%, #0c0520 100%);
+  flex-direction:column; gap:48px; padding:100px 48px;
+}
+.remotion-split {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:56px; max-width:1020px; width:100%; align-items:center;
+}
+.remotion-title {
+  font-size:clamp(28px,3.5vw,46px); font-weight:800;
+  line-height:1.18; letter-spacing:-.03em; margin-bottom:16px;
+}
+.remotion-desc {
+  color:var(--sub); line-height:1.72; margin-bottom:28px; font-size:15px;
+}
+.rf-list { display:flex; flex-direction:column; gap:11px; }
+.rf { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--sub); }
+.rf-dot {
+  width:7px; height:7px; border-radius:50%;
+  background: linear-gradient(135deg, var(--violet), var(--mint));
+  flex-shrink:0;
+}
+
+/* Remotion preview card */
+.remotion-preview {
+  border-radius:18px; overflow:hidden;
+  border:1px solid var(--border-v);
+  background:#0c0520;
+  box-shadow: 0 24px 64px rgba(139,92,246,0.22), 0 0 0 1px rgba(139,92,246,0.1);
+}
+.rp-header {
+  padding:10px 16px;
+  background:rgba(139,92,246,0.12);
+  display:flex; align-items:center; gap:7px;
+  font-size:12px; color:var(--muted);
+  border-bottom:1px solid rgba(139,92,246,0.15);
+  font-family:var(--f-body); font-weight:500;
+}
+.rp-dot { width:9px; height:9px; border-radius:50%; }
+.rp-body {
+  padding:24px; position:relative;
+  background:radial-gradient(ellipse 80% 70% at 50% 50%, rgba(139,92,246,0.12), transparent 70%);
+}
+.rp-badge {
+  position:absolute; top:16px; right:16px;
+  padding:4px 11px; border-radius:7px; font-size:10px; font-weight:700;
+  background:linear-gradient(135deg,var(--violet),var(--mint));
+  color:#fff; font-family:var(--f-display);
+}
+.rp-hello { font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+.rp-greeting { font-size:22px; font-weight:800; margin-bottom:18px; font-family:var(--f-display); letter-spacing:-.02em; }
+.rp-greeting span { color:var(--violet-l); }
+.rp-stat-row { display:flex; gap:10px; margin-bottom:16px; }
+.rp-stat {
+  flex:1; padding:11px; border-radius:10px;
+  background:rgba(255,255,255,0.04); border:1px solid var(--border);
+  text-align:center;
+}
+.rp-stat-n { font-size:20px; font-weight:800; font-family:var(--f-display); letter-spacing:-.02em;
+  background:linear-gradient(135deg,var(--violet-l),var(--mint));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.rp-stat-l { font-size:10px; color:var(--muted); margin-top:2px; font-weight:500; }
+.rp-bar-lbl { font-size:11px; color:var(--muted); margin-bottom:5px; font-weight:500; }
+.rp-track { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; margin-bottom:8px; }
+.rp-fill { height:100%; border-radius:3px; }
+
+/* ══════════════════════════════════════════
+   SECTION 4 — PRICING
+══════════════════════════════════════════ */
+#pricing {
+  background:#090719;
+  flex-direction:column; gap:52px; padding:100px 48px;
+}
+.pricing-grid {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:20px; max-width:880px; width:100%;
+}
+.price-card {
+  padding:30px; border-radius:18px;
+  background:var(--surface); border:1px solid var(--border);
+  position:relative; transition:transform .3s;
+}
+.price-card.popular {
+  background:rgba(139,92,246,0.08);
+  border-color:var(--violet);
+  box-shadow:0 0 0 1px rgba(139,92,246,0.15), 0 20px 50px rgba(139,92,246,0.18);
+  transform:scale(1.05);
+}
+.pop-badge {
+  position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+  padding:4px 16px; border-radius:100px; font-size:11px; font-weight:700;
+  background:linear-gradient(135deg,var(--violet),var(--indigo));
+  color:#fff; white-space:nowrap; font-family:var(--f-display);
+  box-shadow:0 2px 12px rgba(139,92,246,0.4);
+}
+.pc-tier {
+  font-size:11px; font-weight:700; color:var(--muted);
+  letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px;
+  font-family:var(--f-body);
+}
+.pc-price { font-size:42px; font-weight:800; letter-spacing:-.04em; margin-bottom:5px; }
+.pc-price small { font-size:15px; font-weight:400; color:var(--muted); }
+.pc-desc { font-size:13px; color:var(--muted); margin-bottom:22px; font-weight:400; }
+.pc-features { list-style:none; display:flex; flex-direction:column; gap:9px; margin-bottom:26px; }
+.pc-features li {
+  font-size:13px; color:var(--sub);
+  display:flex; align-items:center; gap:9px; font-weight:400;
+}
+.pc-check {
+  width:17px; height:17px; border-radius:50%; flex-shrink:0;
+  background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:var(--mint);
+}
+.pc-btn {
+  width:100%; padding:11px; border-radius:10px;
+  font-size:14px; font-weight:700; cursor:pointer; border:none;
+  transition:all .2s; font-family:var(--f-display); letter-spacing:-.01em;
+}
+.pc-outline {
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--sub);
+}
+.pc-outline:hover { border-color:var(--violet); color:var(--violet-l); }
+.pc-fill {
+  background:linear-gradient(135deg,var(--violet),var(--indigo));
+  color:#fff;
+  box-shadow:0 3px 14px rgba(139,92,246,0.32);
+}
+.pc-fill:hover { box-shadow:0 5px 20px rgba(139,92,246,0.45); transform:translateY(-1px); }
+
+/* ══════════════════════════════════════════
+   SECTION 5 — FINAL CTA
+══════════════════════════════════════════ */
+#final-cta {
+  background:var(--bg);
+  flex-direction:column; text-align:center; gap:0; padding:100px 48px;
+}
+.cta-glow {
+  position:absolute; width:700px; height:700px; border-radius:50%;
+  background:radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%);
+  top:50%; left:50%; transform:translate(-50%,-50%);
+}
+.cta-content { position:relative; z-index:1; }
+.cta-title {
+  font-size:clamp(36px,5.5vw,68px); font-weight:800;
+  line-height:1.1; letter-spacing:-.04em; margin-bottom:18px;
+}
+.cta-sub { font-size:18px; color:var(--sub); margin-bottom:40px; font-weight:400; }
+.cta-btns { display:flex; gap:14px; justify-content:center; }
+.cta-fine { font-size:12px; color:var(--muted); margin-top:18px; font-weight:400; }
+
+.partner-row {
+  display:flex; gap:16px; justify-content:center; align-items:center; margin-top:48px;
+  flex-wrap:wrap;
+}
+.partner-label {
+  font-size:11px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase;
+  font-weight:600; width:100%; text-align:center; margin-bottom:4px;
+}
+.partner-pill {
+  padding:7px 18px; border-radius:9px;
+  background:var(--surface); border:1px solid var(--border);
+  font-size:12px; color:var(--muted); font-weight:500;
+}
+
+/* ══════════════════════════════════════════
+   SCROLL NAV DOTS (right side)
+══════════════════════════════════════════ */
+.nav-dots {
+  position:fixed; right:24px; top:50%; transform:translateY(-50%);
+  z-index:100; display:flex; flex-direction:column; gap:10px;
+}
+.nav-dot-item {
+  width:7px; height:7px; border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  cursor:pointer; transition:all .3s;
+  border:1px solid transparent;
+}
+.nav-dot-item.active {
+  background:var(--violet); border-color:rgba(139,92,246,0.3);
+  box-shadow:0 0 8px rgba(139,92,246,0.5);
+  width:8px; height:8px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-name">Dash YKS</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Özellikler</a>
+    <a href="#remotion-section">Video Rapor</a>
+    <a href="#pricing">Fiyatlar</a>
+  </div>
+  <div class="nav-right">
+    <button class="nav-login">Giriş Yap</button>
+    <button class="nav-cta">Ücretsiz Başla →</button>
+  </div>
+</nav>
+
+<!-- SCROLL DOTS -->
+<div class="nav-dots" id="navDots">
+  <div class="nav-dot-item active" onclick="scrollToSection(0)"></div>
+  <div class="nav-dot-item" onclick="scrollToSection(1)"></div>
+  <div class="nav-dot-item" onclick="scrollToSection(2)"></div>
+  <div class="nav-dot-item" onclick="scrollToSection(3)"></div>
+  <div class="nav-dot-item" onclick="scrollToSection(4)"></div>
+</div>
+
+<!-- ─── SECTION 1: HERO ─── -->
+<section id="hero">
+  <div class="video-bg">
+    <video autoplay muted loop playsinline>
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_171521_25968ba2-b594-4b32-aab7-f6b69398a6fa.mp4" type="video/mp4">
+    </video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <div class="aurora">
+    <div class="aurora-blob" style="width:420px;height:420px;background:rgba(139,92,246,0.1);top:10%;left:60%;animation-duration:18s;"></div>
+    <div class="aurora-blob" style="width:300px;height:300px;background:rgba(52,211,153,0.06);top:55%;left:15%;animation-duration:22s;animation-delay:-8s;"></div>
+    <div class="aurora-blob" style="width:360px;height:360px;background:rgba(99,102,241,0.08);top:30%;left:5%;animation-duration:26s;animation-delay:-4s;"></div>
+  </div>
+
+  <div class="grid-overlay"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      <span class="badge-pill">YENİ</span>
+      Türkiye'nin AI destekli çalışma platformu
+    </div>
+
+    <h1>
+      <span class="grad">YKS'ye hazırlan.</span><br>
+      Hayatını yönet.
+    </h1>
+
+    <p class="hero-sub">
+      AI asistan, deneme analizi, kişisel video raporu ve alışkanlık takibi —
+      hepsi tek platformda. Baykuş'tan güçlü, 345'ten akıllı.
+    </p>
+
+    <div class="hero-ctas">
+      <button class="btn-primary">🚀 Ücretsiz Hesap Oluştur</button>
+      <button class="btn-secondary">▶ Demo İzle</button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-num">12.000+</div>
+        <div class="hstat-lbl">Aktif Öğrenci</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num">%94</div>
+        <div class="hstat-lbl">Memnuniyet</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num">50+</div>
+        <div class="hstat-lbl">Partner Dershane</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    KAYDIR
+  </div>
+</section>
+
+<!-- ─── SECTION 2: FEATURES ─── -->
+<section id="features">
+  <div class="section-label">Neler sunuyoruz?</div>
+  <h2 class="section-title">Başarı için ihtiyacın olan<br><span class="grad">her şey tek yerde</span></h2>
+
+  <div class="features-grid">
+    <div class="feat-card">
+      <span class="feat-icon">🎯</span>
+      <div class="feat-title">YKS Merkezi</div>
+      <div class="feat-desc">Deneme sınavı analizi, konu takibi, hedef net hesaplama ve AI destekli çalışma planı.</div>
+      <span class="feat-tag yks">YKS Modu</span>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🤖</span>
+      <div class="feat-title">AI Asistan</div>
+      <div class="feat-desc">Gemini AI ile kişisel çalışma önerileri, zayıf konu tespiti ve günlük plan üretimi.</div>
+      <span class="feat-tag ai">Yapay Zeka</span>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">📓</span>
+      <div class="feat-title">Hata Defteri</div>
+      <div class="feat-desc">SM2 aralıklı tekrar algoritması. Yanlışlarını kaydet, doğru zamanda tekrar et.</div>
+      <span class="feat-tag yks">YKS Modu</span>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">✅</span>
+      <div class="feat-title">Görev Yönetimi</div>
+      <div class="feat-desc">Alt görevler, öncelikler, Kanban board. Okul ve kişisel işlerini organize et.</div>
+      <span class="feat-tag daily">Günlük Mod</span>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🔥</span>
+      <div class="feat-title">Alışkanlık Takibi</div>
+      <div class="feat-desc">Seri takibi, rozet sistemi ve streak motivasyonu. Her gün bir adım daha ileri.</div>
+      <span class="feat-tag daily">Günlük Mod</span>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">⏱</span>
+      <div class="feat-title">Pomodoro</div>
+      <div class="feat-desc">Odak oturumları, mola yönetimi ve günlük çalışma istatistikleri.</div>
+      <span class="feat-tag daily">Günlük Mod</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SECTION 3: REMOTION ─── -->
+<section id="remotion-section">
+  <div class="remotion-split">
+    <div>
+      <div class="section-label" style="text-align:left;margin-bottom:18px">Kişiselleştirilmiş Deneyim</div>
+      <div class="remotion-title">Sana özel<br><span class="grad">video raporu</span></div>
+      <p class="remotion-desc">
+        Remotion ile her hafta otomatik üretilen kişisel ilerleme videosu. İsmin, skorların, streak'in — hepsi animasyonla karşında. Paylaş, motive ol.
+      </p>
+      <div class="rf-list">
+        <div class="rf"><div class="rf-dot"></div>Haftalık otomatik ilerleme videosu</div>
+        <div class="rf"><div class="rf-dot"></div>TYT / AYT net gelişimini görsel izle</div>
+        <div class="rf"><div class="rf-dot"></div>Paylaşılabilir — arkadaşına gönder</div>
+        <div class="rf"><div class="rf-dot"></div>Dershaneler için toplu rapor üretimi</div>
+      </div>
+    </div>
+
+    <div class="remotion-preview">
+      <div class="rp-header">
+        <div class="rp-dot" style="background:#ef4444"></div>
+        <div class="rp-dot" style="background:#f59e0b"></div>
+        <div class="rp-dot" style="background:#22c55e"></div>
+        <span style="margin-left:8px;font-size:12px">Haftalık Rapor · Remotion</span>
+      </div>
+      <div class="rp-body">
+        <div class="rp-badge">⚡ Bu Hafta</div>
+        <div class="rp-hello">Merhaba,</div>
+        <div class="rp-greeting">Kerem <span>🔥 12 gün seri!</span></div>
+        <div class="rp-stat-row">
+          <div class="rp-stat"><div class="rp-stat-n">87.5</div><div class="rp-stat-l">TYT Net</div></div>
+          <div class="rp-stat"><div class="rp-stat-n">+4.2</div><div class="rp-stat-l">Geçen hafta</div></div>
+          <div class="rp-stat"><div class="rp-stat-n">%78</div><div class="rp-stat-l">Hedefe</div></div>
+        </div>
+        <div class="rp-bar-lbl">TYT Türkçe → Hedef: 35</div>
+        <div class="rp-track"><div class="rp-fill" style="width:82%;background:linear-gradient(90deg,var(--violet),var(--mint))"></div></div>
+        <div class="rp-bar-lbl">TYT Matematik → Hedef: 35</div>
+        <div class="rp-track"><div class="rp-fill" style="width:63%;background:linear-gradient(90deg,var(--indigo),var(--violet-l))"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SECTION 4: PRICING ─── -->
+<section id="pricing">
+  <div class="section-label">Fiyatlandırma</div>
+  <h2 class="section-title">Her bütçeye uygun plan</h2>
+
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="pc-tier">Ücretsiz</div>
+      <div class="pc-price">₺0 <small>/ ay</small></div>
+      <div class="pc-desc">Bireysel öğrenciler için başlangıç</div>
+      <ul class="pc-features">
+        <li><div class="pc-check">✓</div>YKS Merkezi (3 deneme/ay)</li>
+        <li><div class="pc-check">✓</div>Görev & Alışkanlık takibi</li>
+        <li><div class="pc-check">✓</div>Pomodoro Timer</li>
+        <li><div class="pc-check">✓</div>AI Asistan (10 mesaj/gün)</li>
+      </ul>
+      <button class="pc-btn pc-outline">Ücretsiz Başla</button>
+    </div>
+
+    <div class="price-card popular">
+      <div class="pop-badge">⭐ En Popüler</div>
+      <div class="pc-tier">Pro Öğrenci</div>
+      <div class="pc-price">₺99 <small>/ ay</small></div>
+      <div class="pc-desc">Ciddi YKS hazırlığı için</div>
+      <ul class="pc-features">
+        <li><div class="pc-check">✓</div>Sınırsız deneme analizi</li>
+        <li><div class="pc-check">✓</div>Haftalık video raporu (Remotion)</li>
+        <li><div class="pc-check">✓</div>Sınırsız AI Asistan</li>
+        <li><div class="pc-check">✓</div>Hata Defteri (SM2)</li>
+        <li><div class="pc-check">✓</div>İleri istatistikler</li>
+      </ul>
+      <button class="pc-btn pc-fill">14 Gün Ücretsiz Dene</button>
+    </div>
+
+    <div class="price-card">
+      <div class="pc-tier">Kurumsal</div>
+      <div class="pc-price">₺<small> Teklif alın</small></div>
+      <div class="pc-desc">Dershane & okullar için</div>
+      <ul class="pc-features">
+        <li><div class="pc-check">✓</div>Sınırsız öğrenci hesabı</li>
+        <li><div class="pc-check">✓</div>Toplu Remotion raporu</li>
+        <li><div class="pc-check">✓</div>Öğretmen paneli</li>
+        <li><div class="pc-check">✓</div>White-label marka</li>
+        <li><div class="pc-check">✓</div>Öncelikli destek</li>
+      </ul>
+      <button class="pc-btn pc-outline">İletişime Geç</button>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SECTION 5: FINAL CTA ─── -->
+<section id="final-cta">
+  <div class="cta-glow"></div>
+  <div class="cta-content">
+    <h2 class="cta-title">
+      Sıradaki adım<br>
+      <span class="grad">senindir.</span>
+    </h2>
+    <p class="cta-sub">12.000+ öğrenci ile bugün başla. Kredi kartı gerekmez.</p>
+    <div class="cta-btns">
+      <button class="btn-primary" style="font-size:17px;padding:15px 40px">🚀 Ücretsiz Hesap Oluştur</button>
+      <button class="btn-secondary" style="font-size:17px;padding:15px 28px">Demo İzle</button>
+    </div>
+    <p class="cta-fine">Ücretsiz plan sonsuza kadar ücretsiz.</p>
+    <div class="partner-row">
+      <div class="partner-label">Partner Dershaneler</div>
+      <div class="partner-pill">Dershane A</div>
+      <div class="partner-pill">Dershane B</div>
+      <div class="partner-pill">Dershane C</div>
+      <div class="partner-pill">Dershane D</div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ── Particles ──
+const pc = document.getElementById('particles');
+const colors = ['#8b5cf6','#a78bfa','#34d399','#6366f1'];
+for (let i = 0; i < 28; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const s = Math.random() * 3 + 1;
+  const c = colors[Math.floor(Math.random() * colors.length)];
+  p.style.cssText = `
+    width:${s}px; height:${s}px;
+    background:${c};
+    left:${Math.random()*100}%;
+    bottom:${Math.random()*30}%;
+    animation-duration:${5+Math.random()*7}s;
+    animation-delay:${Math.random()*6}s;
+    box-shadow:0 0 ${s*3}px ${c};
+  `;
+  pc.appendChild(p);
+}
+
+// ── Scroll dot nav ──
+const sections = document.querySelectorAll('section');
+const dots     = document.querySelectorAll('.nav-dot-item');
+
+function scrollToSection(i) {
+  sections[i]?.scrollIntoView({ behavior:'smooth' });
+}
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const idx = Array.from(sections).indexOf(e.target);
+    dots.forEach((d,i) => d.classList.toggle('active', i === idx));
+  });
+}, { threshold: 0.5 });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

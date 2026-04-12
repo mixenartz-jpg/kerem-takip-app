@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
   BookOpen, ClipboardList, Target, Brain, Sparkles,
-  ChevronLeft, ChevronRight, LogOut,
+  ChevronLeft, ChevronRight, LogOut, ListTodo, Youtube, Trophy, Bell,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,32 +11,38 @@ import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 
 const ALL_ITEMS = {
-  dashboard: { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
-  tasks:     { to: '/tasks',     icon: CheckSquare,     label: 'Görevler' },
-  calendar:  { to: '/calendar',  icon: Calendar,        label: 'Takvim' },
-  notes:     { to: '/notes',     icon: FileText,        label: 'Notlar' },
-  projects:  { to: '/projects',  icon: FolderKanban,    label: 'Projeler' },
-  habits:    { to: '/habits',    icon: Activity,        label: 'Alışkanlıklar' },
-  pomodoro:  { to: '/pomodoro',  icon: Timer,           label: 'Pomodoro' },
-  lessons:   { to: '/lessons',   icon: BookOpen,        label: 'Dersler' },
-  exams:     { to: '/exams',     icon: ClipboardList,   label: 'Sınav Takvimi' },
-  yks:       { to: '/yks',       icon: Brain,           label: 'YKS Merkezi' },
-  ai:        { to: '/ai',        icon: Sparkles,        label: 'AI Merkezi' },
-  goals:     { to: '/goals',     icon: Target,          label: 'Hedefler' },
-  stats:     { to: '/stats',     icon: BarChart2,       label: 'İstatistikler' },
+  dashboard:       { to: '/',                  icon: LayoutDashboard, label: 'Dashboard' },
+  tasks:           { to: '/tasks',             icon: CheckSquare,     label: 'Görevler' },
+  calendar:        { to: '/calendar',          icon: Calendar,        label: 'Takvim' },
+  notes:           { to: '/notes',             icon: FileText,        label: 'Notlar' },
+  projects:        { to: '/projects',          icon: FolderKanban,    label: 'Projeler' },
+  habits:          { to: '/habits',            icon: Activity,        label: 'Alışkanlıklar' },
+  pomodoro:        { to: '/pomodoro',          icon: Timer,           label: 'Pomodoro' },
+  lessons:         { to: '/lessons',           icon: BookOpen,        label: 'Dersler' },
+  exams:           { to: '/exams',             icon: ClipboardList,   label: 'Sınav Takvimi' },
+  yks:             { to: '/yks',               icon: Brain,           label: 'YKS Merkezi' },
+  ai:              { to: '/ai',                icon: Sparkles,        label: 'AI Merkezi' },
+  goals:           { to: '/goals',             icon: Target,          label: 'Hedefler' },
+  stats:           { to: '/stats',             icon: BarChart2,       label: 'İstatistikler' },
+  dailyTodos:      { to: '/daily-todos',       icon: ListTodo,        label: 'Günlük Yapılacaklar' },
+  videoSummarizer: { to: '/video-summarizer',  icon: Youtube,         label: 'Video Özetleyici' },
+  leaderboard:     { to: '/leaderboard',       icon: Trophy,          label: 'Sıralama' },
+  reminders:       { to: '/reminders',         icon: Bell,            label: 'Hatırlatmalar' },
 };
 
 function getNavGroups(mode) {
   if (mode === 'yks') {
     return [
-      { label: 'YKS HAZIRLIK', items: ['yks', 'lessons', 'exams', 'ai', 'goals'].map(k => ALL_ITEMS[k]) },
-      { label: 'PLANLAMA',     items: ['pomodoro', 'tasks', 'habits', 'calendar'].map(k => ALL_ITEMS[k]) },
+      { label: 'YKS HAZIRLIK', items: ['yks', 'lessons', 'exams', 'ai', 'videoSummarizer', 'goals'].map(k => ALL_ITEMS[k]) },
+      { label: 'PLANLAMA',     items: ['dailyTodos', 'reminders', 'pomodoro', 'tasks', 'habits', 'calendar'].map(k => ALL_ITEMS[k]) },
+      { label: 'SOSYAL',       items: ['leaderboard'].map(k => ALL_ITEMS[k]) },
       { label: 'ANALİZ',       items: ['stats', 'dashboard'].map(k => ALL_ITEMS[k]) },
     ];
   }
   return [
-    { label: 'PLANLAMA', items: ['dashboard', 'tasks', 'calendar', 'notes', 'projects', 'habits', 'pomodoro'].map(k => ALL_ITEMS[k]) },
-    { label: 'ÖĞRENME',  items: ['lessons', 'exams', 'yks', 'ai', 'goals'].map(k => ALL_ITEMS[k]) },
+    { label: 'PLANLAMA', items: ['dashboard', 'dailyTodos', 'reminders', 'tasks', 'calendar', 'notes', 'projects', 'habits', 'pomodoro'].map(k => ALL_ITEMS[k]) },
+    { label: 'ÖĞRENME',  items: ['lessons', 'exams', 'yks', 'ai', 'videoSummarizer', 'goals'].map(k => ALL_ITEMS[k]) },
+    { label: 'SOSYAL',   items: ['leaderboard'].map(k => ALL_ITEMS[k]) },
     { label: 'ANALİZ',   items: ['stats'].map(k => ALL_ITEMS[k]) },
   ];
 }

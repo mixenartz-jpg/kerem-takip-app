@@ -5,6 +5,7 @@ import { MailCheck, RefreshCw } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AIProvider } from './context/AIContext';
+import { initReminders } from './services/reminderService';
 import AIAssistant, { AIFloatingButton } from './components/ai/AIAssistant';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
@@ -29,6 +30,10 @@ import Exams from './pages/Exams';
 import Goals from './pages/Goals';
 import YKS from './pages/YKS';
 import AIMerkezi from './pages/AIMerkezi';
+import DailyTodos from './pages/DailyTodos';
+import VideoSummarizer from './pages/VideoSummarizer';
+import Leaderboard from './pages/Leaderboard';
+import Reminders from './pages/Reminders';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
@@ -44,12 +49,22 @@ const PAGE_TITLES = {
   '/yks': 'YKS Merkezi',
   '/goals': 'Hedefler',
   '/ai': 'AI Merkezi',
+  '/daily-todos': 'Günlük Yapılacaklar',
+  '/video-summarizer': 'Video Özetleyici',
+  '/leaderboard': 'Sıralama',
+  '/reminders': 'Hatırlatmalar',
 };
 
 function AppLayout() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const location = useLocation();
   const title = PAGE_TITLES[location.pathname] || 'Günlük Takip';
+  const { reminders } = useApp();
+
+  useEffect(() => {
+    initReminders(reminders);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
 
   useEffect(() => {
     const handler = (e) => {
@@ -87,6 +102,10 @@ function AppLayout() {
               <Route path="/yks" element={<PageTransition><YKS /></PageTransition>} />
               <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
               <Route path="/ai" element={<PageTransition><AIMerkezi /></PageTransition>} />
+              <Route path="/daily-todos" element={<PageTransition><DailyTodos /></PageTransition>} />
+              <Route path="/video-summarizer" element={<PageTransition><VideoSummarizer /></PageTransition>} />
+              <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
+              <Route path="/reminders" element={<PageTransition><Reminders /></PageTransition>} />
             </Routes>
           </AnimatePresence>
         </main>
@@ -105,16 +124,22 @@ function AppLayout() {
 }
 
 /* ── Email verification screen (shown when user signed up with email but hasn't verified) ── */
-function VerifyGate() {
-  const { user, logout, resendVerification, refreshUser } = useAuth();
+function VerifyGate({ onVerified }) {
+  const { user, logout, resendVerification, refreshUser, verifiedOverride } = useAuth();
   const [checking, setChecking] = useState(false);
   const [resent, setResent] = useState(false);
   const [resentLoading, setResentLoading] = useState(false);
 
+  useEffect(() => {
+    if (verifiedOverride) {
+      onVerified();
+    }
+  }, [verifiedOverride]);
+
   const handleCheck = async () => {
     setChecking(true);
     await refreshUser();
-    setTimeout(() => setChecking(false), 1500);
+    setChecking(false);
   };
 
   const handleResend = async () => {
@@ -204,7 +229,7 @@ function AuthGate() {
     } else {
       setPhase('app');
     }
-  }, [user, loading, user?.emailVerified]);
+  }, [user, loading]);
 
   const handleModeSelect = async (mode) => {
     await updateUserMode(mode);
@@ -249,7 +274,7 @@ function AuthGate() {
         <ModeSelectScreen key="mode-select" onSelect={handleModeSelect} onSkip={handleModeSkip} />
       )}
       {phase === 'login' && <LoginPage key="login" />}
-      {phase === 'verify' && <VerifyGate key="verify" />}
+      {phase === 'verify' && <VerifyGate key="verify" onVerified={() => setPhase('app')} />}
       {phase === 'onboarding' && (
         <OnboardingScreen key="onboarding" onFinish={handleOnboardingDone} />
       )}

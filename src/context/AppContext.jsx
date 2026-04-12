@@ -1,5 +1,5 @@
 import { createContext, useContext, useCallback, useState, useEffect, useRef } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { useAuth } from './AuthContext';
@@ -31,12 +31,23 @@ export const DEFAULT_STATE = {
     },
     trials: [],
     topics: {},
+    targetDept: '',
+    targetUni: '',
   },
   hataDefteriItems: [],
   aiPlanCache: null,
   aiStreak: { count: 0, lastDate: null },
   badges: [],
   userMode: null, // 'yks' | 'daily' | null
+  // New fields
+  dailyTodos: [],  // { id, text, completed, date }
+  reminders: [],   // { id, title, datetime, type, pageRef, recurring }
+  friends: [],     // { id, uid, displayName, status }
+  profile: {
+    dailyStudyHours: 6,
+    studyDays: [1, 2, 3, 4, 5],
+    wakeUpTime: '07:00',
+  },
 };
 
 export function AppProvider({ children }) {
@@ -56,7 +67,13 @@ export function AppProvider({ children }) {
     const docRef = doc(db, 'users', user.uid);
     const unsub = onSnapshot(docRef, (snap) => {
       if (snap.exists()) {
-        setState(prev => ({ ...DEFAULT_STATE, ...snap.data(), yks: { ...DEFAULT_STATE.yks, ...snap.data().yks } }));
+        const data = snap.data();
+        setState(() => ({
+          ...DEFAULT_STATE,
+          ...data,
+          yks: { ...DEFAULT_STATE.yks, ...data.yks },
+          profile: { ...DEFAULT_STATE.profile, ...data.profile },
+        }));
       } else {
         // Migration: check localStorage
         const localKey = `gunluk-takip-v1-${user.uid}`;
@@ -277,15 +294,51 @@ export function AppProvider({ children }) {
   // ── YKS ────────────────────────────────────────────────
   const updateYKS = (data) => update('yks', yks => ({ ...yks, ...data }));
 
-  const addYKSTrial = (trial) => update('yks', yks => ({
-    ...yks,
-    trials: [...(yks.trials || []), { id: genId(), date: format(new Date(), 'yyyy-MM-dd'), createdAt: now(), ...trial }]
-  }));
+  const calcTrialNet = (trial) => {
+    const tyt = (trial.tyt?.turkce || 0) + (trial.tyt?.mat || 0) + (trial.tyt?.fen || 0) + (trial.tyt?.sosyal || 0);
+    const ayt = (trial.ayt?.mat || 0) + (trial.ayt?.fizik || 0) + (trial.ayt?.kimya || 0) + (trial.ayt?.biyoloji || 0) +
+      (trial.ayt?.edebiyat || 0) + (trial.ayt?.tarih1 || 0) + (trial.ayt?.cografya1 || 0);
+    return { tytNet: tyt, aytNet: ayt };
+  };
 
-  const updateYKSTrial = (id, data) => update('yks', yks => ({
-    ...yks,
-    trials: yks.trials.map(t => t.id === id ? { ...t, ...data } : t)
-  }));
+  const publishUserScore = (yksState, displayName) => {
+    if (!user) return;
+    const trials = yksState.trials || [];
+    if (trials.length === 0) return;
+    const last = trials[trials.length - 1];
+    const prev = trials.length > 1 ? trials[trials.length - 2] : null;
+    const { tytNet, aytNet } = calcTrialNet(last);
+    const { tytNet: prevTyt, aytNet: prevAyt } = prev ? calcTrialNet(prev) : { tytNet: 0, aytNet: 0 };
+    setDoc(doc(db, 'userScores', user.uid), {
+      displayName: displayName || user.displayName || 'Anonim',
+      tytNet, aytNet,
+      previousTytNet: prevTyt,
+      previousAytNet: prevAyt,
+      updatedAt: now(),
+    }, { merge: true }).catch(console.error);
+  };
+
+  const addYKSTrial = (trial) => {
+    let newYks;
+    update('yks', yks => {
+      newYks = { ...yks, trials: [...(yks.trials || []), { id: genId(), date: format(new Date(), 'yyyy-MM-dd'), createdAt: now(), ...trial }] };
+      return newYks;
+    });
+    setTimeout(() => {
+      if (newYks) publishUserScore(newYks, user?.displayName);
+    }, 900);
+  };
+
+  const updateYKSTrial = (id, data) => {
+    let newYks;
+    update('yks', yks => {
+      newYks = { ...yks, trials: yks.trials.map(t => t.id === id ? { ...t, ...data } : t) };
+      return newYks;
+    });
+    setTimeout(() => {
+      if (newYks) publishUserScore(newYks, user?.displayName);
+    }, 900);
+  };
 
   const deleteYKSTrial = (id) => update('yks', yks => ({
     ...yks,
@@ -392,6 +445,39 @@ export function AppProvider({ children }) {
     badges.includes(badgeId) ? badges : [...badges, badgeId]
   );
 
+  // ── DAILY TODOS ────────────────────────────────────────
+  const addDailyTodo = (text, date) => update('dailyTodos', todos => [
+    ...todos,
+    { id: genId(), text, completed: false, date: date || format(new Date(), 'yyyy-MM-dd'), createdAt: now() }
+  ]);
+  const toggleDailyTodo = (id) => update('dailyTodos', todos =>
+    todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
+  );
+  const deleteDailyTodo = (id) => update('dailyTodos', todos => todos.filter(t => t.id !== id));
+
+  // ── REMINDERS ──────────────────────────────────────────
+  const addReminder = (data) => update('reminders', reminders => [
+    ...reminders,
+    { id: genId(), title: '', datetime: '', type: 'once', pageRef: '', recurring: false, createdAt: now(), ...data }
+  ]);
+  const updateReminder = (id, data) => update('reminders', reminders =>
+    reminders.map(r => r.id === id ? { ...r, ...data } : r)
+  );
+  const deleteReminder = (id) => update('reminders', reminders => reminders.filter(r => r.id !== id));
+
+  // ── FRIENDS ────────────────────────────────────────────
+  const addFriend = (data) => update('friends', friends => [
+    ...friends,
+    { id: genId(), uid: '', displayName: '', status: 'accepted', ...data }
+  ]);
+  const removeFriend = (id) => update('friends', friends => friends.filter(f => f.id !== id));
+  const updateFriendStatus = (id, status) => update('friends', friends =>
+    friends.map(f => f.id === id ? { ...f, status } : f)
+  );
+
+  // ── PROFILE ────────────────────────────────────────────
+  const updateProfile = (data) => update('profile', profile => ({ ...profile, ...data }));
+
   // ── USER MODE ──────────────────────────────────────────
   const updateUserMode = useCallback(async (mode) => {
     setState(prev => ({ ...prev, userMode: mode }));
@@ -423,6 +509,10 @@ export function AppProvider({ children }) {
     aiPlanCache: state.aiPlanCache,
     aiStreak: state.aiStreak,
     badges: state.badges,
+    dailyTodos: state.dailyTodos,
+    reminders: state.reminders,
+    friends: state.friends,
+    profile: state.profile,
     // Task actions
     addTask, updateTask, deleteTask, toggleTask, addSubtask, toggleSubtask,
     // Event actions
@@ -451,6 +541,14 @@ export function AppProvider({ children }) {
     // User mode
     updateUserMode,
     userMode: state.userMode,
+    // Daily todos
+    addDailyTodo, toggleDailyTodo, deleteDailyTodo,
+    // Reminders
+    addReminder, updateReminder, deleteReminder,
+    // Friends
+    addFriend, removeFriend, updateFriendStatus,
+    // Profile
+    updateProfile,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

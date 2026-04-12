@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dash YKS — Landing Page Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  /* Modern palette: deep indigo core, electric violet accent, mint-cyan highlight */
+  --cyan: #34d399;          /* emerald mint — fresh, energetic */
+  --cyan-dim: rgba(52,211,153,0.12);
+  --blue: #818cf8;          /* indigo-400 — secondary accent */
+  --violet: #8b5cf6;        /* violet-500 — primary accent */
+  --violet-bright: #a78bfa; /* violet-400 */
+  --violet-dim: rgba(139,92,246,0.18);
+  --dark: #05040d;          /* near-black with slight blue tint */
+  --darker: #030208;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.07);
+  --text-muted: rgba(255,255,255,0.45);
+  --text-sub: rgba(255,255,255,0.65);
+}
+body { font-family: 'Inter', -apple-system, sans-serif; }
+h1, h2, h3, .logo, .nav-cta, .btn-primary, .btn-secondary { font-family: 'Syne', sans-serif; }
+
+html { scroll-snap-type: y mandatory; overflow-y: scroll; }
+body { font-family: -apple-system, 'Inter', sans-serif; background: var(--dark); color: #e4e4e7; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 48px;
+  background: rgba(3,7,18,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(6,182,212,0.1);
+}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+.logo-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.nav-links { display: flex; gap: 32px; font-size: 14px; color: rgba(255,255,255,0.6); }
+.nav-links span { cursor: pointer; transition: color 0.2s; }
+.nav-links span:hover { color: var(--cyan); }
+.nav-cta {
+  padding: 8px 20px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--violet), #5b21b6);
+  color: white; font-size: 14px; font-weight: 600; cursor: pointer;
+  border: none; transition: opacity 0.2s;
+}
+
+/* ── SECTION BASE ── */
+section {
+  scroll-snap-align: start;
+  min-height: 100vh;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+/* ── SECTION 1: HERO ── */
+#hero {
+  background: var(--darker);
+}
+
+/* Video Background */
+.video-bg {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden;
+}
+.video-bg video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+}
+.video-overlay {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.15) 0%, transparent 50%),
+    linear-gradient(to bottom, rgba(3,7,18,0.3) 0%, rgba(3,7,18,0.85) 100%);
+}
+
+/* Animated grid overlay */
+.grid-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background-image:
+    linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridPulse 4s ease-in-out infinite;
+}
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Floating particles */
+.particles { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.particle {
+  position: absolute; border-radius: 50%;
+  background: var(--cyan); opacity: 0;
+  animation: float linear infinite;
+}
+@keyframes float {
+  0% { opacity: 0; transform: translateY(0) scale(0); }
+  10% { opacity: 0.6; transform: scale(1); }
+  90% { opacity: 0.3; }
+  100% { opacity: 0; transform: translateY(-120px) scale(0.3); }
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  text-align: center; max-width: 800px; padding: 0 24px;
+  padding-top: 80px;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 100px;
+  background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3);
+  font-size: 12px; font-weight: 600; color: var(--cyan);
+  letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 28px;
+  animation: fadeUp 0.6s ease both;
+}
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan); animation: blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+h1 {
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 800; line-height: 1.1; margin-bottom: 20px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.gradient-text {
+  background: linear-gradient(135deg, #e0f2fe, var(--cyan), #a855f7);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 18px; color: rgba(255,255,255,0.55); line-height: 1.6;
+  margin-bottom: 40px; animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-ctas {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+.btn-primary {
+  padding: 14px 32px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--violet), #4f46e5);
+  color: white; font-size: 16px; font-weight: 700;
+  border: none; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,58,237,0.5); }
+.btn-secondary {
+  padding: 14px 32px; border-radius: 10px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+  color: white; font-size: 16px; font-weight: 600; cursor: pointer;
+  backdrop-filter: blur(10px); transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--cyan); color: var(--cyan); }
+
+.hero-stats {
+  display: flex; gap: 40px; justify-content: center; margin-top: 56px;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+.hstat { text-align: center; }
+.hstat-num { font-size: 28px; font-weight: 800; color: var(--cyan); }
+.hstat-lbl { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+.scroll-hint {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: rgba(255,255,255,0.3); font-size: 11px; letter-spacing: 0.1em;
+  animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+.scroll-line { width: 1px; height: 32px; background: linear-gradient(to bottom, var(--cyan), transparent); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SECTION 2: FEATURES ── */
+#features {
+  background: linear-gradient(180deg, var(--dark) 0%, #05070f 100%);
+  flex-direction: column; gap: 48px; padding: 80px 48px;
+}
+.section-label {
+  font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--cyan); font-weight: 600; text-align: center;
+}
+.section-title { font-size: clamp(28px,4vw,48px); font-weight: 800; text-align: center; }
+.features-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; max-width: 960px; width: 100%;
+}
+.feat-card {
+  padding: 24px; border-radius: 14px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.3s;
+}
+.feat-card:hover { background: rgba(6,182,212,0.05); border-color: rgba(6,182,212,0.2); transform: translateY(-4px); }
+.feat-icon { font-size: 28px; margin-bottom: 12px; }
+.feat-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.feat-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+.feat-tag {
+  display: inline-block; margin-top: 10px;
+  padding: 3px 10px; border-radius: 100px; font-size: 10px; font-weight: 600;
+  background: rgba(124,58,237,0.15); color: rgba(167,139,250,0.8);
+  border: 1px solid rgba(124,58,237,0.2);
+}
+.feat-tag.yks { background: rgba(6,182,212,0.1); color: rgba(6,182,212,0.8); border-color: rgba(6,182,212,0.2); }
+
+/* ── SECTION 3: REMOTION PERSONALIZED INTRO ── */
+#remotion-section {
+  background: linear-gradient(135deg, #05070f 0%, #0a0420 100%);
+  flex-direction: column; gap: 40px; padding: 80px 48px;
+}
+.remotion-split {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+  max-width: 1000px; width: 100%; align-items: center;
+}
+.remotion-text { }
+.remotion-title { font-size: clamp(28px,3.5vw,44px); font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+.remotion-desc { color: rgba(255,255,255,0.55); line-height: 1.7; margin-bottom: 24px; }
+.remotion-features { display: flex; flex-direction: column; gap: 10px; }
+.rf { display: flex; align-items: center; gap: 10px; font-size: 14px; color: rgba(255,255,255,0.7); }
+.rf-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--violet); flex-shrink: 0; }
+
+.remotion-preview {
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(124,58,237,0.3);
+  background: #0a0420; position: relative;
+  box-shadow: 0 20px 60px rgba(124,58,237,0.2);
+}
+.rp-header {
+  padding: 10px 16px; background: rgba(124,58,237,0.15);
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.5);
+  border-bottom: 1px solid rgba(124,58,237,0.2);
+}
+.rp-dot { width: 8px; height: 8px; border-radius: 50%; }
+.rp-body {
+  padding: 24px; min-height: 200px; position: relative;
+  background: radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.15), transparent 70%);
+}
+.rp-name { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.rp-greeting { font-size: 22px; font-weight: 800; margin-bottom: 16px; }
+.rp-greeting span { color: var(--violet); }
+.rp-stat-row { display: flex; gap: 10px; margin-bottom: 14px; }
+.rp-stat {
+  flex: 1; padding: 10px; border-radius: 8px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.rp-stat-n { font-size: 18px; font-weight: 800; color: var(--cyan); }
+.rp-stat-l { font-size: 10px; color: rgba(255,255,255,0.4); }
+.rp-bar-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+.rp-bar-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; margin-bottom: 6px; }
+.rp-bar-fill { height: 100%; border-radius: 3px; }
+.rp-badge {
+  position: absolute; top: 16px; right: 16px;
+  padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  color: white;
+}
+
+/* ── SECTION 4: PRICING ── */
+#pricing {
+  background: #05070f;
+  flex-direction: column; gap: 48px; padding: 80px 48px;
+}
+.pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; max-width: 860px; width: 100%; }
+.price-card {
+  padding: 28px; border-radius: 16px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+  position: relative; transition: transform 0.3s;
+}
+.price-card.popular {
+  background: rgba(124,58,237,0.1); border-color: var(--violet);
+  box-shadow: 0 0 40px rgba(124,58,237,0.2);
+  transform: scale(1.04);
+}
+.pop-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  padding: 4px 14px; border-radius: 100px; font-size: 11px; font-weight: 700;
+  background: linear-gradient(135deg, var(--violet), #4f46e5);
+  color: white; white-space: nowrap;
+}
+.pc-tier { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.pc-price { font-size: 40px; font-weight: 800; margin-bottom: 4px; }
+.pc-price span { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.4); }
+.pc-desc { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 20px; }
+.pc-features { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.pc-features li { font-size: 13px; color: rgba(255,255,255,0.65); display: flex; gap: 8px; }
+.pc-features li::before { content: '✓'; color: var(--cyan); font-weight: 700; }
+.pc-btn {
+  width: 100%; padding: 10px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+}
+.pc-btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+.pc-btn-fill { background: linear-gradient(135deg, var(--violet), #4f46e5); color: white; }
+
+/* ── SECTION 5: FINAL CTA ── */
+#final-cta {
+  background: var(--darker);
+  flex-direction: column; text-align: center; gap: 24px; padding: 80px 48px;
+}
+.cta-glow {
+  position: absolute; width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.cta-content { position: relative; z-index: 1; }
+.cta-title { font-size: clamp(32px,5vw,60px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+.cta-sub { font-size: 18px; color: rgba(255,255,255,0.5); margin-bottom: 36px; }
+.cta-btns { display: flex; gap: 16px; justify-content: center; }
+.cta-small { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 16px; }
+.cta-platforms { display: flex; gap: 20px; justify-content: center; align-items: center; margin-top: 32px; }
+.cta-platforms span { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
+.plat-logo { padding: 6px 14px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    Dash YKS
+  </div>
+  <div class="nav-links">
+    <span>Özellikler</span>
+    <span>YKS Modu</span>
+    <span>Fiyatlar</span>
+    <span>Blog</span>
+  </div>
+  <button class="nav-cta">Ücretsiz Başla</button>
+</nav>
+
+<!-- SECTION 1: HERO -->
+<section id="hero">
+  <!-- Video background -->
+  <div class="video-bg">
+    <video autoplay muted loop playsinline>
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_171521_25968ba2-b594-4b32-aab7-f6b69398a6fa.mp4" type="video/mp4">
+    </video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <!-- Grid + particles -->
+  <div class="grid-overlay"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Hero content -->
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      Türkiye'nin #1 YKS & Üretkenlik Platformu
+    </div>
+
+    <h1>
+      <span class="gradient-text">YKS'ye hazırlan.</span><br>
+      Hayatını yönet.
+    </h1>
+
+    <p class="hero-sub">
+      AI destekli kişisel asistan, deneme analizi, alışkanlık takibi ve<br>
+      Pomodoro — hepsi tek platformda. Üstelik ücretsiz.
+    </p>
+
+    <div class="hero-ctas">
+      <button class="btn-primary">🚀 Ücretsiz Başla</button>
+      <button class="btn-secondary">▶ Demo İzle</button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-num">12.000+</div>
+        <div class="hstat-lbl">Aktif Öğrenci</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num">%94</div>
+        <div class="hstat-lbl">Memnuniyet</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num">50+</div>
+        <div class="hstat-lbl">Dershane Partneri</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    KEŞFET
+  </div>
+</section>
+
+<!-- SECTION 2: FEATURES -->
+<section id="features">
+  <div class="section-label">Ne sunuyoruz?</div>
+  <h2 class="section-title">Başarı için ihtiyacın olan<br><span class="gradient-text">her şey tek yerde</span></h2>
+
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">YKS Merkezi</div>
+      <div class="feat-desc">Deneme sınavı analizi, konu takibi, hedef net hesaplama ve AI destekli çalışma planı.</div>
+      <span class="feat-tag yks">YKS Modu</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title">AI Asistan</div>
+      <div class="feat-desc">Gemini AI ile kişiselleştirilmiş çalışma önerileri, zayıf konu tespiti ve günlük plan.</div>
+      <span class="feat-tag">Yapay Zeka</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Hata Defteri</div>
+      <div class="feat-desc">SM2 algoritması ile aralıklı tekrar. Yanlışlarını ver, doğru zamanda hatırlat.</div>
+      <span class="feat-tag yks">YKS Modu</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">✅</div>
+      <div class="feat-title">Görev Yönetimi</div>
+      <div class="feat-desc">Alt görevler, öncelikler, Kanban board. Okul ve kişisel işleri bir arada yönet.</div>
+      <span class="feat-tag">Günlük Mod</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔥</div>
+      <div class="feat-title">Alışkanlık Takibi</div>
+      <div class="feat-desc">Seri takibi, rozet sistemi ve streak motivasyonu ile her gün bir adım daha ileri.</div>
+      <span class="feat-tag">Günlük Mod</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⏱️</div>
+      <div class="feat-title">Pomodoro Timer</div>
+      <div class="feat-desc">Odak oturumları, mola yönetimi ve günlük çalışma istatistikleri.</div>
+      <span class="feat-tag">Günlük Mod</span>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: REMOTION PERSONALIZED INTRO -->
+<section id="remotion-section">
+  <div class="remotion-split">
+    <div class="remotion-text">
+      <div class="section-label" style="text-align:left;margin-bottom:16px">Kişiselleştirilmiş Deneyim</div>
+      <div class="remotion-title">Sana özel üretilen<br><span class="gradient-text">video raporu</span></div>
+      <p class="remotion-desc">
+        Her hafta Remotion ile otomatik üretilen kişisel ilerleme videosu — ismin, skorların, streak'in ve hedeflerin animasyonla karşında. Sanki profesyonel bir video editörü sana özel yaptı.
+      </p>
+      <div class="remotion-features">
+        <div class="rf"><div class="rf-dot"></div>Haftalık otomatik ilerleme videosu</div>
+        <div class="rf"><div class="rf-dot"></div>YKS net gelişimini görsel olarak izle</div>
+        <div class="rf"><div class="rf-dot"></div>Paylaşılabilir — arkadaşına gönder</div>
+        <div class="rf"><div class="rf-dot"></div>Dershane için toplu rapor üretimi</div>
+      </div>
+    </div>
+
+    <div class="remotion-preview">
+      <div class="rp-header">
+        <div class="rp-dot" style="background:#ef4444"></div>
+        <div class="rp-dot" style="background:#f59e0b"></div>
+        <div class="rp-dot" style="background:#22c55e"></div>
+        <span style="margin-left:8px">Haftalık Rapor — Remotion</span>
+      </div>
+      <div class="rp-body">
+        <div class="rp-badge">⚡ Bu hafta</div>
+        <div class="rp-name">Merhaba,</div>
+        <div class="rp-greeting">Kerem <span>🔥 12 gün seri!</span></div>
+        <div class="rp-stat-row">
+          <div class="rp-stat">
+            <div class="rp-stat-n">87.5</div>
+            <div class="rp-stat-l">TYT Net</div>
+          </div>
+          <div class="rp-stat">
+            <div class="rp-stat-n">+4.2</div>
+            <div class="rp-stat-l">Geçen haftaya</div>
+          </div>
+          <div class="rp-stat">
+            <div class="rp-stat-n">%78</div>
+            <div class="rp-stat-l">Hedef</div>
+          </div>
+        </div>
+        <div class="rp-bar-label">TYT Türkçe → Hedef: 35</div>
+        <div class="rp-bar-track"><div class="rp-bar-fill" style="width:82%;background:linear-gradient(90deg,#06b6d4,#7c3aed)"></div></div>
+        <div class="rp-bar-label">TYT Matematik → Hedef: 35</div>
+        <div class="rp-bar-track"><div class="rp-bar-fill" style="width:65%;background:linear-gradient(90deg,#7c3aed,#a855f7)"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: PRICING -->
+<section id="pricing">
+  <div class="section-label">Fiyatlandırma</div>
+  <h2 class="section-title">Her bütçeye uygun plan</h2>
+
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="pc-tier">Ücretsiz</div>
+      <div class="pc-price">₺0 <span>/ ay</span></div>
+      <div class="pc-desc">Bireysel öğrenciler için başlangıç</div>
+      <ul class="pc-features">
+        <li>YKS Merkezi (3 deneme/ay)</li>
+        <li>Görev & Alışkanlık takibi</li>
+        <li>Pomodoro Timer</li>
+        <li>AI Asistan (10 mesaj/gün)</li>
+      </ul>
+      <button class="pc-btn pc-btn-outline">Ücretsiz Başla</button>
+    </div>
+
+    <div class="price-card popular">
+      <div class="pop-badge">⭐ En Popüler</div>
+      <div class="pc-tier">Pro Öğrenci</div>
+      <div class="pc-price">₺99 <span>/ ay</span></div>
+      <div class="pc-desc">Ciddi YKS hazırlığı için</div>
+      <ul class="pc-features">
+        <li>Sınırsız deneme analizi</li>
+        <li>Haftalık Remotion video raporu</li>
+        <li>Sınırsız AI Asistan</li>
+        <li>Hata Defteri (SM2)</li>
+        <li>İleri istatistikler</li>
+      </ul>
+      <button class="pc-btn pc-btn-fill">14 Gün Ücretsiz Dene</button>
+    </div>
+
+    <div class="price-card">
+      <div class="pc-tier">Kurumsal</div>
+      <div class="pc-price">₺ <span>Teklif alın</span></div>
+      <div class="pc-desc">Dershane & okullar için</div>
+      <ul class="pc-features">
+        <li>Sınırsız öğrenci hesabı</li>
+        <li>Toplu Remotion raporu</li>
+        <li>Öğretmen paneli</li>
+        <li>Marka özelleştirme (white-label)</li>
+        <li>Öncelikli destek</li>
+      </ul>
+      <button class="pc-btn pc-btn-outline">İletişime Geç</button>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: FINAL CTA -->
+<section id="final-cta">
+  <div class="cta-glow"></div>
+  <div class="cta-content">
+    <h2 class="cta-title">
+      Sıradaki adım<br>
+      <span class="gradient-text">senindir.</span>
+    </h2>
+    <p class="cta-sub">12.000+ öğrenci ile bugün başla. Kredi kartı gerekmez.</p>
+    <div class="cta-btns">
+      <button class="btn-primary" style="font-size:18px;padding:16px 40px">🚀 Ücretsiz Hesap Oluştur</button>
+    </div>
+    <p class="cta-small">Ücretsiz plan sonsuza kadar ücretsiz.</p>
+    <div class="cta-platforms">
+      <span>PARTNER DERSHANELER</span>
+      <div class="plat-logo">Dershane A</div>
+      <div class="plat-logo">Dershane B</div>
+      <div class="plat-logo">Dershane C</div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Floating particles
+const container = document.getElementById('particles');
+for (let i = 0; i < 20; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 3 + 1;
+  p.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    bottom:${Math.random()*40}%;
+    animation-duration:${4+Math.random()*6}s;
+    animation-delay:${Math.random()*5}s;
+    opacity:${0.3+Math.random()*0.4};
+  `;
+  container.appendChild(p);
+}
+
+// Scroll section indicator
+const sections = document.querySelectorAll('section');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.title = e.target.id === 'hero' ? 'Dash YKS — Ana Sayfa' : `Dash YKS — ${e.target.id}`;
+    }
+  });
+}, { threshold: 0.5 });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

@@ -235,23 +235,185 @@ Türkçe yaz, 300 kelimeyi geçme.`;
   return result.response.text();
 }
 
+/* ── Hata mesajı çözümleyici ── */
+export function parseGeminiError(err) {
+  const msg = err?.message || String(err);
+  if (msg.includes('503') || msg.includes('high demand') || msg.includes('overloaded')) {
+    return 'Sunucu şu an meşgul, birkaç saniye bekleyip tekrar dene.';
+  }
+  if (msg.includes('429') || msg.includes('quota') || msg.includes('rate limit')) {
+    return 'Günlük istek limiti doldu, biraz sonra tekrar dene.';
+  }
+  if (msg.includes('API key') || msg.includes('ayarlanmamış') || msg.includes('BURAYA')) {
+    return 'Gemini API anahtarı ayarlanmamış. .env.local dosyasını kontrol et.';
+  }
+  if (msg.includes('400') || msg.includes('invalid')) {
+    return 'Geçersiz istek. Lütfen tekrar dene.';
+  }
+  if (msg.includes('network') || msg.includes('fetch') || msg.includes('Failed to fetch')) {
+    return 'İnternet bağlantısı sorunu. Bağlantını kontrol et.';
+  }
+  return 'Bir hata oluştu, lütfen tekrar dene.';
+}
+
 /* ── App-wide assistant context builder ── */
 export function buildAppContext(appState) {
-  const taskCount = appState.tasks?.filter(t => !t.completed).length ?? 0;
-  const habitCount = appState.habits?.length ?? 0;
-  const studyHours = appState.lessons?.reduce((sum, l) => sum + (l.studyHours || 0), 0) ?? 0;
-  const yks = appState.yks;
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Tasks
+  const pendingTasks = (appState.tasks || []).filter(t => !t.completed);
+  const topTasks = pendingTasks
+    .sort((a, b) => ({ high: 0, medium: 1, low: 2 }[a.priority] ?? 1) - ({ high: 0, medium: 1, low: 2 }[b.priority] ?? 1))
+    .slice(0, 5)
+    .map(t => `• ${t.title}${t.priority === 'high' ? ' (öncelikli)' : ''}`)
+    .join('\n');
+
+  // Habits
+  const habits = appState.habits || [];
+  const todayHabits = habits.map(h => ({
+    name: h.name,
+    done: (h.completions || []).includes(today),
+  }));
+  const habitSummary = todayHabits.length
+    ? todayHabits.map(h => `${h.done ? '✓' : '○'} ${h.name}`).join(', ')
+    : 'Alışkanlık yok';
+
+  // Exams
+  const upcomingExams = (appState.exams || [])
+    .filter(e => e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 3)
+    .map(e => `• ${e.name} (${e.date})`)
+    .join('\n');
+
+  // Goals
+  const activeGoals = (appState.goals || [])
+    .filter(g => !g.completed)
+    .slice(0, 3)
+    .map(g => `• ${g.title}`)
+    .join('\n');
+
+  // YKS
+  const yks = appState.yks || {};
+  const daysToYKS = yks.examDate
+    ? Math.ceil((new Date(yks.examDate) - new Date()) / 86400000)
+    : null;
+  const trials = yks.trials || [];
+  const lastTrials = trials.slice(-2).map((t, i) => {
+    const tyt = (t.tyt?.turkce || 0) + (t.tyt?.mat || 0) + (t.tyt?.fen || 0) + (t.tyt?.sosyal || 0);
+    const ayt = (t.ayt?.mat || 0) + (t.ayt?.fizik || 0) + (t.ayt?.kimya || 0) + (t.ayt?.biyoloji || 0);
+    return `Deneme ${i + 1}: TYT=${tyt} net, AYT=${ayt} net`;
+  }).join(' | ');
+
+  // Hata defteri — en sık tekrarlanan konular
+  const hataDefteriItems = appState.hataDefteriItems || [];
+  const subjectCounts = {};
+  hataDefteriItems.forEach(h => {
+    if (h.subject) subjectCounts[h.subject] = (subjectCounts[h.subject] || 0) + 1;
+  });
+  const weakTopics = Object.entries(subjectCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([s, c]) => `${s} (${c} hata)`)
+    .join(', ');
+
+  // Pomodoro — bu hafta
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  const pomodoroCount = (appState.pomodoro?.sessions || [])
+    .filter(s => s.date >= weekAgo && s.type === 'work').length;
+
+  // Profile
+  const profile = appState.profile || {};
+  const targetInfo = yks.targetUni
+    ? `Hedef: ${yks.targetDept || ''} @ ${yks.targetUni}`
+    : '';
+
+  return `Sen "Günlük Takip" uygulamasının yapay zeka asistanısın. Kullanıcının tüm verilerine erişimin var.
+
+${targetInfo}
+${daysToYKS !== null ? `YKS'ye ${daysToYKS} gün kaldı` : ''}
+Günlük çalışma hedefi: ${profile.dailyStudyHours || 6} saat
+
+BEKLEYEN GÖREVLER (en önemli 5):
+${topTasks || 'Görev yok'}
+
+BUGÜNKÜ ALIŞKANLIKLAR:
+${habitSummary}
+
+YAKLAŞAN SINAVLAR:
+${upcomingExams || 'Sınav yok'}
+
+AKTİF HEDEFLER:
+${activeGoals || 'Hedef yok'}
+
+SON YKS DENEMELERİ:
+${lastTrials || 'Deneme yok'}
+
+ZAYIF KONULAR (hata defterinden):
+${weakTopics || 'Veri yok'}
+
+BU HAFTA POMODORO: ${pomodoroCount} seans
+
+UYGULAMA SAYFALARI (kullanıcıyı yönlendirmek için kullan):
+/tasks → Görevler | /habits → Alışkanlıklar | /yks → YKS Merkezi
+/ai → AI Merkezi | /goals → Hedefler | /daily-todos → Günlük Yapılacaklar
+/video-summarizer → Video Özetleyici | /leaderboard → Sıralama
+/notes → Notlar | /pomodoro → Pomodoro | /calendar → Takvim
+/stats → İstatistikler | /lessons → Dersler | /exams → Sınav Takvimi
+
+Kullanıcıya ilgili sayfayı göstermek istediğinde cevabına [NAVIGATE:/path] ekle.
+Türkçe konuş. Kısa, pratik ve motive edici ol. Markdown formatını kullan (kalın için **metin**).`;
+}
+
+/* ── Daily Todo Suggestions ── */
+export async function buildDailyTodoSuggestions({ tasks, habits, yks }) {
+  const m = getModel();
+  const pendingTasks = (tasks || []).filter(t => !t.completed).slice(0, 5).map(t => t.title).join(', ');
+  const habitNames = (habits || []).map(h => h.name).join(', ');
   const daysToYKS = yks?.examDate
     ? Math.ceil((new Date(yks.examDate) - new Date()) / 86400000)
     : null;
 
-  return `Sen "Günlük Takip" uygulamasının yapay zeka asistanısın. Kullanıcının kişisel verimlilik ve YKS hazırlık verilerine erişimin var.
+  const prompt = `Öğrenci için bugün yapılması gereken 4-5 maddelik günlük yapılacaklar listesi oluştur.
 
-Mevcut durum:
-- Bekleyen görev: ${taskCount}
-- Takip edilen alışkanlık: ${habitCount}
-- Toplam çalışma saati: ${studyHours}
-${daysToYKS !== null ? `- YKS'ye ${daysToYKS} gün kaldı` : ''}
+Bekleyen görevler: ${pendingTasks || 'yok'}
+Alışkanlıklar: ${habitNames || 'yok'}
+${daysToYKS ? `YKS'ye ${daysToYKS} gün kaldı` : ''}
 
-Türkçe konuş. Kısa, pratik ve motive edici ol.`;
+Kısa, eyleme dönük maddeler yaz (her biri max 8 kelime).
+SADECE JSON array döndür: ["Madde 1", "Madde 2", ...]`;
+
+  const result = await m.generateContent(prompt);
+  const text = result.response.text();
+  const match = text.match(/\[[\s\S]*?\]/);
+  try { return match ? JSON.parse(match[0]) : []; }
+  catch { return []; }
+}
+
+/* ── YouTube Video Summarizer ── */
+export async function summarizeYouTubeVideo(youtubeUrl) {
+  if (!API_KEY || API_KEY === 'BURAYA_YENI_KEY_YAPISTIR') {
+    throw new Error('Gemini API key ayarlanmamış.');
+  }
+  // Use gemini-2.0-flash for video support
+  const videoGenAI = new GoogleGenerativeAI(API_KEY);
+  const videoModel = videoGenAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+  const summaryPrompt = `Bu YouTube videosunu analiz et ve şu formatta Türkçe özet çıkar:
+
+1. **Konu Özeti** (3-4 cümle)
+2. **Ana Noktalar** (madde madde, 4-6 madde)
+3. **Kritik Formüller / İpuçları** (varsa)
+4. **ÖSYM / YKS Önemi** (bu konu sınavda nasıl çıkıyor?)
+
+SADECE JSON döndür:
+{"title":"Video başlığı tahmini","summary":"Özet","keyPoints":["Nokta 1","Nokta 2"],"formulas":"Formüller (boşsa null)","yksRelevance":"YKS önemi"}`;
+
+  const result = await videoModel.generateContent([
+    { fileData: { mimeType: 'video/mp4', fileUri: youtubeUrl } },
+    { text: summaryPrompt },
+  ]);
+  const text = result.response.text();
+  const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/);
+  return jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(text);
 }

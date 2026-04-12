@@ -1,0 +1,119 @@
+<h2>Landing Page — Bölüm Yapısı</h2>
+<p class="subtitle">Neural/Digital tema. Hangi yapı daha güçlü bir "ürün" hissi veriyor?</p>
+
+<style>
+:root { --cyan: #06b6d4; --violet: #7c3aed; --dark: #030712; }
+
+.layouts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+
+.layout-card {
+  border: 2px solid transparent;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.layout-card.selected { border-color: var(--violet); box-shadow: 0 0 20px rgba(124,58,237,0.3); }
+
+.lc-header { padding: 12px 16px; font-weight: 600; font-size: 14px; background: rgba(30,30,40,0.8); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.lc-body { background: #0a0a12; padding: 12px; }
+
+/* Wireframe sections */
+.ws { margin-bottom: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+
+.hero-full { height: 80px; background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(124,58,237,0.15)); border: 1px dashed rgba(6,182,212,0.3); position: relative; overflow: hidden; }
+.hero-full::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(6,182,212,0.05) 14px, rgba(6,182,212,0.05) 15px), repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(6,182,212,0.05) 14px, rgba(6,182,212,0.05) 15px); }
+
+.hero-split { height: 80px; background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(124,58,237,0.1)); border: 1px dashed rgba(6,182,212,0.3); display: grid; grid-template-columns: 1fr 1fr; }
+.hero-split .left { border-right: 1px dashed rgba(6,182,212,0.2); display: flex; align-items: center; justify-content: center; font-size: 9px; color: rgba(6,182,212,0.6); text-transform: uppercase; letter-spacing: 0.05em; }
+.hero-split .right { display: flex; align-items: center; justify-content: center; }
+.mock-video { width: 50px; height: 35px; background: rgba(6,182,212,0.2); border: 1px solid rgba(6,182,212,0.4); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+.feature-row { height: 40px; background: rgba(6,182,212,0.06); border: 1px dashed rgba(255,255,255,0.08); display: flex; gap: 4px; padding: 6px; }
+.feat-block { flex: 1; background: rgba(124,58,237,0.15); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: rgba(124,58,237,0.7); }
+
+.stat-row { height: 30px; background: rgba(124,58,237,0.06); border: 1px dashed rgba(255,255,255,0.06); display: flex; gap: 4px; padding: 4px; }
+.stat-block { flex: 1; background: rgba(6,182,212,0.1); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: rgba(6,182,212,0.6); }
+
+.testimonial { height: 28px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.07); }
+.cta-row { height: 35px; background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.15)); border: 1px dashed rgba(124,58,237,0.4); }
+.pricing { height: 55px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.07); display: flex; gap: 4px; padding: 6px; }
+.price-tier { flex: 1; border-radius: 4px; border: 1px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 8px; color: rgba(255,255,255,0.4); }
+.price-tier.popular { border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.1); color: rgba(124,58,237,0.7); }
+
+.nav-bar { height: 20px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.08); display: flex; align-items: center; padding: 0 8px; gap: 6px; }
+.nav-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(6,182,212,0.5); }
+.nav-line { flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+.nav-btn { width: 28px; height: 12px; border-radius: 3px; background: rgba(124,58,237,0.4); }
+</style>
+
+<div class="layouts">
+
+  <!-- Layout A: Uzun scrollable marketing page -->
+  <div class="layout-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="lc-header">A — Tam Marketing Page (Uzun Scroll)</div>
+    <div class="lc-body">
+      <div class="ws nav-bar">
+        <div class="nav-dot"></div><div class="nav-dot"></div>
+        <div class="nav-line"></div>
+        <div class="nav-btn"></div>
+      </div>
+      <div class="ws hero-full" style="margin-top:6px">
+        🌐 Animated BG + Video + Büyük Başlık + CTA
+      </div>
+      <div class="ws feature-row">
+        <div class="feat-block">YKS</div>
+        <div class="feat-block">Görev</div>
+        <div class="feat-block">AI</div>
+        <div class="feat-block">Stats</div>
+      </div>
+      <div class="ws stat-row">
+        <div class="stat-block">10K+ Öğrenci</div>
+        <div class="stat-block">%94 Başarı</div>
+        <div class="stat-block">Ücretsiz</div>
+      </div>
+      <div class="ws pricing">
+        <div class="price-tier">Ücretsiz</div>
+        <div class="price-tier popular">⭐ Pro</div>
+        <div class="price-tier">Kurumsal</div>
+      </div>
+      <div class="ws testimonial"></div>
+      <div class="ws cta-row">🚀 Hemen Başla — Ücretsiz</div>
+    </div>
+  </div>
+
+  <!-- Layout B: Split hero + video -->
+  <div class="layout-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="lc-header">B — Video Hero + Hızlı Kayıt</div>
+    <div class="lc-body">
+      <div class="ws nav-bar">
+        <div class="nav-dot"></div><div class="nav-dot"></div>
+        <div class="nav-line"></div>
+        <div class="nav-btn"></div>
+      </div>
+      <div class="ws hero-split" style="margin-top:6px">
+        <div class="left">Büyük Başlık<br>+ Alt Başlık<br>+ İki CTA</div>
+        <div class="right"><div class="mock-video">▶</div></div>
+      </div>
+      <div class="ws feature-row">
+        <div class="feat-block">YKS Modu</div>
+        <div class="feat-block">Günlük Mod</div>
+      </div>
+      <div class="ws stat-row">
+        <div class="stat-block">Sosyal Kanıt</div>
+        <div class="stat-block">Rakamlar</div>
+        <div class="stat-block">Logolar</div>
+      </div>
+      <div class="ws cta-row" style="height:40px">Doğrudan Kayıt Formu (inline)</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px; padding:14px; background:rgba(6,182,212,0.05); border:1px solid rgba(6,182,212,0.15); border-radius:10px;">
+  <p style="margin:0;font-size:13px;opacity:0.8">
+    <strong style="color:#06b6d4">Video kullanımı hakkında:</strong> Paylaştığın video arka plan olarak (muted, loop) veya hero'da showcase olarak kullanılabilir. Remotion ile ise uygulama içi animasyonlu intro / onboarding videosu üretilebilir.
+  </p>
+</div>
+
+<p class="subtitle" style="margin-top:16px;text-align:center">Birini seç ve terminalde yorumunu yaz.</p>

@@ -14,6 +14,7 @@ import {
   generateDailyStudyPlan, analyzeYKSPerformance,
   solveQuestionWithVision, detectBurnout,
   generateWeeklyRetrospective, autoTagErrorNote, generateSelfReview,
+  parseGeminiError,
 } from '../services/geminiService';
 
 const TABS = [
@@ -203,7 +204,7 @@ export default function AIMerkezi() {
       setAIPlanCache(newCache);
       addBadge('first_plan');
     } catch (e) {
-      setErr('plan', e.message);
+      setErr('plan', parseGeminiError(e));
     }
     setLoad('plan', false);
   }
@@ -221,7 +222,7 @@ export default function AIMerkezi() {
     try {
       const r = await analyzeYKSPerformance(yks, yks?.trials || []);
       setRes('analiz', r);
-    } catch (e) { setErr('analiz', e.message); }
+    } catch (e) { setErr('analiz', parseGeminiError(e)); }
     setLoad('analiz', false);
   }
 
@@ -239,7 +240,7 @@ export default function AIMerkezi() {
     try {
       const r = await solveQuestionWithVision(solveImage);
       setRes('soru', r);
-    } catch (e) { setErr('soru', e.message); }
+    } catch (e) { setErr('soru', parseGeminiError(e)); }
     setLoad('soru', false);
   }
 
@@ -254,7 +255,7 @@ export default function AIMerkezi() {
         daysLeft,
       });
       setRes('burnout', r);
-    } catch (e) { setErr('burnout', e.message); }
+    } catch (e) { setErr('burnout', parseGeminiError(e)); }
     setLoad('burnout', false);
   }
 
@@ -271,7 +272,7 @@ export default function AIMerkezi() {
         userName: user?.displayName,
       });
       setRes('retro', r);
-    } catch (e) { setErr('retro', e.message); }
+    } catch (e) { setErr('retro', parseGeminiError(e)); }
     setLoad('retro', false);
   }
 
@@ -311,7 +312,7 @@ export default function AIMerkezi() {
         userName: user?.displayName,
       });
       setRes('panel', r);
-    } catch (e) { setErr('panel', e.message); }
+    } catch (e) { setErr('panel', parseGeminiError(e)); }
     setLoad('panel', false);
   }
 
@@ -983,7 +984,7 @@ export default function AIMerkezi() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 overflow-x-auto pb-2 mb-5 scrollbar-none">
+      <div className="flex gap-1 overflow-x-auto pb-2 mb-5 scrollbar-none snap-x snap-mandatory">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           const badgeCount = id === 'tekrar' ? dueItems.length : 0;
@@ -992,7 +993,7 @@ export default function AIMerkezi() {
               key={id}
               onClick={() => setActiveTab(id)}
               whileTap={{ scale: 0.96 }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 relative ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 snap-start relative ${
                 isActive
                   ? 'bg-violet-600/20 text-violet-300 border border-violet-500/25'
                   : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border border-transparent'

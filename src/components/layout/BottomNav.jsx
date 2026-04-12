@@ -1,20 +1,24 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
   BookOpen, ClipboardList, Target, MoreHorizontal, Brain,
+  Sparkles, ListTodo, Youtube, Trophy, Bell,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useApp } from '../../context/AppContext';
 
 const PRIMARY_NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Ana Sayfa' },
   { to: '/tasks', icon: CheckSquare, label: 'Görevler' },
-  { to: '/calendar', icon: Calendar, label: 'Takvim' },
   { to: '/habits', icon: Activity, label: 'Alışkanlık' },
+  { to: '/ai', icon: Sparkles, label: 'AI' },
 ];
 
 const MORE_NAV = [
+  { to: '/daily-todos', icon: ListTodo, label: 'Yapılacaklar' },
+  { to: '/calendar', icon: Calendar, label: 'Takvim' },
   { to: '/notes', icon: FileText, label: 'Notlar' },
   { to: '/projects', icon: FolderKanban, label: 'Projeler' },
   { to: '/pomodoro', icon: Timer, label: 'Pomodoro' },
@@ -22,11 +26,16 @@ const MORE_NAV = [
   { to: '/exams', icon: ClipboardList, label: 'Sınavlar' },
   { to: '/yks', icon: Brain, label: 'YKS' },
   { to: '/goals', icon: Target, label: 'Hedefler' },
+  { to: '/video-summarizer', icon: Youtube, label: 'Video Özet' },
+  { to: '/leaderboard', icon: Trophy, label: 'Sıralama' },
+  { to: '/reminders', icon: Bell, label: 'Hatırlatma' },
   { to: '/stats', icon: BarChart2, label: 'İstatistik' },
 ];
 
 export default function BottomNav() {
   const [moreOpen, setMoreOpen] = useState(false);
+  const { tasks } = useApp();
+  const pendingCount = (tasks || []).filter(t => !t.completed).length;
 
   return (
     <>
@@ -101,6 +110,11 @@ export default function BottomNav() {
                     />
                   )}
                   <Icon size={20} className="relative" />
+                  {to === '/tasks' && pendingCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 px-1 bg-violet-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {pendingCount > 99 ? '99+' : pendingCount}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[10px] font-medium">{label}</span>
               </>

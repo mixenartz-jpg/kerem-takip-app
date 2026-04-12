@@ -1,14 +1,16 @@
-import { Search, LogOut, User } from 'lucide-react';
+import { Search, LogOut, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import FriendPanel from '../friends/FriendPanel';
 
 export default function Header({ onSearchOpen, title }) {
   const today = format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr });
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [friendPanelOpen, setFriendPanelOpen] = useState(false);
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -49,7 +51,7 @@ export default function Header({ onSearchOpen, title }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setMenuOpen(false)}
+                onClick={() => { setMenuOpen(false); setFriendPanelOpen(false); }}
               />
               <motion.div
                 className="absolute right-0 top-10 z-40 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden"
@@ -65,7 +67,14 @@ export default function Header({ onSearchOpen, title }) {
                   <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
                 </div>
                 <button
-                  onClick={() => { logout(); setMenuOpen(false); }}
+                  onClick={() => { setMenuOpen(false); setFriendPanelOpen(o => !o); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-400 hover:text-violet-300 hover:bg-violet-500/10 transition-colors"
+                >
+                  <Users size={15} />
+                  Arkadaşlarım
+                </button>
+                <button
+                  onClick={async () => { setMenuOpen(false); await logout(); }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut size={15} />
@@ -73,6 +82,12 @@ export default function Header({ onSearchOpen, title }) {
                 </button>
               </motion.div>
             </>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {friendPanelOpen && (
+            <FriendPanel onClose={() => setFriendPanelOpen(false)} />
           )}
         </AnimatePresence>
       </div>

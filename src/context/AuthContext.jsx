@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -15,6 +15,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, loading, error] = useAuthState(auth);
+  const [verifiedOverride, setVerifiedOverride] = useState(false);
 
   const register = async (email, password, displayName) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -40,11 +41,14 @@ export function AuthProvider({ children }) {
   const refreshUser = async () => {
     if (auth.currentUser) {
       await reload(auth.currentUser);
+      if (auth.currentUser.emailVerified) {
+        setVerifiedOverride(true);
+      }
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, register, login, loginWithGoogle, logout, resendVerification, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, error, verifiedOverride, register, login, loginWithGoogle, logout, resendVerification, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

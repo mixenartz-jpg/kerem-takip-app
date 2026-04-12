@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Sparkles, Trash2, Bot, User, Loader2 } from 'lucide-react';
+import { X, Send, Sparkles, Trash2, Bot, User, Loader2, RefreshCw, ArrowRight } from 'lucide-react';
 import { useAI } from '../../context/AIContext';
+import MarkdownMessage from './MarkdownMessage';
+import TopicVideoSuggestions from './TopicVideoSuggestions';
 
 function MessageBubble({ msg }) {
   const isUser = msg.role === 'user';
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
@@ -17,21 +22,35 @@ function MessageBubble({ msg }) {
       }`}>
         {isUser ? <User size={13} className="text-white" /> : <Bot size={13} className="text-violet-400" />}
       </div>
-      <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-        isUser
-          ? 'bg-violet-600 text-white rounded-tr-sm'
-          : msg.isError
-            ? 'bg-red-500/10 border border-red-500/20 text-red-400 rounded-tl-sm'
-            : 'bg-zinc-800/80 border border-zinc-700/50 text-zinc-200 rounded-tl-sm'
-      }`} style={{ whiteSpace: 'pre-wrap' }}>
-        {msg.content}
+      <div className="max-w-[78%] flex flex-col gap-1.5">
+        <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+          isUser
+            ? 'bg-violet-600 text-white rounded-tr-sm'
+            : msg.isError
+              ? 'bg-red-500/10 border border-red-500/20 text-red-400 rounded-tl-sm'
+              : 'bg-zinc-800/80 border border-zinc-700/50 text-zinc-200 rounded-tl-sm'
+        }`}>
+          {isUser || msg.isError
+            ? <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
+            : <MarkdownMessage content={msg.content} />
+          }
+        </div>
+        {msg.navigatePath && (
+          <button
+            onClick={() => navigate(msg.navigatePath)}
+            className="flex items-center gap-1.5 self-start text-xs text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 rounded-lg px-2.5 py-1 transition-all"
+          >
+            <ArrowRight size={11} />
+            Sayfaya Git
+          </button>
+        )}
       </div>
     </motion.div>
   );
 }
 
 export default function AIAssistant() {
-  const { messages, loading, open, closeAssistant, sendMessage, clearChat } = useAI();
+  const { messages, loading, open, closeAssistant, sendMessage, clearChat, refreshContext, quickPrompts, detectedTopic } = useAI();
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -57,13 +76,6 @@ export default function AIAssistant() {
     }
   };
 
-  const quickPrompts = [
-    'Bugün ne yapmalıyım?',
-    'YKS analizimi yap',
-    'Motivasyon ver',
-    'Çalışma programı öner',
-  ];
-
   return (
     <AnimatePresence>
       {open && (
@@ -79,14 +91,14 @@ export default function AIAssistant() {
 
           {/* Panel */}
           <motion.div
-            className="fixed bottom-4 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)] flex flex-col"
-            style={{ height: 'min(600px, calc(100vh - 2rem))' }}
+            className="fixed bottom-0 left-0 right-0 md:bottom-4 md:right-4 md:left-auto z-50 w-full md:w-[360px] flex flex-col"
+            style={{ height: 'min(600px, calc(100vh - env(safe-area-inset-bottom, 0px)))' }}
             initial={{ opacity: 0, scale: 0.9, y: 20, originX: 1, originY: 1 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
           >
-            <div className="flex flex-col h-full bg-zinc-950 border border-zinc-800/80 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
+            <div className="flex flex-col h-full bg-zinc-950 border border-zinc-800/80 rounded-t-2xl md:rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
               {/* Header */}
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-800/60"
                 style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(12,12,14,0) 60%)' }}
@@ -103,6 +115,13 @@ export default function AIAssistant() {
                   <p className="text-[10px] text-zinc-500">Gemini AI · Kişisel koçun</p>
                 </div>
                 <div className="flex items-center gap-1">
+                  <button
+                    onClick={refreshContext}
+                    className="p-1.5 text-zinc-600 hover:text-violet-400 hover:bg-zinc-800 rounded-lg transition-all"
+                    title="Bağlamı yenile (yeni verilerle güncelle)"
+                  >
+                    <RefreshCw size={13} />
+                  </button>
                   <button
                     onClick={clearChat}
                     className="p-1.5 text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 rounded-lg transition-all"
@@ -153,6 +172,10 @@ export default function AIAssistant() {
                 )}
 
                 {messages.map(msg => <MessageBubble key={msg.id} msg={msg} />)}
+
+                {detectedTopic && !loading && (
+                  <TopicVideoSuggestions topic={detectedTopic} />
+                )}
 
                 {loading && (
                   <div className="flex gap-2.5">

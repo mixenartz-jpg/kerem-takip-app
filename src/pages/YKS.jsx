@@ -750,7 +750,7 @@ export default function YKS() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {TYT_SUBJECTS.map(s => {
                           const key = s.key.replace('tyt_', '');
                           const net = trial.tyt?.[key]?.net || 0;
