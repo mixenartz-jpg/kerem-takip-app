@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckSquare, Clock, Activity, FolderKanban, Flame, TrendingUp,
   BookOpen, ClipboardList, Target, AlertCircle, ArrowRight, Zap,
-  Brain, Sparkles, ListTodo, Timer, BarChart2, Video, Trophy } from 'lucide-react';
+  Brain, Sparkles, ListTodo, Plus } from 'lucide-react';
 import { differenceInDays, parseISO, isPast } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,12 +15,12 @@ const QUOTE = QUOTES[new Date().getDay() % QUOTES.length];
 
 /* ── Section card ── */
 const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.23, 1, 0.32, 1] } },
+  hidden: { opacity: 0, y: 16 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.23, 1, 0.32, 1] } },
 };
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.07 } },
+  show: { transition: { staggerChildren: 0.05 } },
 };
 
 function SectionCard({ title, icon: Icon, iconColor = 'text-violet-400', action, actionPath, children }) {
@@ -64,7 +64,8 @@ function EmptyState({ text }) {
 }
 
 export default function Dashboard() {
-  const { tasks, habits, projects, pomodoro, exams, goals, lessons } = useApp();
+  const { tasks, habits, projects, pomodoro, exams, goals, lessons, dailyTodos, addDailyTodo, toggleDailyTodo } = useApp();
+  const [newTodo, setNewTodo] = useState('');
   const navigate = useNavigate();
   const today = todayStr();
 
@@ -111,6 +112,19 @@ export default function Dashboard() {
     [pomodoro, today]
   );
 
+  const todayDailyTodos = useMemo(() =>
+    (dailyTodos || []).filter(t => t.date === today),
+    [dailyTodos, today]
+  );
+
+  const handleAddTodo = (e) => {
+    e.preventDefault();
+    const text = newTodo.trim();
+    if (!text) return;
+    addDailyTodo(text, today);
+    setNewTodo('');
+  };
+
   return (
     <motion.div
       className="p-4 md:p-6 space-y-5 min-h-full"
@@ -151,29 +165,23 @@ export default function Dashboard() {
           onClick={() => navigate('/habits')} />
       </motion.div>
 
-      {/* Hızlı Erişim */}
+      {/* Hızlı Erişim — 3 ana CTA */}
       <motion.div variants={cardVariants}>
-        <h3 className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase mb-2.5 px-0.5">Hızlı Erişim</h3>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           {[
-            { to: '/daily-todos', icon: ListTodo, label: 'Yapılacaklar', color: 'text-violet-400', bg: 'bg-violet-500/10' },
-            { to: '/ai', icon: Sparkles, label: 'AI Merkezi', color: 'text-pink-400', bg: 'bg-pink-500/10' },
-            { to: '/yks', icon: Brain, label: 'YKS', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-            { to: '/pomodoro', icon: Timer, label: 'Pomodoro', color: 'text-orange-400', bg: 'bg-orange-500/10' },
-            { to: '/leaderboard', icon: Trophy, label: 'Sıralama', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-            { to: '/stats', icon: BarChart2, label: 'İstatistik', color: 'text-green-400', bg: 'bg-green-500/10' },
-          ].map(({ to, icon: Icon, label, color, bg }) => (
+            { to: '/daily-todos', icon: ListTodo, label: 'Yapılacaklar', color: 'text-violet-300', bg: 'from-violet-600/20 to-violet-500/10', border: 'border-violet-500/20' },
+            { to: '/ai', icon: Sparkles, label: 'AI Merkezi', color: 'text-pink-300', bg: 'from-pink-600/20 to-pink-500/10', border: 'border-pink-500/20' },
+            { to: '/yks', icon: Brain, label: 'YKS Merkezi', color: 'text-blue-300', bg: 'from-blue-600/20 to-blue-500/10', border: 'border-blue-500/20' },
+          ].map(({ to, icon: Icon, label, color, bg, border }) => (
             <motion.button
               key={to}
               onClick={() => navigate(to)}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className={`flex flex-col items-center gap-2 py-4 rounded-2xl border bg-gradient-to-b ${bg} ${border} hover:brightness-110 transition-all`}
             >
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${bg}`}>
-                <Icon size={16} className={color} />
-              </div>
-              <span className="text-[10px] text-zinc-500 font-medium leading-tight text-center">{label}</span>
+              <Icon size={20} className={color} />
+              <span className="text-xs text-zinc-300 font-medium">{label}</span>
             </motion.button>
           ))}
         </div>
@@ -349,6 +357,78 @@ export default function Dashboard() {
                 })}
               </ul>
           }
+        </SectionCard>
+
+        {/* Günlük Yapılacaklar */}
+        <SectionCard title="Günlük Yapılacaklar" icon={ListTodo} iconColor="text-violet-400"
+          action="Tümü" actionPath="/daily-todos">
+          <form onSubmit={handleAddTodo} className="flex gap-2 mb-3">
+            <input
+              value={newTodo}
+              onChange={e => setNewTodo(e.target.value)}
+              placeholder="Yeni görev ekle..."
+              className="flex-1 bg-zinc-800/60 border border-white/5 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+            />
+            <motion.button
+              type="submit"
+              whileTap={{ scale: 0.92 }}
+              disabled={!newTodo.trim()}
+              className="w-7 h-7 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 disabled:opacity-30 hover:bg-violet-600/30 transition-all"
+            >
+              <Plus size={13} />
+            </motion.button>
+          </form>
+          {todayDailyTodos.length === 0
+            ? <EmptyState text="Bugün için yapılacak yok — ekle! 🚀" />
+            : <ul className="space-y-1.5">
+                {todayDailyTodos.slice(0, 6).map((t, i) => (
+                  <motion.li
+                    key={t.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="flex items-center gap-2.5 group/todo"
+                  >
+                    <motion.button
+                      onClick={() => toggleDailyTodo(t.id)}
+                      whileTap={{ scale: 0.85 }}
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                        t.completed ? 'bg-violet-500 border-violet-400' : 'border-zinc-700 hover:border-zinc-500'
+                      }`}
+                    >
+                      {t.completed && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="text-white text-[9px] font-bold"
+                        >✓</motion.span>
+                      )}
+                    </motion.button>
+                    <span className={`text-sm flex-1 truncate transition-colors ${
+                      t.completed ? 'line-through text-zinc-600' : 'text-zinc-300 group-hover/todo:text-zinc-100'
+                    }`}>
+                      {t.text}
+                    </span>
+                  </motion.li>
+                ))}
+              </ul>
+          }
+          {todayDailyTodos.length > 0 && (
+            <div className="mt-3 pt-2 border-t border-white/5">
+              <div className="flex justify-between text-[10px] text-zinc-600 mb-1">
+                <span>{todayDailyTodos.filter(t => t.completed).length}/{todayDailyTodos.length} tamamlandı</span>
+                <span className="font-mono">{Math.round((todayDailyTodos.filter(t=>t.completed).length/todayDailyTodos.length)*100)}%</span>
+              </div>
+              <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(todayDailyTodos.filter(t=>t.completed).length/todayDailyTodos.length)*100}%` }}
+                  transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                />
+              </div>
+            </div>
+          )}
         </SectionCard>
 
         {/* Aktif Hedefler */}

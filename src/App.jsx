@@ -2,15 +2,19 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MailCheck, RefreshCw } from 'lucide-react';
+import AdminGate from './pages/admin/AdminGate';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AIProvider } from './context/AIContext';
+import { PremiumProvider } from './context/PremiumContext';
+import PremiumGate from './components/ui/PremiumGate';
 import { initReminders } from './services/reminderService';
 import AIAssistant, { AIFloatingButton } from './components/ai/AIAssistant';
 import Dock from './components/layout/Dock';
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
 import CommandPalette from './components/layout/CommandPalette';
+import DrawerMenu from './components/layout/DrawerMenu';
 import PageTransition from './components/layout/PageTransition';
 import SplashScreen from './components/SplashScreen';
 import OnboardingScreen from './components/OnboardingScreen';
@@ -67,6 +71,7 @@ const PAGE_TITLES = {
 
 function AppLayout() {
   const [cmdOpen, setCmdOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const title = PAGE_TITLES[location.pathname] || 'Günlük Takip';
   const { reminders } = useApp();
@@ -87,12 +92,18 @@ function AppLayout() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Close drawer on route change
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950">
       <Dock />
+      <DrawerMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Header onSearchOpen={() => setCmdOpen(true)} title={title} />
+        <Header onSearchOpen={() => setCmdOpen(true)} title={title} onMenuOpen={() => setDrawerOpen(o => !o)} />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0 relative">
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
@@ -106,12 +117,12 @@ function AppLayout() {
               <Route path="/projects" element={<PageTransition><Projects /></PageTransition>} />
               <Route path="/habits" element={<PageTransition><Habits /></PageTransition>} />
               <Route path="/pomodoro" element={<PageTransition><Pomodoro /></PageTransition>} />
-              <Route path="/stats" element={<PageTransition><Stats /></PageTransition>} />
+              <Route path="/stats" element={<PageTransition><PremiumGate feature="istatistikler"><Stats /></PremiumGate></PageTransition>} />
               <Route path="/lessons" element={<PageTransition><Lessons /></PageTransition>} />
               <Route path="/exams" element={<PageTransition><Exams /></PageTransition>} />
               <Route path="/yks" element={<PageTransition><YKS /></PageTransition>} />
               <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
-              <Route path="/ai" element={<PageTransition><AIMerkezi /></PageTransition>} />
+              <Route path="/ai" element={<PageTransition><PremiumGate feature="ai"><AIMerkezi /></PremiumGate></PageTransition>} />
               <Route path="/daily-todos" element={<PageTransition><DailyTodos /></PageTransition>} />
               <Route path="/video-summarizer" element={<PageTransition><VideoSummarizer /></PageTransition>} />
               <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
@@ -302,9 +313,11 @@ function AuthGate() {
           className="h-screen"
         >
           <BrowserRouter>
-            <AIProvider>
-              <AppLayout />
-            </AIProvider>
+            <PremiumProvider>
+              <AIProvider>
+                <AppLayout />
+              </AIProvider>
+            </PremiumProvider>
           </BrowserRouter>
         </motion.div>
       )}
@@ -321,6 +334,11 @@ export default function App() {
     localStorage.setItem('gt-splash-shown', '1');
     setSplashDone(true);
   };
+
+  // Admin route: /admin — gizli, menüde görünmez
+  if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+    return <AdminGate />;
+  }
 
   return (
     <AuthProvider>

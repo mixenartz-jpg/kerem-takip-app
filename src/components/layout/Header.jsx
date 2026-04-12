@@ -1,4 +1,4 @@
-import { Search, LogOut, Users } from 'lucide-react';
+import { Search, LogOut, Users, Menu } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useState } from 'react';
@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import FriendPanel from '../friends/FriendPanel';
 
-export default function Header({ onSearchOpen, title }) {
+export default function Header({ onSearchOpen, title, onMenuOpen }) {
   const today = format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr });
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,6 +18,14 @@ export default function Header({ onSearchOpen, title }) {
 
   return (
     <header className="relative z-50 h-14 bg-zinc-900/80 backdrop-blur border-b border-zinc-800 flex items-center px-4 md:px-6 gap-3 shrink-0">
+      {/* Hamburger — her ekran boyutunda görünür */}
+      <button
+        onClick={onMenuOpen}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] transition-all shrink-0"
+      >
+        <Menu size={18} />
+      </button>
+
       <div className="flex-1 min-w-0">
         <h2 className="text-sm font-semibold text-zinc-100 truncate">{title}</h2>
         <p className="text-xs text-zinc-500 capitalize hidden sm:block">{today}</p>
