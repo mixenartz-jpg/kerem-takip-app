@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
   BookOpen, ClipboardList, Target, MoreHorizontal, Brain,
-  Sparkles, ListTodo, Youtube, Trophy, Bell,
+  Sparkles, ListTodo, Video, Trophy, Bell,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,7 @@ const MORE_NAV = [
   { to: '/exams', icon: ClipboardList, label: 'Sınavlar' },
   { to: '/yks', icon: Brain, label: 'YKS' },
   { to: '/goals', icon: Target, label: 'Hedefler' },
-  { to: '/video-summarizer', icon: Youtube, label: 'Video Özet' },
+  { to: '/video-summarizer', icon: Video, label: 'Video Özet' },
   { to: '/leaderboard', icon: Trophy, label: 'Sıralama' },
   { to: '/reminders', icon: Bell, label: 'Hatırlatma' },
   { to: '/stats', icon: BarChart2, label: 'İstatistik' },

@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
   BookOpen, ClipboardList, Target, Brain, Sparkles,
-  ChevronLeft, ChevronRight, LogOut, ListTodo, Youtube, Trophy, Bell,
+  ChevronLeft, ChevronRight, LogOut, ListTodo, Video, Trophy, Bell,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +25,7 @@ const ALL_ITEMS = {
   goals:           { to: '/goals',             icon: Target,          label: 'Hedefler' },
   stats:           { to: '/stats',             icon: BarChart2,       label: 'İstatistikler' },
   dailyTodos:      { to: '/daily-todos',       icon: ListTodo,        label: 'Günlük Yapılacaklar' },
-  videoSummarizer: { to: '/video-summarizer',  icon: Youtube,         label: 'Video Özetleyici' },
+  videoSummarizer: { to: '/video-summarizer',  icon: Video,           label: 'Video Özetleyici' },
   leaderboard:     { to: '/leaderboard',       icon: Trophy,          label: 'Sıralama' },
   reminders:       { to: '/reminders',         icon: Bell,            label: 'Hatırlatmalar' },
 };

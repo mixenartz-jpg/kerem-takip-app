@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Sparkles, Loader2, BookmarkPlus, CheckCircle, AlertCircle, Link } from 'lucide-react';
+import { Video, Sparkles, Loader2, BookmarkPlus, CheckCircle, AlertCircle, Link } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { summarizeYouTubeVideo, parseGeminiError } from '../services/geminiService';
 import MarkdownMessage from '../components/ai/MarkdownMessage';
@@ -60,7 +60,7 @@ export default function VideoSummarizer() {
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-            <Youtube size={18} className="text-red-400" />
+            <Video size={18} className="text-red-400" />
           </div>
           <h1 className="text-xl font-bold text-zinc-100">Video Özetleyici</h1>
         </div>
@@ -212,7 +212,7 @@ export default function VideoSummarizer() {
           <div className="flex flex-col gap-2">
             {recentSummaries.map(note => (
               <div key={note.id} className="flex items-center gap-3 px-4 py-3 bg-zinc-900/60 border border-zinc-800 rounded-xl">
-                <Youtube size={14} className="text-red-400 shrink-0" />
+                <Video size={14} className="text-red-400 shrink-0" />
                 <span className="text-sm text-zinc-400 truncate">{note.title}</span>
               </div>
             ))}

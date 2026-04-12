@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { CheckSquare, Clock, Activity, FolderKanban, Flame, TrendingUp,
   BookOpen, ClipboardList, Target, AlertCircle, ArrowRight, Zap,
-  Brain, Sparkles, ListTodo, Timer, BarChart2, Youtube, Trophy } from 'lucide-react';
+  Brain, Sparkles, ListTodo, Timer, BarChart2, Video, Trophy } from 'lucide-react';
 import { differenceInDays, parseISO, isPast } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';

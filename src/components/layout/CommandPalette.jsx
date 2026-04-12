@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, CheckSquare, FileText, FolderKanban, Activity, X,
   LayoutDashboard, Calendar, Timer, BarChart2, BookOpen, ClipboardList,
-  Brain, Sparkles, Target, ListTodo, Youtube, Trophy, Bell,
+  Brain, Sparkles, Target, ListTodo, Video, Trophy, Bell,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -21,7 +21,7 @@ const PAGES = [
   { to: '/yks',             label: 'YKS Merkezi',         icon: Brain },
   { to: '/ai',              label: 'AI Merkezi',          icon: Sparkles },
   { to: '/goals',           label: 'Hedefler',            icon: Target },
-  { to: '/video-summarizer',label: 'Video Özetleyici',    icon: Youtube },
+  { to: '/video-summarizer',label: 'Video Özetleyici',    icon: Video },
   { to: '/leaderboard',     label: 'Sıralama',            icon: Trophy },
   { to: '/reminders',       label: 'Hatırlatmalar',       icon: Bell },
   { to: '/stats',           label: 'İstatistikler',       icon: BarChart2 },

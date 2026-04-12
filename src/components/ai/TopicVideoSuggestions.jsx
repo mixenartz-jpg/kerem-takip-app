@@ -1,4 +1,4 @@
-import { Youtube, ExternalLink } from 'lucide-react';
+import { Video, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TopicVideoSuggestions({ topic }) {
@@ -17,7 +17,7 @@ export default function TopicVideoSuggestions({ topic }) {
       className="mx-4 mb-3 p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl"
     >
       <div className="flex items-center gap-1.5 mb-2">
-        <Youtube size={13} className="text-red-400" />
+        <Video size={13} className="text-red-400" />
         <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">
           İlgili Videolar
         </span>
