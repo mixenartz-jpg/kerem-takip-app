@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AIProvider } from './context/AIContext';
 import { initReminders } from './services/reminderService';
 import AIAssistant, { AIFloatingButton } from './components/ai/AIAssistant';
-import Sidebar from './components/layout/Sidebar';
+import Dock from './components/layout/Dock';
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
 import CommandPalette from './components/layout/CommandPalette';
@@ -18,6 +18,9 @@ import ModeSelectScreen from './components/ModeSelectScreen';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import PlanlamaHub from './pages/PlanlamaHub';
+import AkademiHub from './pages/AkademiHub';
+import SosyalHub from './pages/SosyalHub';
 import Tasks from './pages/Tasks';
 import Calendar from './pages/Calendar';
 import Notes from './pages/Notes';
@@ -39,6 +42,9 @@ import Invite from './pages/Invite';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
+  '/planlama': 'Planlama',
+  '/akademi': 'Akademi',
+  '/sosyal': 'Sosyal',
   '/tasks': 'Görevler',
   '/calendar': 'Takvim',
   '/notes': 'Notlar',
@@ -83,10 +89,7 @@ function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex">
-        <Sidebar />
-      </div>
+      <Dock />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header onSearchOpen={() => setCmdOpen(true)} title={title} />
@@ -94,6 +97,9 @@ function AppLayout() {
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
+              <Route path="/planlama" element={<PageTransition><PlanlamaHub /></PageTransition>} />
+              <Route path="/akademi" element={<PageTransition><AkademiHub /></PageTransition>} />
+              <Route path="/sosyal" element={<PageTransition><SosyalHub /></PageTransition>} />
               <Route path="/tasks" element={<PageTransition><Tasks /></PageTransition>} />
               <Route path="/calendar" element={<PageTransition><Calendar /></PageTransition>} />
               <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
