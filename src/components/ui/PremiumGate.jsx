@@ -78,16 +78,24 @@ function UpgradeModal({ feature, onClose }) {
         </div>
 
         {/* CTA */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl text-sm transition-all"
-          onClick={onClose}
-        >
-          Anladım
-        </motion.button>
-        <p className="text-center text-xs text-zinc-600 mt-3">
-          Premium erişim için yöneticinize başvurun.
+        <div className="flex flex-col gap-2">
+          <motion.a
+            href="mailto:support@dashyks.com?subject=Premium Üyelik Talebi"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl text-sm transition-all text-center block"
+          >
+            Premium'a Geç →
+          </motion.a>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Şimdi değil
+          </button>
+        </div>
+        <p className="text-center text-xs text-zinc-600 mt-2">
+          Beta döneminde ücretsiz deneme için iletişime geç.
         </p>
       </motion.div>
     </motion.div>

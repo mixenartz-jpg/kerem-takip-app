@@ -1,8 +1,73 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Play, Pause, RotateCcw, Settings, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/ui/Modal';
 import { todayStr, formatDate } from '../utils/dateUtils';
+import { subDays, format } from 'date-fns';
+import { tr } from 'date-fns/locale';
+
+function WeeklyChart({ sessions, workMin }) {
+  const days = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = subDays(new Date(), 6 - i);
+      const dateStr = format(d, 'yyyy-MM-dd');
+      const count = sessions.filter(s => s.date === dateStr && s.completed && s.mode === 'work').length;
+      return {
+        label: format(d, 'EEE', { locale: tr }),
+        dateStr,
+        count,
+        minutes: count * (workMin || 25),
+      };
+    });
+  }, [sessions, workMin]);
+
+  const maxCount = Math.max(...days.map(d => d.count), 1);
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const totalWeek = days.reduce((s, d) => s + d.count, 0);
+  const totalMin = days.reduce((s, d) => s + d.minutes, 0);
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-medium text-zinc-100 text-sm">Haftalık Özet</h3>
+        <div className="flex gap-3 text-xs text-zinc-500">
+          <span><span className="text-violet-400 font-semibold">{totalWeek}</span> oturum</span>
+          <span><span className="text-violet-400 font-semibold">{totalMin}</span> dk</span>
+        </div>
+      </div>
+      <div className="flex items-end gap-1.5 h-20">
+        {days.map((d) => {
+          const pct = d.count / maxCount;
+          const isToday = d.dateStr === today;
+          return (
+            <div key={d.dateStr} className="flex-1 flex flex-col items-center gap-1">
+              <div className="w-full flex items-end justify-center" style={{ height: 56 }}>
+                <div
+                  className="w-full rounded-t-md transition-all duration-500"
+                  style={{
+                    height: d.count === 0 ? 3 : Math.max(6, pct * 56),
+                    background: isToday
+                      ? 'linear-gradient(to top, #7c3aed, #a78bfa)'
+                      : d.count === 0
+                        ? '#27272a'
+                        : 'linear-gradient(to top, #4c1d95, #7c3aed)',
+                    opacity: d.count === 0 ? 0.4 : 1,
+                  }}
+                />
+              </div>
+              <span className={`text-[10px] capitalize ${isToday ? 'text-violet-400 font-semibold' : 'text-zinc-600'}`}>
+                {d.label}
+              </span>
+              {d.count > 0 && (
+                <span className="text-[9px] text-zinc-600">{d.count}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const MODES = [
   { key: 'work', label: 'Odak', color: '#8b5cf6', defaultMin: 25 },
@@ -155,6 +220,9 @@ export default function Pomodoro() {
           <p className="text-xs text-zinc-500 mt-1">Odak dakikası</p>
         </div>
       </div>
+
+      {/* Weekly chart */}
+      <WeeklyChart sessions={pomodoro.sessions} workMin={settings.work} />
 
       {/* Session history */}
       {todaySessions.length > 0 && (

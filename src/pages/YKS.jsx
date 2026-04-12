@@ -624,28 +624,60 @@ export default function YKS() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.25 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
           >
             {/* Countdown */}
             <Countdown examDate={yks?.examDate} onSetDate={setYKSExamDate} />
 
-            {/* Stats */}
+            {/* Stats — TYT */}
             <Card3D glowColor="#3b82f6" delay={0.1} className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Zap size={14} className="text-blue-400" />
-                <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">Son Deneme</span>
+                <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">Son Deneme — TYT</span>
               </div>
               {lastTrial ? (
                 <div className="space-y-2.5">
-                  <div className="text-2xl font-black text-zinc-100">
-                    {tytTotalNet.toFixed(2)}
-                    <span className="text-sm text-zinc-500 font-normal ml-1">TYT net</span>
+                  <div className="flex items-end gap-2 mb-1">
+                    <div className="text-3xl font-black text-zinc-100">
+                      {tytTotalNet.toFixed(1)}
+                    </div>
+                    <span className="text-sm text-zinc-500 font-normal mb-1">net</span>
                   </div>
-                  <div className="text-xs text-zinc-500">{lastTrial.name} · {lastTrial.date}</div>
-                  <div className="space-y-1.5 mt-3">
+                  <div className="text-xs text-zinc-500 mb-2">{lastTrial.name} · {lastTrial.date}</div>
+                  <div className="space-y-1.5">
                     {TYT_SUBJECTS.map(s => {
                       const key = s.key.replace('tyt_', '');
                       const net = lastTrial.tyt?.[key]?.net || 0;
+                      return (
+                        <NetBar key={s.key} label={s.label} net={net} target={targetNets[s.key] || s.total * 0.8} color={s.color} total={s.total} />
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-zinc-600 text-sm">Henüz deneme eklenmedi</p>
+              )}
+            </Card3D>
+
+            {/* Stats — AYT */}
+            <Card3D glowColor="#6366f1" delay={0.15} className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap size={14} className="text-indigo-400" />
+                <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">Son Deneme — AYT</span>
+              </div>
+              {lastTrial ? (
+                <div className="space-y-2.5">
+                  <div className="flex items-end gap-2 mb-1">
+                    <div className="text-3xl font-black text-indigo-400">
+                      {AYT_SUBJECTS.reduce((sum, s) => sum + (lastTrial.ayt?.[s.key.replace('ayt_', '')]?.net || 0), 0).toFixed(1)}
+                    </div>
+                    <span className="text-sm text-zinc-500 font-normal mb-1">net</span>
+                  </div>
+                  <div className="text-xs text-zinc-500 mb-2">{lastTrial.name} · {lastTrial.date}</div>
+                  <div className="space-y-1.5">
+                    {AYT_SUBJECTS.map(s => {
+                      const key = s.key.replace('ayt_', '');
+                      const net = lastTrial.ayt?.[key]?.net || 0;
                       return (
                         <NetBar key={s.key} label={s.label} net={net} target={targetNets[s.key] || s.total * 0.8} color={s.color} total={s.total} />
                       );
@@ -729,6 +761,11 @@ export default function YKS() {
                     return sum + (trial.tyt?.[key]?.net || 0);
                   }, 0);
 
+                  const aytNet = AYT_SUBJECTS.reduce((sum, s) => {
+                    const key = s.key.replace('ayt_', '');
+                    return sum + (trial.ayt?.[key]?.net || 0);
+                  }, 0);
+
                   return (
                     <Card3D key={trial.id} delay={i * 0.05} className="p-5">
                       <div className="flex items-center justify-between mb-3">
@@ -737,9 +774,15 @@ export default function YKS() {
                           <p className="text-xs text-zinc-600">{trial.date}</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <p className="text-lg font-black text-violet-400">{tytNet.toFixed(2)}</p>
-                            <p className="text-[10px] text-zinc-600">TYT net</p>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="text-lg font-black text-violet-400">{tytNet.toFixed(2)}</p>
+                              <p className="text-[10px] text-zinc-600">TYT net</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-black text-indigo-400">{aytNet.toFixed(2)}</p>
+                              <p className="text-[10px] text-zinc-600">AYT net</p>
+                            </div>
                           </div>
                           <button
                             onClick={() => deleteYKSTrial(trial.id)}
@@ -750,17 +793,37 @@ export default function YKS() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {TYT_SUBJECTS.map(s => {
-                          const key = s.key.replace('tyt_', '');
-                          const net = trial.tyt?.[key]?.net || 0;
-                          return (
-                            <div key={s.key} className="bg-zinc-900 rounded-xl p-2 text-center">
-                              <p className="text-sm font-bold" style={{ color: s.color }}>{net}</p>
-                              <p className="text-[9px] text-zinc-600 mt-0.5">{s.label}</p>
-                            </div>
-                          );
-                        })}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mb-1.5">TYT</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {TYT_SUBJECTS.map(s => {
+                              const key = s.key.replace('tyt_', '');
+                              const net = trial.tyt?.[key]?.net || 0;
+                              return (
+                                <div key={s.key} className="bg-zinc-900 rounded-xl p-2 text-center">
+                                  <p className="text-sm font-bold" style={{ color: s.color }}>{net}</p>
+                                  <p className="text-[9px] text-zinc-600 mt-0.5">{s.label}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mb-1.5">AYT</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {AYT_SUBJECTS.map(s => {
+                              const key = s.key.replace('ayt_', '');
+                              const net = trial.ayt?.[key]?.net || 0;
+                              return (
+                                <div key={s.key} className="bg-zinc-900 rounded-xl p-2 text-center">
+                                  <p className="text-sm font-bold" style={{ color: s.color }}>{net}</p>
+                                  <p className="text-[9px] text-zinc-600 mt-0.5">{s.label}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </Card3D>
                   );

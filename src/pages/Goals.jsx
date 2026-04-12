@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Target, Plus, Trash2, Edit2, CheckCircle2, Circle, X, Flag } from 'lucide-react';
+import { Target, Plus, Trash2, Edit2, CheckCircle2, Circle, X, Flag, Calendar } from 'lucide-react';
 import Modal from '../components/ui/Modal';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isPast } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
 const genId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -80,7 +80,17 @@ function GoalCard({ goal, onEdit, onDelete, onToggleMilestone, onToggleComplete 
                 ? <CheckCircle2 size={13} className="text-violet-500 shrink-0" />
                 : <Circle size={13} className="text-zinc-600 group-hover:text-zinc-400 shrink-0 transition-colors" />
               }
-              <span className={m.completed ? 'line-through text-zinc-600' : 'text-zinc-400'}>{m.title}</span>
+              <span className={`flex-1 ${m.completed ? 'line-through text-zinc-600' : 'text-zinc-400'}`}>{m.title}</span>
+              {m.dueDate && (
+                <span className={`text-[10px] shrink-0 flex items-center gap-0.5 ${
+                  !m.completed && isPast(parseISO(m.dueDate))
+                    ? 'text-red-400'
+                    : 'text-zinc-600'
+                }`}>
+                  <Calendar size={9} />
+                  {format(parseISO(m.dueDate), 'dd MMM', { locale: tr })}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -97,6 +107,7 @@ export default function Goals() {
   const [form, setForm] = useState({ title: '', description: '', category: 'kısa', targetDate: '' });
   const [milestones, setMilestones] = useState([]);
   const [msInput, setMsInput] = useState('');
+  const [msDueDate, setMsDueDate] = useState('');
 
   const active = goals.filter(g => !g.completed);
   const completed = goals.filter(g => g.completed);
@@ -127,8 +138,9 @@ export default function Goals() {
 
   const addMs = () => {
     if (!msInput.trim()) return;
-    setMilestones(prev => [...prev, { id: genId(), title: msInput.trim(), completed: false }]);
+    setMilestones(prev => [...prev, { id: genId(), title: msInput.trim(), completed: false, dueDate: msDueDate || null }]);
     setMsInput('');
+    setMsDueDate('');
   };
 
   const toggleComplete = (id) => {
@@ -276,7 +288,7 @@ export default function Goals() {
 
           <div>
             <label className="block text-xs text-zinc-400 mb-1.5">Milestone'lar</label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <input
                 value={msInput}
                 onChange={e => setMsInput(e.target.value)}
@@ -284,16 +296,29 @@ export default function Goals() {
                 placeholder="Adım ekle..."
                 className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500 transition-colors"
               />
+              <input
+                type="date"
+                value={msDueDate}
+                onChange={e => setMsDueDate(e.target.value)}
+                title="Milestone tarihi (opsiyonel)"
+                className="w-32 bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 text-xs text-zinc-400 outline-none focus:border-violet-500 transition-colors"
+              />
               <button onClick={addMs} className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm text-zinc-300 transition-colors">
                 <Plus size={14} />
               </button>
             </div>
             {milestones.length > 0 && (
-              <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+              <div className="flex flex-col gap-1 max-h-36 overflow-y-auto mt-2">
                 {milestones.map(m => (
-                  <div key={m.id} className="flex items-center justify-between px-2 py-1.5 bg-zinc-800 rounded-lg">
-                    <span className="text-xs text-zinc-300">{m.title}</span>
-                    <button onClick={() => setMilestones(prev => prev.filter(ms => ms.id !== m.id))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                  <div key={m.id} className="flex items-center justify-between px-2 py-1.5 bg-zinc-800 rounded-lg gap-2">
+                    <span className="text-xs text-zinc-300 flex-1 truncate">{m.title}</span>
+                    {m.dueDate && (
+                      <span className="text-[10px] text-zinc-500 shrink-0 flex items-center gap-0.5">
+                        <Calendar size={9} />
+                        {format(parseISO(m.dueDate), 'dd MMM', { locale: tr })}
+                      </span>
+                    )}
+                    <button onClick={() => setMilestones(prev => prev.filter(ms => ms.id !== m.id))} className="text-zinc-600 hover:text-red-400 transition-colors shrink-0">
                       <X size={12} />
                     </button>
                   </div>

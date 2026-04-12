@@ -18,10 +18,10 @@ export default function Header({ onSearchOpen, title, onMenuOpen }) {
 
   return (
     <header className="relative z-50 h-14 bg-zinc-900/80 backdrop-blur border-b border-zinc-800 flex items-center px-4 md:px-6 gap-3 shrink-0">
-      {/* Hamburger — her ekran boyutunda görünür */}
+      {/* Hamburger — sadece mobilde görünür (masaüstünde Dock var) */}
       <button
         onClick={onMenuOpen}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] transition-all shrink-0"
+        className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] transition-all shrink-0"
       >
         <Menu size={18} />
       </button>
