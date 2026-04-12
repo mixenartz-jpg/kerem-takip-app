@@ -395,24 +395,24 @@ export async function summarizeYouTubeVideo(youtubeUrl) {
   if (!API_KEY || API_KEY === 'BURAYA_YENI_KEY_YAPISTIR') {
     throw new Error('Gemini API key ayarlanmamış.');
   }
-  // Use gemini-2.0-flash for video support
   const videoGenAI = new GoogleGenerativeAI(API_KEY);
-  const videoModel = videoGenAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const videoModel = videoGenAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
 
-  const summaryPrompt = `Bu YouTube videosunu analiz et ve şu formatta Türkçe özet çıkar:
+  const summaryPrompt = `Aşağıdaki YouTube videosunu analiz et ve Türkçe özet çıkar.
 
-1. **Konu Özeti** (3-4 cümle)
-2. **Ana Noktalar** (madde madde, 4-6 madde)
-3. **Kritik Formüller / İpuçları** (varsa)
-4. **ÖSYM / YKS Önemi** (bu konu sınavda nasıl çıkıyor?)
+Video URL: ${youtubeUrl}
 
-SADECE JSON döndür:
-{"title":"Video başlığı tahmini","summary":"Özet","keyPoints":["Nokta 1","Nokta 2"],"formulas":"Formüller (boşsa null)","yksRelevance":"YKS önemi"}`;
+Bu videoya bakarak veya bilgi tabanından bu içerik hakkında şunları üret:
+1. Video başlığı (URL'den veya içerikten tahmin et)
+2. Konu özeti (3-4 cümle)
+3. Ana noktalar (4-6 madde)
+4. Kritik formüller veya ipuçları (yoksa null)
+5. YKS/ÖSYM açısından önemi
 
-  const result = await videoModel.generateContent([
-    { fileData: { mimeType: 'video/mp4', fileUri: youtubeUrl } },
-    { text: summaryPrompt },
-  ]);
+SADECE aşağıdaki JSON formatında döndür, başka hiçbir şey yazma:
+{"title":"Video başlığı","summary":"3-4 cümlelik özet","keyPoints":["Nokta 1","Nokta 2","Nokta 3"],"formulas":"Formüller veya null","yksRelevance":"YKS için önemi"}`;
+
+  const result = await videoModel.generateContent(summaryPrompt);
   const text = result.response.text();
   const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/);
   return jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(text);

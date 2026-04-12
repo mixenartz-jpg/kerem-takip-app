@@ -34,6 +34,8 @@ import DailyTodos from './pages/DailyTodos';
 import VideoSummarizer from './pages/VideoSummarizer';
 import Leaderboard from './pages/Leaderboard';
 import Reminders from './pages/Reminders';
+import Friends from './pages/Friends';
+import Invite from './pages/Invite';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
@@ -53,6 +55,8 @@ const PAGE_TITLES = {
   '/video-summarizer': 'Video Özetleyici',
   '/leaderboard': 'Sıralama',
   '/reminders': 'Hatırlatmalar',
+  '/friends': 'Arkadaşlar',
+  '/invite': 'Davet',
 };
 
 function AppLayout() {
@@ -106,6 +110,8 @@ function AppLayout() {
               <Route path="/video-summarizer" element={<PageTransition><VideoSummarizer /></PageTransition>} />
               <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
               <Route path="/reminders" element={<PageTransition><Reminders /></PageTransition>} />
+              <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
+              <Route path="/invite" element={<PageTransition><Invite /></PageTransition>} />
             </Routes>
           </AnimatePresence>
         </main>
@@ -206,11 +212,11 @@ function VerifyGate({ onVerified }) {
 /* ── Auth-aware inner app ── */
 function AuthGate() {
   const { user, loading } = useAuth();
-  const { updateUserMode } = useApp();
+  const { updateUserMode, dbLoading, state } = useApp();
   const [phase, setPhase] = useState(null); // null = checking
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || dbLoading) return;
     if (!user) {
       setPhase('landing');
       return;
@@ -222,14 +228,17 @@ function AuthGate() {
     }
     const modeKey      = `gt-mode-${user.uid}`;
     const onboardedKey = `gt-onboarded-${user.uid}`;
-    if (!localStorage.getItem(modeKey)) {
+    // Check both localStorage AND Firestore userMode
+    const hasMode = localStorage.getItem(modeKey) || state.userMode;
+    const hasOnboarded = localStorage.getItem(onboardedKey);
+    if (!hasMode) {
       setPhase('mode-select');
-    } else if (!localStorage.getItem(onboardedKey)) {
+    } else if (!hasOnboarded) {
       setPhase('onboarding');
     } else {
       setPhase('app');
     }
-  }, [user, loading]);
+  }, [user, loading, dbLoading, state.userMode]);
 
   const handleModeSelect = async (mode) => {
     await updateUserMode(mode);
@@ -248,7 +257,7 @@ function AuthGate() {
     setPhase('app');
   };
 
-  if (loading || phase === null) {
+  if (loading || dbLoading || phase === null) {
     return (
       <div className="min-h-screen bg-[#0f0f11] flex items-center justify-center">
         <motion.div

@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CheckSquare, Calendar, FileText,
   FolderKanban, Activity, Timer, BarChart2,
   BookOpen, ClipboardList, Target, Brain, Sparkles,
-  ChevronLeft, ChevronRight, LogOut, ListTodo, Video, Trophy, Bell,
+  ChevronLeft, ChevronRight, LogOut, ListTodo, Video, Trophy, Bell, Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +27,7 @@ const ALL_ITEMS = {
   dailyTodos:      { to: '/daily-todos',       icon: ListTodo,        label: 'Günlük Yapılacaklar' },
   videoSummarizer: { to: '/video-summarizer',  icon: Video,           label: 'Video Özetleyici' },
   leaderboard:     { to: '/leaderboard',       icon: Trophy,          label: 'Sıralama' },
+  friends:         { to: '/friends',           icon: Users,           label: 'Arkadaşlar' },
   reminders:       { to: '/reminders',         icon: Bell,            label: 'Hatırlatmalar' },
 };
 
@@ -35,14 +36,14 @@ function getNavGroups(mode) {
     return [
       { label: 'YKS HAZIRLIK', items: ['yks', 'lessons', 'exams', 'ai', 'videoSummarizer', 'goals'].map(k => ALL_ITEMS[k]) },
       { label: 'PLANLAMA',     items: ['dailyTodos', 'reminders', 'pomodoro', 'tasks', 'habits', 'calendar'].map(k => ALL_ITEMS[k]) },
-      { label: 'SOSYAL',       items: ['leaderboard'].map(k => ALL_ITEMS[k]) },
+      { label: 'SOSYAL',       items: ['leaderboard', 'friends'].map(k => ALL_ITEMS[k]) },
       { label: 'ANALİZ',       items: ['stats', 'dashboard'].map(k => ALL_ITEMS[k]) },
     ];
   }
   return [
     { label: 'PLANLAMA', items: ['dashboard', 'dailyTodos', 'reminders', 'tasks', 'calendar', 'notes', 'projects', 'habits', 'pomodoro'].map(k => ALL_ITEMS[k]) },
     { label: 'ÖĞRENME',  items: ['lessons', 'exams', 'yks', 'ai', 'videoSummarizer', 'goals'].map(k => ALL_ITEMS[k]) },
-    { label: 'SOSYAL',   items: ['leaderboard'].map(k => ALL_ITEMS[k]) },
+    { label: 'SOSYAL',   items: ['leaderboard', 'friends'].map(k => ALL_ITEMS[k]) },
     { label: 'ANALİZ',   items: ['stats'].map(k => ALL_ITEMS[k]) },
   ];
 }

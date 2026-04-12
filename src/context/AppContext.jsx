@@ -68,6 +68,13 @@ export function AppProvider({ children }) {
     const unsub = onSnapshot(docRef, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
+        // Ensure email/displayName are current
+        const updates = {};
+        if (user.email && data.email !== user.email) updates.email = user.email;
+        if (user.displayName && data.displayName !== user.displayName) updates.displayName = user.displayName;
+        if (Object.keys(updates).length > 0) {
+          setDoc(docRef, updates, { merge: true }).catch(() => {});
+        }
         setState(() => ({
           ...DEFAULT_STATE,
           ...data,
@@ -78,17 +85,22 @@ export function AppProvider({ children }) {
         // Migration: check localStorage
         const localKey = `gunluk-takip-v1-${user.uid}`;
         const raw = localStorage.getItem(localKey);
+        const baseData = {
+          ...DEFAULT_STATE,
+          email: user.email || '',
+          displayName: user.displayName || '',
+        };
         if (raw) {
           try {
             const parsed = JSON.parse(raw);
-            const migrated = { ...DEFAULT_STATE, ...parsed, yks: DEFAULT_STATE.yks };
+            const migrated = { ...baseData, ...parsed, yks: DEFAULT_STATE.yks };
             setDoc(docRef, migrated);
             setState(migrated);
           } catch {
-            setDoc(docRef, DEFAULT_STATE);
+            setDoc(docRef, baseData);
           }
         } else {
-          setDoc(docRef, DEFAULT_STATE);
+          setDoc(docRef, baseData);
         }
       }
       setDbLoading(false);

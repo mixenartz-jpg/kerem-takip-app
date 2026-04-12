@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, TrendingUp, Medal, Loader2, RefreshCw, Users } from 'lucide-react';
+import { Trophy, TrendingUp, Medal, Loader2, RefreshCw, Users, Check, Share2 } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getLeague, getNetDelta } from '../utils/leagueUtils';
+import { generateInviteLink } from '../services/friendService';
+import { useNavigate } from 'react-router-dom';
 
 const TABS = ['Genel Sıralama', 'En Çok Yükselenler', 'Arkadaşlarım'];
 
 export default function Leaderboard() {
   const { friends } = useApp();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState(0);
   const [scores, setScores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const fetchScores = async () => {
     setLoading(true);
@@ -57,10 +61,28 @@ export default function Leaderboard() {
             <Trophy size={18} className="text-yellow-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-100">Sıralama</h1>
-            <p className="text-xs text-zinc-500">TYT + AYT net toplamına göre</p>
-          </div>
+          <h1 className="text-xl font-bold text-zinc-100">Sıralama</h1>
+          <p className="text-xs text-zinc-500">TYT + AYT net toplamına göre</p>
         </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {/* Paylaş */}
+        <button
+          onClick={async () => {
+            const myScore = scores.find(s => s.uid === user?.uid);
+            const rank = [...scores].sort((a, b) => ((b.tytNet||0)+(b.aytNet||0)) - ((a.tytNet||0)+(a.aytNet||0))).findIndex(s => s.uid === user?.uid) + 1;
+            const text = myScore
+              ? `YKS Hazırlık sıralamamda ${rank}. sıradayım! (${(myScore.tytNet||0)+(myScore.aytNet||0)} net) — Sen neredesin? ${window.location.origin}`
+              : `YKS Hazırlık uygulamasındaki sıralamaya bak: ${window.location.origin}`;
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+          }}
+          className="p-2 text-zinc-600 hover:text-violet-400 hover:bg-zinc-800 rounded-xl transition-all text-xs flex items-center gap-1"
+          title="Sıralamayı paylaş"
+        >
+          {copied ? <Check size={14} className="text-green-400" /> : <Share2 size={14} />}
+        </button>
         <button
           onClick={fetchScores}
           disabled={loading}
@@ -68,7 +90,8 @@ export default function Leaderboard() {
         >
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
         </button>
-      </motion.div>
+      </div>
+    </motion.div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1 mb-5">
@@ -97,8 +120,21 @@ export default function Leaderboard() {
       ) : error ? (
         <div className="text-center py-12 text-red-400 text-sm">{error}</div>
       ) : displayList.length === 0 ? (
-        <div className="text-center py-12 text-zinc-600 text-sm">
-          {tab === 2 ? 'Henüz arkadaş yok. Davet linki paylaş!' : 'Henüz veri yok.'}
+        <div className="text-center py-12 text-zinc-600 text-sm flex flex-col items-center gap-3">
+          {tab === 2 ? (
+            <>
+              <Users size={32} className="text-zinc-800" />
+              <p>Henüz arkadaş yok.</p>
+              <button
+                onClick={() => navigate('/friends')}
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-xl transition-all"
+              >
+                Arkadaş Ekle
+              </button>
+            </>
+          ) : (
+            <p>Henüz veri yok.</p>
+          )}
         </div>
       ) : (
         <AnimatePresence mode="wait">
