@@ -395,25 +395,49 @@ export async function summarizeYouTubeVideo(youtubeUrl) {
   if (!API_KEY || API_KEY === 'BURAYA_YENI_KEY_YAPISTIR') {
     throw new Error('Gemini API key ayarlanmamış.');
   }
+
+  // Step 1: Get real video title via YouTube oEmbed (CORS-safe public API)
+  let videoTitle = '';
+  let videoAuthor = '';
+  try {
+    const oembedUrl = `https://www.youtube-nocookie.com/oembed?url=${encodeURIComponent(youtubeUrl)}&format=json`;
+    const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(youtubeUrl)}`);
+    if (res.ok) {
+      const meta = await res.json();
+      videoTitle = meta.title || '';
+      videoAuthor = meta.author_name || '';
+    }
+  } catch {
+    // fallback: continue without title
+  }
+
+  // Step 2: Extract video ID for additional context
+  const vidIdMatch = youtubeUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  const videoId = vidIdMatch ? vidIdMatch[1] : '';
+
   const videoGenAI = new GoogleGenerativeAI(API_KEY);
   const videoModel = videoGenAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
 
-  const summaryPrompt = `Aşağıdaki YouTube videosunu analiz et ve Türkçe özet çıkar.
+  // Step 3: Send real metadata to Gemini so it's grounded in the actual video
+  const summaryPrompt = `YouTube videosunu analiz et ve Türkçe detaylı özet çıkar.
 
-Video URL: ${youtubeUrl}
+Video Bilgileri:
+- Başlık: ${videoTitle || '(bilinmiyor)'}
+- Kanal: ${videoAuthor || '(bilinmiyor)'}
+- Video ID: ${videoId}
+- URL: ${youtubeUrl}
 
-Bu videoya bakarak veya bilgi tabanından bu içerik hakkında şunları üret:
-1. Video başlığı (URL'den veya içerikten tahmin et)
-2. Konu özeti (3-4 cümle)
-3. Ana noktalar (4-6 madde)
-4. Kritik formüller veya ipuçları (yoksa null)
-5. YKS/ÖSYM açısından önemi
+Bu video başlığına ve kanalına bakarak:
+1. Konuyu tanımla (ders mi, tutorial mı, vlog mu, vs.)
+2. "${videoTitle}" başlıklı bu videoyu analiz et; muhtemelen hangi konuları işliyor?
+3. Türkçe eğitim içeriği ise YKS/sınav ile ilgisini belirt
 
-SADECE aşağıdaki JSON formatında döndür, başka hiçbir şey yazma:
-{"title":"Video başlığı","summary":"3-4 cümlelik özet","keyPoints":["Nokta 1","Nokta 2","Nokta 3"],"formulas":"Formüller veya null","yksRelevance":"YKS için önemi"}`;
+SADECE şu JSON formatında yanıt ver, fazladan metin YAZMA:
+{"title":"${videoTitle || 'Video Özeti'}","summary":"Bu videodan beklenen içerik ve konu özeti (3-4 cümle)","keyPoints":["Ana nokta 1","Ana nokta 2","Ana nokta 3","Ana nokta 4"],"formulas":"Varsa formüller veya null","yksRelevance":"YKS/sınav açısından önemi"}`;
 
   const result = await videoModel.generateContent(summaryPrompt);
   const text = result.response.text();
   const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/);
   return jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(text);
 }
+

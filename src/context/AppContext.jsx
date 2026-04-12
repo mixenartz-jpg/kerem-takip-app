@@ -478,11 +478,15 @@ export function AppProvider({ children }) {
   const deleteReminder = (id) => update('reminders', reminders => reminders.filter(r => r.id !== id));
 
   // ── FRIENDS ────────────────────────────────────────────
-  const addFriend = (data) => update('friends', friends => [
-    ...friends,
-    { id: genId(), uid: '', displayName: '', status: 'accepted', ...data }
-  ]);
-  const removeFriend = (id) => update('friends', friends => friends.filter(f => f.id !== id));
+  const addFriend = (data) => update('friends', friends => {
+    // Aynı uid'li arkadaş zaten varsa ekleme
+    if (friends.some(f => f.uid === data.uid)) return friends;
+    return [...friends, { id: genId(), uid: '', displayName: '', status: 'accepted', ...data }];
+  });
+  // uid veya id ile silebilmek için her ikisini de kontrol et
+  const removeFriend = (uidOrId) => update('friends', friends =>
+    friends.filter(f => f.uid !== uidOrId && f.id !== uidOrId)
+  );
   const updateFriendStatus = (id, status) => update('friends', friends =>
     friends.map(f => f.id === id ? { ...f, status } : f)
   );

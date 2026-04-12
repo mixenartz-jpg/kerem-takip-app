@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Mail, Search, Copy, Check, Users, X, Loader2, UserX } from 'lucide-react';
+import { UserPlus, Mail, Search, Copy, Check, Users, Loader2, UserX, AlertTriangle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -21,19 +21,40 @@ export default function Friends() {
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [firestoreError, setFirestoreError] = useState(false);
   const [firestoreFriends, setFirestoreFriends] = useState([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
 
   const inviteLink = user ? generateInviteLink(user.uid) : '';
 
-  // Firestore'dan arkadaşları getir
+  // Firestore'dan arkadaşları getir — hata olursa AppContext'tekini kullan
   useEffect(() => {
     if (!user) return;
     fetchFriendships(user.uid)
-      .then(setFirestoreFriends)
-      .catch(() => {})
+      .then(data => {
+        setFirestoreFriends(data);
+        setFirestoreError(false);
+      })
+      .catch((err) => {
+        console.warn('Firestore friendships fetch failed:', err);
+        setFirestoreError(true);
+        // fallback: AppContext'teki friends listesini kullan
+        setFirestoreFriends(friends || []);
+      })
       .finally(() => setLoadingFriends(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // AppContext'te yeni eklenen arkadaş varsa firestoreFriends'e de ekle
+  useEffect(() => {
+    if (!loadingFriends) {
+      setFirestoreFriends(prev => {
+        const existingUids = new Set(prev.map(f => f.uid));
+        const newOnes = (friends || []).filter(f => !existingUids.has(f.uid));
+        return newOnes.length > 0 ? [...prev, ...newOnes] : prev;
+      });
+    }
+  }, [friends, loadingFriends]);
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -48,14 +69,21 @@ export default function Friends() {
     try {
       const result = await searchUserByEmail(email);
       if (!result) {
-        setSearchError('Bu e-posta ile kayıtlı kullanıcı bulunamadı.');
+        setSearchError('Bu e-posta ile kayıtlı kullanıcı bulunamadı. (Kullanıcı uygulamaya en az bir kez giriş yapmış olmalı)');
       } else if (result.uid === user?.uid) {
         setSearchError('Kendinizi ekleyemezsiniz.');
+      } else if (firestoreFriends.some(f => f.uid === result.uid)) {
+        setSearchError('Bu kullanıcı zaten arkadaş listende.');
       } else {
         setSearchResult(result);
       }
-    } catch {
-      setSearchError('Arama sırasında bir hata oluştu.');
+    } catch (err) {
+      const isPermission = err?.code === 'permission-denied' || err?.message?.includes('permission');
+      setSearchError(
+        isPermission
+          ? 'Firestore izni yok. Firebase Console\'dan kuralları güncelle.'
+          : 'Arama sırasında bir hata oluştu.'
+      );
     } finally {
       setSearching(false);
     }
@@ -65,14 +93,22 @@ export default function Friends() {
     if (!searchResult || !user) return;
     setSending(true);
     try {
-      await sendFriendRequest(user.uid, user.displayName || 'Kullanıcı', searchResult.uid, searchResult.displayName);
-      addFriend({ uid: searchResult.uid, displayName: searchResult.displayName, status: 'pending' });
-      setFirestoreFriends(prev => [...prev, { uid: searchResult.uid, displayName: searchResult.displayName, status: 'pending' }]);
+      await sendFriendRequest(
+        user.uid, user.displayName || 'Kullanıcı',
+        searchResult.uid, searchResult.displayName
+      );
+      const newFriend = { uid: searchResult.uid, displayName: searchResult.displayName, status: 'pending' };
+      addFriend(newFriend);
+      setFirestoreFriends(prev => [...prev, newFriend]);
       showToast(`${searchResult.displayName} adına arkadaşlık isteği gönderildi!`);
       setSearchResult(null);
       setEmail('');
-    } catch {
-      showToast('Hata oluştu, tekrar dene.');
+    } catch (err) {
+      const isPermission = err?.code === 'permission-denied';
+      showToast(isPermission
+        ? 'Firestore izni yok — Firebase Console\'dan kuralları güncelle!'
+        : 'Hata oluştu, tekrar dene.'
+      );
     } finally {
       setSending(false);
     }
@@ -86,7 +122,10 @@ export default function Friends() {
       removeFriend(friendUid);
       showToast(`${friendDisplayName} arkadaş listesinden çıkarıldı.`);
     } catch {
-      showToast('Hata oluştu.');
+      // Firestore hatası olsa da local state'den sil
+      setFirestoreFriends(prev => prev.filter(f => f.uid !== friendUid));
+      removeFriend(friendUid);
+      showToast('Yerel listeden çıkarıldı.');
     }
   };
 
@@ -113,6 +152,18 @@ export default function Friends() {
           <p className="text-xs text-zinc-500">Email ile arkadaş ara veya davet linki paylaş</p>
         </div>
       </motion.div>
+
+      {/* Firestore kural uyarısı */}
+      {firestoreError && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="flex items-start gap-2.5 p-3.5 mb-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300">
+          <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold mb-0.5">Firestore izni eksik</p>
+            <p className="text-amber-400/70">Firebase Console › Firestore › Rules: <code className="bg-zinc-900 px-1 rounded">allow read, write: if request.auth != null;</code></p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Email Arama */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -144,7 +195,6 @@ export default function Friends() {
           </motion.button>
         </div>
 
-        {/* Arama Sonucu */}
         <AnimatePresence>
           {searchError && (
             <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
