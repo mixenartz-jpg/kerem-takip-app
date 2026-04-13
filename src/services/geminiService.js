@@ -192,6 +192,35 @@ Türkçe, pozitif ve motive edici dille yaz. 250 kelimeyi geçme.`;
   return result.response.text();
 }
 
+/* ── Plan Değerlendirmesi (Haftalık/Aylık) ── */
+export async function evaluatePlansWithAI({ plans, period, userName }) {
+  const m = getModel();
+  const planList = plans.map(p => `- ${p.text} (Durum: ${p.completed ? 'Tamamlandı' : 'Bekliyor'})`).join('\n');
+  const completedCount = plans.filter(p => p.completed).length;
+  
+  const prompt = `Sen bir üretkenlik asistanısın. ${userName || 'Kullanıcı'} için ${period} değerlendirmesi yap.
+
+PLANLAR:
+${planList}
+
+Bu verilere dayanarak kısa, samimi ve motive edici bir değerlendirme yap.
+Kullanıcının ${plans.length} hedeften ${completedCount} tanesini tamamladığını dikkate al.
+1 paragraf özet, 2 madde başarı/gelişim alanı ve 10 üzerinden bir puanlama yap.
+
+SADECE BU JSON FORMATINDA DÖN:
+{
+  "summary": "Analiz paragrafı",
+  "points": ["Madde 1", "Madde 2"],
+  "score": 8
+}`;
+
+  const result = await m.generateContent(prompt);
+  const text = result.response.text();
+  const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/);
+  try { return jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(text); }
+  catch { return { summary: text, points: [], score: 5 }; }
+}
+
 /* ── Hata Defteri: Otomatik Etiket ── */
 export async function autoTagErrorNote(questionDescription) {
   const m = getModel();

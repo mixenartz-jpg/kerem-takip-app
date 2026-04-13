@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, startOfWeek } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/ui/Modal';
@@ -63,7 +63,7 @@ function EventForm({ date, initial = {}, onSave, onCancel }) {
 }
 
 export default function Calendar() {
-  const { events, tasks, addEvent, updateEvent, deleteEvent } = useApp();
+  const { events, tasks, weeklyPlans, monthlyPlans, addEvent, updateEvent, deleteEvent } = useApp();
   const [current, setCurrent] = useState(new Date());
   const [selected, setSelected] = useState(new Date());
   const [showForm, setShowForm] = useState(false);
@@ -84,6 +84,13 @@ export default function Calendar() {
   const selectedStr = format(selected, 'yyyy-MM-dd');
   const selectedEvents = events.filter(e => e.date === selectedStr);
   const selectedTasks = tasks.filter(t => t.dueDate === selectedStr);
+
+  const selectedWeekStart = startOfWeek(selected, { weekStartsOn: 1 });
+  const selectedWeekStr = format(selectedWeekStart, "yyyy-'W'II");
+  const selectedMonthStr = format(selected, 'yyyy-MM');
+
+  const selectedWeeklyPlans = (weeklyPlans || []).filter(p => p.weekStr === selectedWeekStr);
+  const selectedMonthlyPlans = (monthlyPlans || []).filter(p => p.monthStr === selectedMonthStr);
 
   return (
     <div className="p-6 animate-fadeIn h-full flex flex-col">
@@ -200,6 +207,42 @@ export default function Calendar() {
               + Etkinlik ekle
             </button>
           </div>
+
+          {/* Haftalık ve Aylık Planlar Özeti */}
+          {(selectedWeeklyPlans.length > 0 || selectedMonthlyPlans.length > 0) && (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              {selectedWeeklyPlans.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-semibold text-zinc-100 text-xs mb-2 uppercase tracking-wide text-violet-400">
+                    Bu Haftanın Planları
+                  </h3>
+                  {selectedWeeklyPlans.map(p => (
+                    <div key={p.id} className="flex items-center gap-2 mb-1.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${p.completed ? 'bg-green-500' : 'bg-zinc-500'}`} />
+                      <p className={`text-xs text-zinc-300 truncate ${p.completed ? 'line-through text-zinc-600' : ''}`}>
+                        {p.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedMonthlyPlans.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-zinc-100 text-xs mb-2 uppercase tracking-wide text-blue-400">
+                    Bu Ayın Planları
+                  </h3>
+                  {selectedMonthlyPlans.map(p => (
+                    <div key={p.id} className="flex items-center gap-2 mb-1.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${p.completed ? 'bg-green-500' : 'bg-zinc-500'}`} />
+                      <p className={`text-xs text-zinc-300 truncate ${p.completed ? 'line-through text-zinc-600' : ''}`}>
+                        {p.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

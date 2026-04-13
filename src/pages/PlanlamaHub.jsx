@@ -4,13 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, Clock, CheckSquare, Activity, Timer, Bell,
   Target, FolderKanban, ArrowUpRight, Flame, CheckCircle2,
-  Circle, Plus, Trash2, ListTodo,
+  Circle, Plus, Trash2, ListTodo, Sparkles, Loader2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { todayStr } from '../utils/dateUtils';
 import { addDays, format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { calcStreak } from '../utils/statsUtils';
+import { evaluatePlansWithAI, parseGeminiError } from '../services/geminiService';
+import { shootConfetti } from '../utils/confetti';
 
 /* ── Animation variants ── */
 const container = {
@@ -176,7 +179,7 @@ function TodayTab() {
                 exit={{ opacity: 0, x: -16, scale: 0.95 }}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-violet-500/25 mb-1.5 group transition-all"
               >
-                <button onClick={() => toggleDailyTodo(todo.id)} className="shrink-0">
+                <button onClick={() => { shootConfetti(); toggleDailyTodo(todo.id); }} className="shrink-0">
                   <Circle size={17} className="text-zinc-600 hover:text-violet-400 transition-colors" />
                 </button>
                 <span className="flex-1 text-sm text-zinc-200">{todo.text}</span>
@@ -253,7 +256,10 @@ function TodayTab() {
                         ? 'bg-green-500/10 border-green-500/20'
                         : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700'
                     }`}
-                    onClick={() => toggleHabitToday(h.id)}
+                    onClick={() => {
+                      if (!done) shootConfetti();
+                      toggleHabitToday(h.id);
+                    }}
                     whileTap={{ scale: 0.97 }}
                   >
                     <span className="text-base">{h.icon}</span>
@@ -302,7 +308,7 @@ function TodayTab() {
                 <motion.div
                   key={t.id}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-all"
-                  onClick={() => toggleTask(t.id)}
+                  onClick={() => { shootConfetti(); toggleTask(t.id); }}
                   whileTap={{ scale: 0.97 }}
                 >
                   <div className="w-4 h-4 rounded border-2 border-zinc-700 hover:border-blue-400 flex items-center justify-center shrink-0 transition-all" />
@@ -343,11 +349,29 @@ function TodayTab() {
    TAB: HAFTA
    ════════════════════════════════════════ */
 function WeekTab() {
-  const { tasks, reminders, goals } = useApp();
+  const { tasks, reminders, weeklyPlans, addWeeklyPlan, toggleWeeklyPlan, deleteWeeklyPlan } = useApp();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+  const currentWeekStr = format(weekStart, "yyyy-'W'II");
+  const [newPlan, setNewPlan] = useState('');
+  
+  const [evalData, setEvalData] = useState(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [evalError, setEvalError] = useState('');
+  
+  const currentPlans = useMemo(() => (weeklyPlans || []).filter(p => p.weekStr === currentWeekStr), [weeklyPlans, currentWeekStr]);
+  const pendingPlans = currentPlans.filter(p => !p.completed);
+  const donePlans = currentPlans.filter(p => p.completed);
+
+  const handleAddPlan = (e) => {
+    e.preventDefault();
+    if (!newPlan.trim()) return;
+    addWeeklyPlan(newPlan.trim(), currentWeekStr);
+    setNewPlan('');
+  };
 
   const weekTasks = useMemo(() =>
     tasks.filter(t => !t.completed && t.dueDate && isWithinInterval(parseISO(t.dueDate), { start: weekStart, end: weekEnd }))
@@ -363,9 +387,6 @@ function WeekTab() {
     [reminders]
   );
 
-  const activeGoals = useMemo(() => goals.filter(g => !g.completed).slice(0, 3), [goals]);
-
-  // Group tasks by day
   const byDay = useMemo(() => {
     const map = {};
     const days = Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'));
@@ -374,8 +395,153 @@ function WeekTab() {
     return { days, map };
   }, [weekTasks, weekStart]);
 
+  const handleEvaluate = async () => {
+    if (currentPlans.length === 0) return;
+    setIsEvaluating(true);
+    setEvalError('');
+    try {
+      const res = await evaluatePlansWithAI({
+        plans: currentPlans,
+        period: 'Haftalık',
+        userName: user?.displayName
+      });
+      setEvalData(res);
+    } catch (err) {
+      setEvalError(parseGeminiError(err));
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-4">
+
+      {/* Haftalık Planlarım */}
+      <Card>
+        <div className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+              <CheckSquare size={14} className="text-violet-400" /> Haftalık Planlarım
+            </h3>
+          </div>
+
+          <form onSubmit={handleAddPlan} className="flex gap-2 mb-3">
+            <input
+              value={newPlan}
+              onChange={e => setNewPlan(e.target.value)}
+              placeholder="Bu hafta için yeni plan ekle..."
+              className="flex-1 bg-zinc-900/80 border border-zinc-800 focus:border-violet-500/50 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-all"
+            />
+            <motion.button
+              type="submit"
+              whileTap={{ scale: 0.9 }}
+              disabled={!newPlan.trim()}
+              className="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all"
+            >
+              <Plus size={15} />
+            </motion.button>
+          </form>
+
+          <AnimatePresence>
+            {pendingPlans.map(plan => (
+              <motion.div
+                key={plan.id}
+                layout
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -16, scale: 0.95 }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-violet-500/25 mb-1.5 group transition-all"
+              >
+                <button onClick={() => { shootConfetti(); toggleWeeklyPlan(plan.id); }} className="shrink-0">
+                  <Circle size={17} className="text-zinc-600 hover:text-violet-400 transition-colors" />
+                </button>
+                <span className="flex-1 text-sm text-zinc-200">{plan.text}</span>
+                <button
+                  onClick={() => deleteWeeklyPlan(plan.id)}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-zinc-700 hover:text-red-400 rounded-lg transition-all"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {donePlans.length > 0 && (
+            <div className="mt-2">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1.5">Tamamlandı ({donePlans.length})</p>
+              <AnimatePresence>
+                {donePlans.map(plan => (
+                  <motion.div
+                    key={plan.id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1 group"
+                  >
+                    <button onClick={() => toggleWeeklyPlan(plan.id)}>
+                      <CheckCircle2 size={17} className="text-violet-500 shrink-0" />
+                    </button>
+                    <span className="flex-1 text-sm text-zinc-600 line-through">{plan.text}</span>
+                    <button
+                      onClick={() => deleteWeeklyPlan(plan.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-zinc-700 hover:text-red-400 rounded-lg transition-all"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {currentPlans.length === 0 && (
+            <p className="text-sm text-zinc-600 text-center py-4">Bu hafta için planın yok. Hemen ekle! 🚀</p>
+          )}
+
+          {currentPlans.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-zinc-800/80">
+              {!evalData ? (
+                <button
+                  onClick={handleEvaluate}
+                  disabled={isEvaluating}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium bg-zinc-800/50 hover:bg-violet-600/20 text-violet-300 transition-all border border-violet-500/10"
+                >
+                  {isEvaluating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                  Yapay Zeka Özeleştiri
+                </button>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-bold text-violet-300 flex items-center gap-2">
+                      <Sparkles size={14} /> AI Özeleştiri
+                    </h4>
+                    <span className="text-xs font-bold text-violet-400 bg-violet-400/10 px-2 py-1 rounded-md">
+                      Puan: {evalData.score}/10
+                    </span>
+                  </div>
+                  <p className="text-sm text-zinc-300 mb-3 leading-relaxed">{evalData.summary}</p>
+                  <ul className="text-xs text-zinc-400 space-y-1.5">
+                    {evalData.points.map((p, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="text-violet-400 mt-0.5">•</span> <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => setEvalData(null)} className="w-full mt-3 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                    Özeleştiriyi Gizle
+                  </button>
+                </motion.div>
+              )}
+              {evalError && <p className="text-xs text-red-400 text-center mt-2">{evalError}</p>}
+            </div>
+          )}
+        </div>
+      </Card>
 
       {/* Weekly calendar strip */}
       <Card>
@@ -451,45 +617,6 @@ function WeekTab() {
         </div>
       </Card>
 
-      {/* Aktif Hedefler */}
-      {activeGoals.length > 0 && (
-        <Card>
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-                <Target size={14} className="text-violet-400" /> Hedefler
-              </h3>
-              <button onClick={() => navigate('/goals')} className="text-xs text-zinc-500 hover:text-violet-400 flex items-center gap-1 transition-colors">
-                Tümü <ArrowUpRight size={11} />
-              </button>
-            </div>
-            <div className="space-y-3">
-              {activeGoals.map(goal => {
-                const total = goal.milestones?.length || 0;
-                const done = goal.milestones?.filter(m => m.completed).length || 0;
-                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-                return (
-                  <div key={goal.id} className="space-y-1.5">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-zinc-200">{goal.title}</span>
-                      <span className="text-[11px] text-violet-400 font-mono">{pct}%</span>
-                    </div>
-                    <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-violet-600 to-purple-500 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, ease: [0.23,1,0.32,1] }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </Card>
-      )}
-
     </motion.div>
   );
 }
@@ -498,22 +625,49 @@ function WeekTab() {
    TAB: AY
    ════════════════════════════════════════ */
 function MonthTab() {
-  const { projects, goals, tasks } = useApp();
-  const navigate = useNavigate();
+  const { tasks, monthlyPlans, addMonthlyPlan, toggleMonthlyPlan, deleteMonthlyPlan } = useApp();
+  const { user } = useAuth();
+  
+  const currentMonthStr = format(new Date(), 'yyyy-MM');
+  const [newPlan, setNewPlan] = useState('');
 
-  const activeProjects = useMemo(() => projects.filter(p => {
-    const total = p.columns.reduce((a, c) => a + c.cards.length, 0);
-    const done = p.columns.find(c => c.name === 'Tamamlandı')?.cards.length || 0;
-    return total > 0 && done < total;
-  }), [projects]);
+  const [evalData, setEvalData] = useState(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [evalError, setEvalError] = useState('');
 
-  const completedGoals = goals.filter(g => g.completed).length;
-  const totalGoals = goals.length;
+  const currentPlans = useMemo(() => (monthlyPlans || []).filter(p => p.monthStr === currentMonthStr), [monthlyPlans, currentMonthStr]);
+  const pendingPlans = currentPlans.filter(p => !p.completed);
+  const donePlans = currentPlans.filter(p => p.completed);
+
+  const handleAddPlan = (e) => {
+    e.preventDefault();
+    if (!newPlan.trim()) return;
+    addMonthlyPlan(newPlan.trim(), currentMonthStr);
+    setNewPlan('');
+  };
 
   const tasksThisMonth = useMemo(() => {
     const now = new Date();
     return tasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate).getMonth() === now.getMonth()).length;
   }, [tasks]);
+
+  const handleEvaluate = async () => {
+    if (currentPlans.length === 0) return;
+    setIsEvaluating(true);
+    setEvalError('');
+    try {
+      const res = await evaluatePlansWithAI({
+        plans: currentPlans,
+        period: 'Aylık',
+        userName: user?.displayName
+      });
+      setEvalData(res);
+    } catch (err) {
+      setEvalError(parseGeminiError(err));
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-4">
@@ -524,11 +678,10 @@ function MonthTab() {
           <h3 className="text-sm font-semibold text-zinc-100 mb-4">
             {format(new Date(), 'MMMM yyyy', { locale: tr })} Özeti
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Aktif Proje', value: activeProjects.length, color: 'text-blue-400' },
-              { label: 'Aylık Görev', value: tasksThisMonth, color: 'text-violet-400' },
-              { label: 'Hedef', value: `${completedGoals}/${totalGoals}`, color: 'text-green-400' },
+              { label: 'Aylık Görev', value: tasksThisMonth, color: 'text-blue-400' },
+              { label: 'Aylık Plan', value: `${donePlans.length}/${currentPlans.length}`, color: 'text-violet-400' },
             ].map(({ label, value, color }) => (
               <div key={label} className="text-center py-3 px-2 rounded-xl bg-zinc-900/60 border border-zinc-800">
                 <p className={`text-xl font-bold ${color}`}>{value}</p>
@@ -539,82 +692,128 @@ function MonthTab() {
         </div>
       </Card>
 
-      {/* Projects */}
+      {/* Aylık Planlarım */}
       <Card>
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-              <FolderKanban size={14} className="text-blue-400" /> Aktif Projeler
+              <Target size={14} className="text-violet-400" /> Aylık Planlarım
             </h3>
-            <button onClick={() => navigate('/projects')} className="text-xs text-zinc-500 hover:text-violet-400 flex items-center gap-1 transition-colors">
-              Tümü <ArrowUpRight size={11} />
-            </button>
           </div>
-          {activeProjects.length === 0 ? (
-            <p className="text-sm text-zinc-600 text-center py-4">Aktif proje yok</p>
-          ) : (
-            <div className="space-y-3">
-              {activeProjects.slice(0, 5).map((p, i) => {
-                const total = p.columns.reduce((a, c) => a + c.cards.length, 0);
-                const done = p.columns.find(c => c.name === 'Tamamlandı')?.cards.length || 0;
-                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-                return (
-                  <div key={p.id} className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color, boxShadow: `0 0 6px ${p.color}66` }} />
-                      <span className="flex-1 text-sm text-zinc-200 truncate">{p.name}</span>
-                      <span className="text-[11px] text-zinc-500 font-mono">{done}/{total}</span>
-                    </div>
-                    <div className="h-1.5 bg-zinc-800/80 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{ background: `linear-gradient(90deg, ${p.color}, ${p.color}99)` }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, delay: i * 0.08, ease: [0.23, 1, 0.32, 1] }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+
+          <form onSubmit={handleAddPlan} className="flex gap-2 mb-3">
+            <input
+              value={newPlan}
+              onChange={e => setNewPlan(e.target.value)}
+              placeholder="Bu ay için yeni plan ekle..."
+              className="flex-1 bg-zinc-900/80 border border-zinc-800 focus:border-violet-500/50 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-all"
+            />
+            <motion.button
+              type="submit"
+              whileTap={{ scale: 0.9 }}
+              disabled={!newPlan.trim()}
+              className="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all"
+            >
+              <Plus size={15} />
+            </motion.button>
+          </form>
+
+          <AnimatePresence>
+            {pendingPlans.map(plan => (
+              <motion.div
+                key={plan.id}
+                layout
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -16, scale: 0.95 }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-violet-500/25 mb-1.5 group transition-all"
+              >
+                <button onClick={() => { shootConfetti(); toggleMonthlyPlan(plan.id); }} className="shrink-0">
+                  <Circle size={17} className="text-zinc-600 hover:text-violet-400 transition-colors" />
+                </button>
+                <span className="flex-1 text-sm text-zinc-200">{plan.text}</span>
+                <button
+                  onClick={() => deleteMonthlyPlan(plan.id)}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-zinc-700 hover:text-red-400 rounded-lg transition-all"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {donePlans.length > 0 && (
+            <div className="mt-2">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1.5">Tamamlandı ({donePlans.length})</p>
+              <AnimatePresence>
+                {donePlans.map(plan => (
+                  <motion.div
+                    key={plan.id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1 group"
+                  >
+                    <button onClick={() => toggleMonthlyPlan(plan.id)}>
+                      <CheckCircle2 size={17} className="text-violet-500 shrink-0" />
+                    </button>
+                    <span className="flex-1 text-sm text-zinc-600 line-through">{plan.text}</span>
+                    <button
+                      onClick={() => deleteMonthlyPlan(plan.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-zinc-700 hover:text-red-400 rounded-lg transition-all"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
-        </div>
-      </Card>
 
-      {/* Goals — full list */}
-      <Card>
-        <div className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-              <Target size={14} className="text-violet-400" /> Tüm Hedefler
-            </h3>
-            <button onClick={() => navigate('/goals')} className="text-xs text-zinc-500 hover:text-violet-400 flex items-center gap-1 transition-colors">
-              Yönet <ArrowUpRight size={11} />
-            </button>
-          </div>
-          {goals.length === 0 ? (
-            <p className="text-sm text-zinc-600 text-center py-4">Henüz hedef yok</p>
-          ) : (
-            <div className="space-y-2">
-              {goals.slice(0, 6).map(goal => {
-                const total = goal.milestones?.length || 0;
-                const done = goal.milestones?.filter(m => m.completed).length || 0;
-                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-                return (
-                  <div key={goal.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${
-                    goal.completed ? 'bg-green-500/8 border-green-500/15' : 'bg-zinc-900/60 border-zinc-800'
-                  }`}>
-                    <span className={`text-lg shrink-0 ${goal.completed ? '' : 'grayscale opacity-60'}`}>
-                      {goal.completed ? '✅' : '🎯'}
+          {currentPlans.length === 0 && (
+            <p className="text-sm text-zinc-600 text-center py-4">Bu ay için planın yok. Hemen ekle! 🚀</p>
+          )}
+
+          {currentPlans.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-zinc-800/80">
+              {!evalData ? (
+                <button
+                  onClick={handleEvaluate}
+                  disabled={isEvaluating}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium bg-zinc-800/50 hover:bg-violet-600/20 text-violet-300 transition-all border border-violet-500/10"
+                >
+                  {isEvaluating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                  Yapay Zeka Özeleştiri
+                </button>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-bold text-violet-300 flex items-center gap-2">
+                      <Sparkles size={14} /> AI Özeleştiri
+                    </h4>
+                    <span className="text-xs font-bold text-violet-400 bg-violet-400/10 px-2 py-1 rounded-md">
+                      Puan: {evalData.score}/10
                     </span>
-                    <span className={`flex-1 text-sm truncate ${goal.completed ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
-                      {goal.title}
-                    </span>
-                    <span className="text-[11px] text-zinc-500 font-mono">{pct}%</span>
                   </div>
-                );
-              })}
+                  <p className="text-sm text-zinc-300 mb-3 leading-relaxed">{evalData.summary}</p>
+                  <ul className="text-xs text-zinc-400 space-y-1.5">
+                    {evalData.points.map((p, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="text-violet-400 mt-0.5">•</span> <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => setEvalData(null)} className="w-full mt-3 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                    Özeleştiriyi Gizle
+                  </button>
+                </motion.div>
+              )}
+              {evalError && <p className="text-xs text-red-400 text-center mt-2">{evalError}</p>}
             </div>
           )}
         </div>

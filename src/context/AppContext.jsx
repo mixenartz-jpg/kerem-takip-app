@@ -41,6 +41,8 @@ export const DEFAULT_STATE = {
   userMode: null, // 'yks' | 'daily' | null
   // New fields
   dailyTodos: [],  // { id, text, completed, date }
+  weeklyPlans: [], // { id, text, completed, weekStr }
+  monthlyPlans: [],// { id, text, completed, monthStr }
   reminders: [],   // { id, title, datetime, type, pageRef, recurring }
   friends: [],     // { id, uid, displayName, status }
   profile: {
@@ -467,6 +469,24 @@ export function AppProvider({ children }) {
   );
   const deleteDailyTodo = (id) => update('dailyTodos', todos => todos.filter(t => t.id !== id));
 
+  // ── WEEKLY PLANS ───────────────────────────────────────
+  const addWeeklyPlan = (text, weekStr) => update('weeklyPlans', plans => [
+    ...plans, { id: genId(), text, completed: false, weekStr, createdAt: now() }
+  ]);
+  const toggleWeeklyPlan = (id) => update('weeklyPlans', plans =>
+    plans.map(p => p.id === id ? { ...p, completed: !p.completed } : p)
+  );
+  const deleteWeeklyPlan = (id) => update('weeklyPlans', plans => plans.filter(p => p.id !== id));
+
+  // ── MONTHLY PLANS ──────────────────────────────────────
+  const addMonthlyPlan = (text, monthStr) => update('monthlyPlans', plans => [
+    ...plans, { id: genId(), text, completed: false, monthStr, createdAt: now() }
+  ]);
+  const toggleMonthlyPlan = (id) => update('monthlyPlans', plans =>
+    plans.map(p => p.id === id ? { ...p, completed: !p.completed } : p)
+  );
+  const deleteMonthlyPlan = (id) => update('monthlyPlans', plans => plans.filter(p => p.id !== id));
+
   // ── REMINDERS ──────────────────────────────────────────
   const addReminder = (data) => update('reminders', reminders => [
     ...reminders,
@@ -526,6 +546,8 @@ export function AppProvider({ children }) {
     aiStreak: state.aiStreak,
     badges: state.badges,
     dailyTodos: state.dailyTodos,
+    weeklyPlans: state.weeklyPlans,
+    monthlyPlans: state.monthlyPlans,
     reminders: state.reminders,
     friends: state.friends,
     profile: state.profile,
@@ -559,6 +581,10 @@ export function AppProvider({ children }) {
     userMode: state.userMode,
     // Daily todos
     addDailyTodo, toggleDailyTodo, deleteDailyTodo,
+    // Weekly plans
+    addWeeklyPlan, toggleWeeklyPlan, deleteWeeklyPlan,
+    // Monthly plans
+    addMonthlyPlan, toggleMonthlyPlan, deleteMonthlyPlan,
     // Reminders
     addReminder, updateReminder, deleteReminder,
     // Friends

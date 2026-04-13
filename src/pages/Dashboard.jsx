@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { todayStr, formatDate } from '../utils/dateUtils';
 import { calcStreak, QUOTES } from '../utils/statsUtils';
+import { shootConfetti } from '../utils/confetti';
 import StatCard from '../components/ui/StatCard';
 import ProgressBar from '../components/ui/ProgressBar';
 
@@ -329,7 +330,10 @@ export default function Dashboard() {
                   className="flex items-center gap-2.5 group/todo"
                 >
                   <motion.button
-                    onClick={() => toggleDailyTodo(t.id)}
+                    onClick={() => {
+                      if (!t.completed) shootConfetti();
+                      toggleDailyTodo(t.id);
+                    }}
                     whileTap={{ scale: 0.85 }}
                     className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
                       t.completed ? 'bg-violet-500 border-violet-400' : 'border-zinc-700 hover:border-zinc-500'
