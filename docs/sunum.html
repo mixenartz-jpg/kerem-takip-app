@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dash YKS — Öğretmen & Rehberlik Sunumu</title>
+<style>
+  :root {
+    --bg: #0f0f11;
+    --surface: #18181b;
+    --surface2: #27272a;
+    --border: rgba(255,255,255,0.07);
+    --accent: #7c3aed;
+    --accent2: #6366f1;
+    --text: #e4e4e7;
+    --muted: #71717a;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ── Slide Container ── */
+  .slides { width: 100vw; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 56px 72px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateY(20px);
+  }
+  .slide.active {
+    opacity: 1; pointer-events: auto; transform: translateY(0);
+  }
+
+  /* ── Nav ── */
+  .nav {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(24,24,27,0.92); backdrop-filter: blur(16px);
+    border: 1px solid var(--border); border-radius: 9999px;
+    padding: 10px 24px; z-index: 100;
+  }
+  .nav button {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 18px; padding: 4px 8px;
+    transition: color 0.2s;
+  }
+  .nav button:hover { color: var(--text); }
+  .nav .counter { font-size: 13px; color: var(--muted); min-width: 60px; text-align: center; }
+  .nav .dots { display: flex; gap: 6px; align-items: center; }
+  .nav .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--surface2); transition: all 0.3s; cursor: pointer;
+  }
+  .nav .dot.active { background: var(--accent); width: 18px; border-radius: 3px; }
+
+  /* ── Typography ── */
+  .slide-tag {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  h1 { font-size: 48px; font-weight: 900; line-height: 1.1; color: #fff; }
+  h2 { font-size: 34px; font-weight: 800; line-height: 1.2; color: #fff; margin-bottom: 8px; }
+  .subtitle { font-size: 18px; color: var(--muted); margin-top: 12px; max-width: 640px; line-height: 1.6; }
+  .body { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+  /* ── Cards ── */
+  .card-grid { display: grid; gap: 16px; margin-top: 24px; }
+  .card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 24px;
+  }
+  .card .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .card h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .card.accent { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); }
+  .card.green  { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
+  .card.orange { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
+  .card.blue   { border-color: rgba(99,102,241,0.3); background: rgba(99,102,241,0.06); }
+
+  /* ── Feature list ── */
+  .feature-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .feature-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px;
+  }
+  .feature-item .fi-icon {
+    font-size: 22px; flex-shrink: 0; width: 36px; text-align: center;
+  }
+  .feature-item .fi-body h4 { font-size: 14px; font-weight: 700; color: #fff; }
+  .feature-item .fi-body p  { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+  /* ── Split layout ── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; align-items: start; }
+
+  /* ── Badge/pill ── */
+  .pill {
+    display: inline-flex; align-items: center; gap-6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 9999px;
+    border: 1px solid;
+  }
+  .pill.purple { color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(124,58,237,0.12); }
+  .pill.green  { color: #34d399; border-color: rgba(52,211,153,0.3);  background: rgba(16,185,129,0.1); }
+  .pill.orange { color: #fbbf24; border-color: rgba(251,191,36,0.3);  background: rgba(245,158,11,0.1); }
+
+  /* ── Big stat ── */
+  .big-stat { text-align: center; }
+  .big-stat .num { font-size: 64px; font-weight: 900; background: linear-gradient(135deg,#a78bfa,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .big-stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Cover slide gradient ── */
+  .cover-gradient {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 70% 40%, rgba(124,58,237,0.18) 0%, transparent 65%),
+                radial-gradient(ellipse at 20% 80%, rgba(99,102,241,0.12) 0%, transparent 60%);
+  }
+
+  /* ── Progress bar ── */
+  .pbar-wrap { margin-top: 6px; }
+  .pbar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .pbar-track { height: 6px; background: var(--surface2); border-radius: 999px; overflow: hidden; }
+  .pbar-fill  { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+  /* ── Timeline ── */
+  .timeline { display: flex; flex-direction: column; gap: 0; margin-top: 20px; }
+  .tl-item { display: flex; gap: 20px; }
+  .tl-left { display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+  .tl-line { flex: 1; width: 2px; background: var(--surface2); margin: 4px 0; }
+  .tl-content { padding-bottom: 20px; flex: 1; }
+  .tl-content h4 { font-size: 14px; font-weight: 700; color: #fff; }
+  .tl-content p  { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+  /* ── Quote ── */
+  .quote-block {
+    border-left: 3px solid var(--accent); padding-left: 20px;
+    margin-top: 20px;
+  }
+  .quote-block p { font-size: 16px; color: var(--text); font-style: italic; line-height: 1.7; }
+  .quote-block span { font-size: 12px; color: var(--muted); margin-top: 8px; display: block; }
+
+  /* ── Keyboard shortcut hint ── */
+  .hint {
+    position: fixed; top: 20px; right: 24px;
+    font-size: 11px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px;
+  }
+  kbd { background: var(--surface2); border-radius: 4px; padding: 1px 5px; font-size: 10px; }
+
+  /* ── Screenshot mockup ── */
+  .mockup {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; position: relative; overflow: hidden;
+  }
+  .mockup::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+
+  /* hide scrollbar */
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<div class="hint">← → tuşları veya tıkla</div>
+
+<div class="slides" id="slides">
+
+  <!-- ══════════ SLIDE 1: Cover ══════════ -->
+  <div class="slide active" id="s0">
+    <div class="cover-gradient"></div>
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:1;">
+      <div class="slide-tag">Öğrenci Takip Platformu — 2026</div>
+      <h1 style="font-size:58px;">Dash YKS</h1>
+      <p class="subtitle">
+        YKS hazırlık sürecini dijitalleştiren, yapay zeka destekli kişisel verimlilik ve sınav takip uygulaması.
+      </p>
+      <div style="display:flex; gap:10px; margin-top:32px; flex-wrap:wrap;">
+        <span class="pill purple">YKS Odaklı</span>
+        <span class="pill green">AI Destekli</span>
+        <span class="pill orange">Sosyal Motivasyon</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:40px; padding-top:24px; border-top:1px solid var(--border); position:relative; z-index:1;">
+      <div class="big-stat"><div class="num" style="font-size:36px;">13+</div><div class="lbl">Özellik Modülü</div></div>
+      <div class="big-stat"><div class="num" style="font-size:36px;">AI</div><div class="lbl">Gemini Destekli</div></div>
+      <div class="big-stat"><div class="num" style="font-size:36px;">∞</div><div class="lbl">Veri Senkronizasyonu</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 2: Problem Statement ══════════ -->
+  <div class="slide" id="s1">
+    <div class="slide-tag">Problem</div>
+    <h2>Öğrenciler neden başarısız oluyor?</h2>
+    <p class="body" style="max-width:700px;">YKS hazırlığı yoğun planlama, sürekli takip ve motivasyon gerektiriyor. Ancak mevcut araçlar dağınık ve bağlantısız.</p>
+    <div class="card-grid cols-3" style="margin-top:28px;">
+      <div class="card orange">
+        <div class="card-icon">📊</div>
+        <h3>Takip Yok</h3>
+        <p>Kaç soru doğru yaptığını, hangi konularda zayıf olduğunu bilmiyorlar.</p>
+      </div>
+      <div class="card red" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.06)">
+        <div class="card-icon">🔀</div>
+        <h3>Dağınık Araçlar</h3>
+        <p>Notlar, takvim, görevler, hatırlatmalar — hepsi farklı uygulamalarda.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">😞</div>
+        <h3>Motivasyon Kaybı</h3>
+        <p>Yalnız çalışmak, ilerlemeyi görmemek ve geri bildirim eksikliği motivasyonu düşürüyor.</p>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:32px;">
+      <p>"Sınava kaç gün kaldığını bile bilmeyen öğrenciler var."</p>
+      <span>— Sınav hazırlık koçlarından sık duyulan gözlem</span>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 3: Solution Overview ══════════ -->
+  <div class="slide" id="s2">
+    <div class="slide-tag">Çözüm</div>
+    <h2>Dash YKS: Tek platformda her şey</h2>
+    <p class="body" style="max-width:680px;">Öğrencinin tüm hazırlık sürecini — denemelerden günlük görevlere, alışkanlıklardan AI koçuna — tek bir uygulamada topluyoruz.</p>
+    <div class="card-grid cols-4" style="margin-top:24px;">
+      <div class="card accent">
+        <div class="card-icon">🎯</div>
+        <h3>YKS Takibi</h3>
+        <p>TYT + AYT deneme netleri, konu ilerlemesi, geri sayım</p>
+      </div>
+      <div class="card green">
+        <div class="card-icon">🤖</div>
+        <h3>AI Koç</h3>
+        <p>Gemini destekli performans analizi ve kişisel çalışma planı</p>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">🏆</div>
+        <h3>Sosyal Motivasyon</h3>
+        <p>Arkadaşlarla sıralama, lig sistemi, başarı rozetleri</p>
+      </div>
+      <div class="card orange">
+        <div class="card-icon">📅</div>
+        <h3>Verimlilik Araçları</h3>
+        <p>Görevler, alışkanlıklar, Pomodoro, hedefler, notlar</p>
+      </div>
+    </div>
+    <div style="margin-top:24px; padding:16px 20px; background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3); border-radius:12px;">
+      <p style="font-size:13px; color:#a78bfa;">💡 <strong>Temel fark:</strong> Dash YKS, verileri birbirine bağlayan bütünsel bir sistem. Deneme sonuçları AI analizini, AI analizi çalışma planını, çalışma planı alışkanlıkları besliyor.</p>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 4: YKS Merkezi ══════════ -->
+  <div class="slide" id="s3">
+    <div class="slide-tag">Core Feature — YKS Merkezi</div>
+    <h2>Deneme Takibi & Net Analizi</h2>
+    <div class="split">
+      <div>
+        <p class="body">Her deneme sınavının TYT ve AYT netlerini ders ders kaydediyoruz. Sistem otomatik olarak hesaplıyor ve hedeflerle karşılaştırıyor.</p>
+        <div class="feature-list" style="margin-top:16px;">
+          <div class="feature-item">
+            <div class="fi-icon">📝</div>
+            <div class="fi-body">
+              <h4>Deneme Girişi</h4>
+              <p>TYT: Türkçe, Matematik, Fen, Sosyal<br>AYT: Matematik, Fizik, Kimya, Biyoloji<br>Doğru / Yanlış girince net otomatik hesaplanır.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">📈</div>
+            <div class="fi-body">
+              <h4>Hedef Net Karşılaştırması</h4>
+              <p>Her ders için hedef net belirlenebilir. İlerleme çubuğuyla anlık görsel geri bildirim.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">⏳</div>
+            <div class="fi-body">
+              <h4>Geri Sayım</h4>
+              <p>YKS tarihine kaç gün kaldığını renk kodlamayla gösterir (kırmızı / turuncu / yeşil).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup">
+        <div style="font-size:11px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px;">Deneme Kartı Örneği</div>
+        <div style="font-size:14px; font-weight:700; color:#fff; margin-bottom:4px;">Deneme 5 · 2026-04-10</div>
+        <div style="display:flex; gap:16px; margin-bottom:16px;">
+          <div><span style="font-size:22px; font-weight:900; color:#a78bfa;">89.50</span> <span style="font-size:12px; color:var(--muted);">TYT net</span></div>
+          <div><span style="font-size:22px; font-weight:900; color:#818cf8;">45.25</span> <span style="font-size:12px; color:var(--muted);">AYT net</span></div>
+        </div>
+        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">TYT Dersleri</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#f59e0b;">32</div><div style="font-size:9px; color:var(--muted);">Türkçe</div></div>
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#3b82f6;">28</div><div style="font-size:9px; color:var(--muted);">Matematik</div></div>
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#10b981;">16</div><div style="font-size:9px; color:var(--muted);">Fen</div></div>
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#ec4899;">13</div><div style="font-size:9px; color:var(--muted);">Sosyal</div></div>
+        </div>
+        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">AYT Dersleri</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#6366f1;">18</div><div style="font-size:9px; color:var(--muted);">Matematik</div></div>
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#f59e0b;">11</div><div style="font-size:9px; color:var(--muted);">Fizik</div></div>
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#a78bfa;">9</div><div style="font-size:9px; color:var(--muted);">Kimya</div></div>
+          <div style="background:var(--surface2); border-radius:10px; padding:8px; text-align:center;"><div style="font-weight:700; color:#34d399;">7</div><div style="font-size:9px; color:var(--muted);">Biyoloji</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 5: Konu Takibi ══════════ -->
+  <div class="slide" id="s4">
+    <div class="slide-tag">Core Feature — Konu Takibi</div>
+    <h2>Müfredat Bazlı Konu İlerlemesi</h2>
+    <div class="split">
+      <div>
+        <p class="body">TYT ve AYT'nin tüm konuları önceden yüklenmiş. Öğrenci işlediği konuları işaretliyor; sistem tamamlanma yüzdesini hesaplıyor.</p>
+        <div style="margin-top:20px;" class="stack">
+          <div>
+            <div class="pbar-label"><span>TYT Türkçe</span><span style="color:#f59e0b;">7 / 10</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:70%; background:#f59e0b;"></div></div>
+          </div>
+          <div>
+            <div class="pbar-label"><span>TYT Matematik</span><span style="color:#3b82f6;">12 / 18</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:67%; background:#3b82f6;"></div></div>
+          </div>
+          <div>
+            <div class="pbar-label"><span>AYT Fizik</span><span style="color:#f59e0b;">3 / 8</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:38%; background:#f59e0b;"></div></div>
+          </div>
+          <div>
+            <div class="pbar-label"><span>AYT Kimya</span><span style="color:#a78bfa;">6 / 9</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:67%; background:#a78bfa;"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card green">
+          <h3>📚 Toplam Konu Havuzu</h3>
+          <p>TYT: 4 ders, 56 konu<br>AYT: 4 ders, 40 konu<br>Toplamda <strong style="color:#34d399;">96 konu</strong> takip edilebilir.</p>
+        </div>
+        <div class="card accent">
+          <h3>✅ Tamamlanma Görünümü</h3>
+          <p>Tamamlanan konular işaretleniyor. Genel bakış ekranında % olarak görünüyor.</p>
+        </div>
+        <div class="card blue">
+          <h3>🔗 AI ile Entegrasyon</h3>
+          <p>Konu ilerlemesi + deneme verileri birleşerek AI'ın çalışma planı önerisini şekillendiriyor.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 6: AI Koç ══════════ -->
+  <div class="slide" id="s5">
+    <div class="slide-tag">AI Feature — Yapay Zeka Koçu</div>
+    <h2>Gemini Destekli Kişisel Koç</h2>
+    <div class="two-col">
+      <div>
+        <p class="body">Google Gemini API entegrasyonuyla öğrencinin verilerini analiz ediyor; zayıf kaldığı alanları tespit ediyor ve buna göre çalışma planı oluşturuyor.</p>
+        <div class="feature-list" style="margin-top:16px;">
+          <div class="feature-item">
+            <div class="fi-icon">🔍</div>
+            <div class="fi-body">
+              <h4>Performans Analizi</h4>
+              <p>Son deneme sonuçları + hedef netler karşılaştırılıyor. "Matematikte hedefe uzaksın, trigonometriye odaklan" gibi somut geri bildirim.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">📋</div>
+            <div class="fi-body">
+              <h4>Çalışma Planı Üretimi</h4>
+              <p>Zayıf konular önceliklendirilip haftalık çalışma planı oluşturuluyor. Plan bloklarına tamamlandı işareti koyulabiliyor.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">🎬</div>
+            <div class="fi-body">
+              <h4>Video Özetleyici</h4>
+              <p>YouTube ders videolarının linki girilince AI videoyu özetleyip önemli noktaları çıkarıyor.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">AI Analiz Çıktısı Örneği</div>
+        <div style="background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.2); border-radius:10px; padding:14px; font-size:12px; color:#d4d4d8; line-height:1.7;">
+          📊 <strong style="color:#a78bfa;">Performans Özeti</strong><br><br>
+          Son deneme sonuçlarına göre:<br>
+          • TYT Matematik: <span style="color:#f59e0b;">28/35 net</span> — Hedefe %80 yakın ✓<br>
+          • AYT Fizik: <span style="color:#ef4444;">11/14 net</span> — Dalgalar konusu zayıf ⚠<br>
+          • TYT Türkçe: <span style="color:#10b981;">32/35 net</span> — Harika! ✅<br><br>
+          <strong style="color:#a78bfa;">Öneri:</strong> Bu hafta AYT Fizik Dalgalar ve Optik konularına 3 saat ekstra ayır.
+        </div>
+        <div style="margin-top:12px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:10px; padding:14px; font-size:12px; color:#d4d4d8; line-height:1.7;">
+          📅 <strong style="color:#818cf8;">Bu Hafta Çalışma Planı</strong><br><br>
+          Pazartesi — AYT Fizik: Dalgalar<br>
+          Salı — TYT Mat: Olasılık tekrar<br>
+          Çarşamba — AYT Kimya: Organik<br>
+          Perşembe — Full TYT denemesi
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 7: Verimlilik Araçları ══════════ -->
+  <div class="slide" id="s6">
+    <div class="slide-tag">Productivity Features</div>
+    <h2>Eksiksiz Verimlilik Ekosistemi</h2>
+    <p class="body">YKS takibinin ötesinde, öğrencinin tüm günlük rutinini destekleyen entegre araçlar.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <h3>Görev Yönetimi</h3>
+        <p>Öncelik seviyeleri, son tarihler, alt görevler ve etiket sistemi. Bugünün görevleri Dashboard'da öne çıkıyor.</p>
+      </div>
+      <div class="card green">
+        <div class="card-icon">🔥</div>
+        <h3>Alışkanlık Takibi</h3>
+        <p>Günlük alışkanlıklar ve seri sayacı. "10 gün üst üste matematik çalıştı" bildirimi motivasyonu artırıyor.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🍅</div>
+        <h3>Pomodoro Timer</h3>
+        <p>25dk çalış / 5dk mola döngüsü. Tamamlanan seanslar kaydedilip günlük çalışma saatine ekleniyor.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">🎯</div>
+        <h3>Hedef Takibi</h3>
+        <p>Büyük hedefleri (üniversite, bölüm) milestone'lara böl. Her milestone ilerleme çubuğuyla görsel.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📓</div>
+        <h3>Notlar</h3>
+        <p>Kategorili ve etiketli not alma. Sabitlenebilir notlar, arama ve hızlı erişim.</p>
+      </div>
+      <div class="card orange">
+        <div class="card-icon">🗓</div>
+        <h3>Takvim & Sınavlar</h3>
+        <p>Etkinlik takvimi ve deneme/okul sınavı takibi. Yaklaşan sınavlar Dashboard'da aciliyet rengiyle görünüyor.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 8: Hata Defteri ══════════ -->
+  <div class="slide" id="s7">
+    <div class="slide-tag">Premium Feature — Hata Defteri</div>
+    <h2>SM-2 Algoritmasıyla Akıllı Tekrar</h2>
+    <div class="split">
+      <div>
+        <p class="body">Yanlış yapılan soruları veya anlaşılmayan konuları sisteme kaydet. SM-2 aralıklı tekrar algoritması, her sorunun <strong>ne zaman tekrar gösterileceğini</strong> optimize eder.</p>
+        <div class="feature-list" style="margin-top:16px;">
+          <div class="feature-item">
+            <div class="fi-icon">❌</div>
+            <div class="fi-body">
+              <h4>Hata Kaydetme</h4>
+              <p>Ders, konu, soru, doğru cevap ve kendi cevabını kaydet. Fotoğraf ekleme de mümkün.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">🧠</div>
+            <div class="fi-body">
+              <h4>Bilgi Kalıcılığı</h4>
+              <p>Soruyu ne kadar kolay hatırladığını 4 seviyede puanla (0-3). Sistem bir sonraki tekrar tarihini hesaplıyor.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">📅</div>
+            <div class="fi-body">
+              <h4>Günlük Tekrar Listesi</h4>
+              <p>"Bugün tekrar edilecek" sekmesi — sadece zamanı gelen soruları göster, geri kalanı gizle.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card accent">
+          <h3>🔬 SM-2 Nedir?</h3>
+          <p>Anki gibi flash-card uygulamalarının kullandığı bilimsel hafıza algoritması. Kolay hatırlanan soruyu 7 gün sonra, zor olanı 1 gün sonra gösterir. Zamanla tekrar aralıkları uzuyor → kalıcı öğrenme.</p>
+        </div>
+        <div class="mockup" style="padding:16px;">
+          <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Bugün Tekrar Edilecek: 4 soru</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:8px 12px;">
+              <span style="font-size:10px; color:#a78bfa; font-weight:700;">AYT Fizik — Dalgalar</span><br>
+              <span style="font-size:12px; color:#d4d4d8;">Durgun su dalgasının formülü nedir?</span>
+            </div>
+            <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:8px; padding:8px 12px;">
+              <span style="font-size:10px; color:#a78bfa; font-weight:700;">TYT Matematik — Türev</span><br>
+              <span style="font-size:12px; color:#d4d4d8;">f(x) = x³ + 2x fonksiyonunun türevi?</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 9: Sosyal & Motivasyon ══════════ -->
+  <div class="slide" id="s8">
+    <div class="slide-tag">Social & Gamification</div>
+    <h2>Sosyal Motivasyon Sistemi</h2>
+    <p class="body" style="max-width:680px;">Tek başına çalışmanın verdiği motivasyon düşüklüğünü aşmak için arkadaş sistemi, lig ve sıralama mekanizmaları.</p>
+    <div class="card-grid cols-2" style="margin-top:20px;">
+      <div>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="fi-icon">🏆</div>
+            <div class="fi-body">
+              <h4>Sıralama (Leaderboard)</h4>
+              <p>Tüm kullanıcılar TYT+AYT toplam netlerine göre sıralanıyor. "En çok yükselenler" sekmesi haftalık artışı gösteriyor.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">⚔️</div>
+            <div class="fi-body">
+              <h4>Lig Sistemi</h4>
+              <p>Net toplamına göre otomatik lig atama: Bronz → Gümüş → Altın → Platin → Elmas. Her lig farklı ikonla gösteriliyor.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">👥</div>
+            <div class="fi-body">
+              <h4>Arkadaş Sistemi</h4>
+              <p>Arkadaş ekle, sadece arkadaşlarının sıralamasını gör. Davet linki oluşturulabiliyor.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">🎖️</div>
+            <div class="fi-body">
+              <h4>Başarı Rozetleri</h4>
+              <p>İlk deneme, 7 gün seri, AI plan tamamlama gibi milestones için otomatik rozet kazanımı.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px;">Sıralama Önizlemesi</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:12px; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.2); border-radius:10px; padding:10px 14px;">
+            <span style="color:#facc15; font-size:16px;">🏆</span>
+            <span style="font-size:18px;">💎</span>
+            <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:#fff;">Ahmet Y.</div><div style="font-size:10px; color:var(--muted);">Elmas Lig</div></div>
+            <div style="text-align:right;"><div style="font-weight:700; color:#fff;">187 net</div><div style="font-size:10px; color:var(--muted);">TYT 112 · AYT 75</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3); border-radius:10px; padding:10px 14px;">
+            <span style="color:#a78bfa; font-size:13px; font-weight:700;">2</span>
+            <span style="font-size:18px;">🥇</span>
+            <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:#a78bfa;">Sen (Kerem)</div><div style="font-size:10px; color:var(--muted);">Altın Lig</div></div>
+            <div style="text-align:right;"><div style="font-weight:700; color:#a78bfa;">163 net</div><div style="font-size:10px; color:var(--muted);">TYT 98 · AYT 65</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px;">
+            <span style="color:var(--muted); font-size:13px; font-weight:700;">3</span>
+            <span style="font-size:18px;">🥈</span>
+            <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:#d4d4d8;">Zeynep K.</div><div style="font-size:10px; color:var(--muted);">Gümüş Lig</div></div>
+            <div style="text-align:right;"><div style="font-weight:700; color:#d4d4d8;">141 net</div><div style="font-size:10px; color:var(--muted);">TYT 89 · AYT 52</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 10: Teknik Altyapı ══════════ -->
+  <div class="slide" id="s9">
+    <div class="slide-tag">Technical Architecture</div>
+    <h2>Güvenilir & Ölçeklenebilir Altyapı</h2>
+    <div class="two-col">
+      <div>
+        <p class="body">Modern web teknolojileri + bulut altyapısıyla cihazlar arası anlık senkronizasyon sağlanıyor.</p>
+        <div class="timeline" style="margin-top:24px;">
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><h4>React 19 + Vite</h4><p>Hızlı sayfa geçişleri, kod bölme ve optimum bundle boyutu.</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><h4>Firebase (Auth + Firestore)</h4><p>Google/e-posta girişi. Veriler bulutta saklanır, herhangi bir cihazdan erişilebilir. 800ms debounce ile Firestore'a sync.</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:var(--orange)"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><h4>Gemini API</h4><p>Google'ın büyük dil modeli. Performans analizi ve çalışma planı üretimi için kullanılıyor.</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:#6366f1"></div></div>
+            <div class="tl-content"><h4>Framer Motion + Tailwind CSS</h4><p>Akıcı animasyonlar ve glassmorphism tasarım sistemi. Koyu tema, violet accent rengi.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card green">
+          <h3>🔐 Güvenlik</h3>
+          <p>Firebase Authentication ile güvenli giriş. E-posta doğrulama zorunlu. Firestore güvenlik kuralları ile veri izolasyonu.</p>
+        </div>
+        <div class="card blue">
+          <h3>📱 Çok Platform</h3>
+          <p>Web tarayıcısında çalışır. PWA desteğiyle mobil cihaza eklenebilir. Responsive tasarım — telefon ve bilgisayarda kullanım.</p>
+        </div>
+        <div class="card accent">
+          <h3>☁️ Vercel Deployment</h3>
+          <p>keremtakip.vercel.app adresinde yayınlı. Her commit otomatik deploy. Ücretsiz SSL sertifikası.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 11: Freemium Model ══════════ -->
+  <div class="slide" id="s10">
+    <div class="slide-tag">Business Model</div>
+    <h2>Freemium — Ücretsiz Başla, Büyü</h2>
+    <p class="body" style="max-width:680px;">Temel özellikler tamamen ücretsiz. Gelişmiş AI ve analitik özellikler premium aboneliğe dahil.</p>
+    <div class="card-grid cols-2" style="margin-top:24px;">
+      <div class="card" style="border-color:rgba(113,113,122,0.3);">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:12px;">Ücretsiz Plan</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:var(--green);">✓</span> YKS Merkezi (deneme + konu takibi)</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:var(--green);">✓</span> Görevler, Alışkanlıklar, Pomodoro</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:var(--green);">✓</span> Notlar, Takvim, Projeler, Hedefler</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:var(--green);">✓</span> Sosyal Sıralama & Arkadaşlar</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:var(--green);">✓</span> Hatırlatmalar & Günlük Todos</div>
+        </div>
+      </div>
+      <div class="card accent">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+          <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#a78bfa;">⭐ Premium Plan</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:#a78bfa;">★</span> AI Merkezi & Performans Analizi</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:#a78bfa;">★</span> AI Çalışma Planı Üretimi</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:#a78bfa;">★</span> Video Özetleyici</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:#a78bfa;">★</span> Hata Defteri (SM-2 Tekrar)</div>
+          <div style="display:flex; gap:8px; font-size:13px; color:var(--text); align-items:center;"><span style="color:#a78bfa;">★</span> İleri İstatistikler & Raporlar</div>
+        </div>
+        <div style="margin-top:14px; padding:10px 14px; background:rgba(124,58,237,0.15); border-radius:10px; font-size:12px; color:#a78bfa;">
+          Beta döneminde iletişime geçerek ücretsiz deneme talep edilebilir.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 12: Öğretmen/Rehber Perspektifi ══════════ -->
+  <div class="slide" id="s11">
+    <div class="slide-tag">For Teachers & Counselors</div>
+    <h2>Öğretmen ve Rehberlik İçin Değer</h2>
+    <p class="body" style="max-width:680px;">Dash YKS, öğrencinin kendi kendini takip etmesini sağlar — bu da öğretmen ve rehber öğretmenlerin iş yükünü azaltır.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card green">
+        <div class="card-icon">📊</div>
+        <h3>Veri Destekli Görüşme</h3>
+        <p>"Hangi derste zayıfsın?" yerine öğrenci deneme geçmişini açıp somut verilerle konuşabilir. Net artışı grafiği müzakereyi kolaylaştırır.</p>
+      </div>
+      <div class="card accent">
+        <div class="card-icon">🎯</div>
+        <h3>Hedef Gerçekçiliği</h3>
+        <p>Hedef üniversite ve bölüm sisteme girildiğinde öğrenci gerekli netleri görüyor. "Boğaziçi için 150 net lazım" artık sayfa başında görünüyor.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">📅</div>
+        <h3>Çalışma Disiplini</h3>
+        <p>Alışkanlık serileri, Pomodoro istatistikleri ve günlük todo tamamlanma oranı öğrencinin disiplin tablosunu net gösteriyor.</p>
+      </div>
+    </div>
+    <div style="margin-top:20px; padding:16px 20px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:12px;">
+      <p style="font-size:13px; color:#34d399;">
+        💬 <strong>Önerilen Kullanım:</strong> Öğrencilerden her hafta deneme sonuçlarını sisteme girmelerini isteyin. Rehberlik görüşmelerinde ekranı paylaşmalarını sağlayın. "Hangi konuları bitirdin?" sorusunu Konular sekmesiyle yanıtlamaları çok kolay.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 13: Yol Haritası ══════════ -->
+  <div class="slide" id="s12">
+    <div class="slide-tag">Roadmap</div>
+    <h2>Gelecek Geliştirmeler</h2>
+    <div class="two-col">
+      <div class="stack">
+        <div class="card green">
+          <h3>✅ Tamamlanan (v1.0)</h3>
+          <p style="line-height:1.9;">YKS deneme takibi · AI koç · Sosyal sıralama · Hata Defteri · Premium sistem · Firebase sync · Onboarding akışı · Freemium model</p>
+        </div>
+        <div class="card orange">
+          <h3>🔜 Yakında (v1.1)</h3>
+          <p style="line-height:1.9;">Pomodoro haftalık grafik · Hedef milestone tarihleri · Dashboard hızlı çalışma logu · Öğretmen panel (sınıf takibi)</p>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card blue">
+          <h3>🔭 Uzun Vadeli</h3>
+          <p style="line-height:1.9;">Sınıf / okul bazlı yönetim paneli · Öğretmen-öğrenci mesajlaşma · Deneme sınavı PDF'i otomatik analiz · Mobil uygulama (iOS/Android) · Veli takip ekranı</p>
+        </div>
+        <div class="card accent">
+          <h3>💡 Vizyon</h3>
+          <p>Türkiye'deki her YKS öğrencisinin yanında bir AI koç olsun. Sosyoekonomik fark gözetmeksizin kaliteli rehberliğe erişim.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SLIDE 14: Kapanış / CTA ══════════ -->
+  <div class="slide" id="s13">
+    <div class="cover-gradient"></div>
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; position:relative; z-index:1;">
+      <div style="font-size:56px; margin-bottom:16px;">🚀</div>
+      <h1 style="font-size:44px; margin-bottom:16px;">Deneyin</h1>
+      <p class="subtitle" style="text-align:center; max-width:560px;">
+        Sınıf mevcudunuzdan birkaç öğrenciye deneme süresi açabilir, YKS hazırlık süreçlerini birlikte takip edebilirsiniz.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:16px; align-items:center; margin-top:36px;">
+        <div style="background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.35); border-radius:16px; padding:16px 32px; display:inline-block;">
+          <div style="font-size:12px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.1em;">Uygulama Adresi</div>
+          <div style="font-size:22px; font-weight:800; color:#a78bfa;">keremtakip.vercel.app</div>
+        </div>
+        <p style="font-size:13px; color:var(--muted);">Premium erişim için iletişime geçin — beta sürecinde ücretsiz.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:48px; justify-content:center; padding-top:24px; border-top:1px solid var(--border); position:relative; z-index:1;">
+      <div class="big-stat"><div class="num" style="font-size:32px;">13+</div><div class="lbl">Modül</div></div>
+      <div class="big-stat"><div class="num" style="font-size:32px;">96</div><div class="lbl">Takip Edilebilir Konu</div></div>
+      <div class="big-stat"><div class="num" style="font-size:32px;">AI</div><div class="lbl">Gemini Destekli</div></div>
+      <div class="big-stat"><div class="num" style="font-size:32px;">∞</div><div class="lbl">Bulut Sync</div></div>
+    </div>
+  </div>
+
+</div><!-- /slides -->
+
+<!-- ── Navigation ── -->
+<div class="nav" id="nav">
+  <button id="prev">←</button>
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="counter">1 / 14</div>
+  <button id="next">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => go(i);
+    dotsEl.appendChild(d);
+  });
+
+  function go(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    counter.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  document.getElementById('prev').onclick = () => go(cur - 1);
+  document.getElementById('next').onclick = () => go(cur + 1);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
+  });
+</script>
+</body>
+</html>

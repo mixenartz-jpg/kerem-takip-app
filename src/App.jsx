@@ -43,6 +43,7 @@ import Leaderboard from './pages/Leaderboard';
 import Reminders from './pages/Reminders';
 import Friends from './pages/Friends';
 import Invite from './pages/Invite';
+import HataDefteri from './pages/HataDefteri';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
@@ -67,6 +68,7 @@ const PAGE_TITLES = {
   '/reminders': 'Hatırlatmalar',
   '/friends': 'Arkadaşlar',
   '/invite': 'Davet',
+  '/hata-defteri': 'Hata Defteri',
 };
 
 function AppLayout() {
@@ -99,11 +101,11 @@ function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950">
-      <Dock />
+      <Dock onMenuOpen={() => setDrawerOpen(o => !o)} />
       <DrawerMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Header onSearchOpen={() => setCmdOpen(true)} title={title} onMenuOpen={() => setDrawerOpen(o => !o)} />
+        <Header onSearchOpen={() => setCmdOpen(true)} title={title} onMenuOpen={() => setDrawerOpen(o => !o)} drawerOpen={drawerOpen} />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0 relative">
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
@@ -129,6 +131,7 @@ function AppLayout() {
               <Route path="/reminders" element={<PageTransition><Reminders /></PageTransition>} />
               <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
               <Route path="/invite" element={<PageTransition><Invite /></PageTransition>} />
+              <Route path="/hata-defteri" element={<PageTransition><PremiumGate feature="hata_defteri"><HataDefteri /></PremiumGate></PageTransition>} />
             </Routes>
           </AnimatePresence>
         </main>

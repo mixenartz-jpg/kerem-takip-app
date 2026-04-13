@@ -4,12 +4,14 @@ import {
   X, LayoutDashboard, CalendarDays, GraduationCap, Sparkles, Users2,
   CheckSquare, StickyNote, FolderKanban, Repeat2, Timer,
   BookOpen, CalendarCheck, Target, Zap, BarChart2,
-  ListTodo, Video, Bell, Trophy, UserPlus, Star
+  ListTodo, Video, Bell, Trophy, UserPlus, Star, Moon, Sun
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePremium } from '../../context/PremiumContext';
+import { useApp } from '../../context/AppContext';
 
-const NAV_GROUPS = [
+// Groups for YKS/student mode
+const NAV_GROUPS_YKS = [
   {
     label: 'Ana',
     items: [
@@ -37,7 +39,44 @@ const NAV_GROUPS = [
       { to: '/lessons', icon: BookOpen, label: 'Dersler' },
       { to: '/exams', icon: CalendarCheck, label: 'Sınav Takvimi' },
       { to: '/yks', icon: Zap, label: 'YKS Merkezi' },
+      { to: '/hata-defteri', icon: BookOpen, label: 'Hata Defteri', premium: 'hata_defteri' },
       { to: '/habits', icon: Repeat2, label: 'Alışkanlıklar' },
+    ],
+  },
+  {
+    label: 'AI & Sosyal',
+    items: [
+      { to: '/ai', icon: Sparkles, label: 'AI Merkezi', ai: true, premium: 'ai' },
+      { to: '/video-summarizer', icon: Video, label: 'Video Özetleyici', ai: true },
+      { to: '/sosyal', icon: Users2, label: 'Sosyal Hub' },
+      { to: '/friends', icon: UserPlus, label: 'Arkadaşlar' },
+      { to: '/leaderboard', icon: Trophy, label: 'Sıralama' },
+      { to: '/notes', icon: StickyNote, label: 'Notlar' },
+    ],
+  },
+];
+
+// Simpler groups for daily/non-student mode — no YKS/Akademi clutter
+const NAV_GROUPS_DAILY = [
+  {
+    label: 'Ana',
+    items: [
+      { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
+      { to: '/daily-todos', icon: ListTodo, label: 'Günlük Yapılacaklar' },
+      { to: '/reminders', icon: Bell, label: 'Hatırlatmalar' },
+      { to: '/stats', icon: BarChart2, label: 'İstatistikler', premium: 'istatistikler' },
+    ],
+  },
+  {
+    label: 'Planlama',
+    items: [
+      { to: '/planlama', icon: CalendarDays, label: 'Planlama Hub' },
+      { to: '/tasks', icon: CheckSquare, label: 'Görevler' },
+      { to: '/calendar', icon: CalendarCheck, label: 'Takvim' },
+      { to: '/projects', icon: FolderKanban, label: 'Projeler' },
+      { to: '/goals', icon: Target, label: 'Hedefler' },
+      { to: '/habits', icon: Repeat2, label: 'Alışkanlıklar' },
+      { to: '/pomodoro', icon: Timer, label: 'Pomodoro' },
     ],
   },
   {
@@ -102,6 +141,9 @@ function NavItem({ to, icon: Icon, label, end, ai, premium, onClick }) {
 export default function DrawerMenu({ open, onClose }) {
   const { user } = useAuth();
   const { isPremium } = usePremium();
+  const { userMode } = useApp();
+
+  const NAV_GROUPS = userMode === 'daily' ? NAV_GROUPS_DAILY : NAV_GROUPS_YKS;
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -157,12 +199,24 @@ export default function DrawerMenu({ open, onClose }) {
                   <p className="text-sm font-semibold text-zinc-200 truncate">
                     {user?.displayName || 'Kullanıcı'}
                   </p>
-                  {isPremium && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star size={10} className="text-violet-400" />
-                      <span className="text-[10px] text-violet-400 font-medium">Premium</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {isPremium && (
+                      <div className="flex items-center gap-1">
+                        <Star size={10} className="text-violet-400" />
+                        <span className="text-[10px] text-violet-400 font-medium">Premium</span>
+                      </div>
+                    )}
+                    {/* Mode badge */}
+                    <div className="flex items-center gap-1">
+                      {userMode === 'daily'
+                        ? <Sun size={10} className="text-amber-400" />
+                        : <Zap size={10} className="text-blue-400" />
+                      }
+                      <span className={`text-[10px] font-medium ${userMode === 'daily' ? 'text-amber-400' : 'text-blue-400'}`}>
+                        {userMode === 'daily' ? 'Günlük Mod' : 'YKS Modu'}
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
               <button

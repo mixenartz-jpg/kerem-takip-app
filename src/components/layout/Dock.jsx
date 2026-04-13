@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarDays, GraduationCap,
-  Sparkles, Users2, LogOut,
+  Sparkles, Users2, LogOut, Menu,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useApp } from '../../context/AppContext';
 
-const NAV_ITEMS = [
+const NAV_ITEMS_YKS = [
   { to: '/',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
   { to: '/planlama',  icon: CalendarDays,    label: 'Planlama' },
   { to: '/akademi',   icon: GraduationCap,   label: 'Akademi' },
@@ -15,9 +16,19 @@ const NAV_ITEMS = [
   { to: '/sosyal',    icon: Users2,          label: 'Sosyal' },
 ];
 
-export default function Dock() {
+const NAV_ITEMS_DAILY = [
+  { to: '/',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
+  { to: '/planlama',  icon: CalendarDays,    label: 'Planlama' },
+  { to: '/ai',        icon: Sparkles,        label: 'AI Krallığı',  ai: true },
+  { to: '/sosyal',    icon: Users2,          label: 'Sosyal' },
+];
+
+export default function Dock({ onMenuOpen }) {
   const { user, logout } = useAuth();
+  const { userMode } = useApp();
   const [tooltip, setTooltip] = useState(null);
+
+  const NAV_ITEMS = userMode === 'daily' ? NAV_ITEMS_DAILY : NAV_ITEMS_YKS;
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -40,7 +51,7 @@ export default function Dock() {
       />
 
       {/* Logo */}
-      <div className="pt-5 pb-4 flex items-center justify-center w-full relative z-10">
+      <div className="pt-5 pb-3 flex items-center justify-center w-full relative z-10">
         <motion.div
           className="w-9 h-9 rounded-2xl overflow-hidden flex items-center justify-center"
           style={{ boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}
@@ -56,6 +67,49 @@ export default function Dock() {
         >
           <img src="/logo-white.png" alt="Dash YKS" className="w-full h-full object-contain" />
         </motion.div>
+      </div>
+
+      {/* Hamburger menu button — opens DrawerMenu */}
+      <div
+        className="relative w-full flex justify-center mb-2"
+        onMouseEnter={() => setTooltip('__menu__')}
+        onMouseLeave={() => setTooltip(null)}
+      >
+        <motion.button
+          onClick={onMenuOpen}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.93 }}
+          className="w-12 h-10 rounded-2xl flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] transition-all relative z-10"
+        >
+          <Menu size={18} />
+        </motion.button>
+        <AnimatePresence>
+          {tooltip === '__menu__' && (
+            <motion.div
+              className="absolute left-[58px] top-1/2 -translate-y-1/2 z-[300] px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-100 whitespace-nowrap pointer-events-none"
+              style={{
+                background: 'rgba(20,20,24,0.96)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+              }}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.12 }}
+            >
+              Tüm Menü
+              <div
+                className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{
+                  borderTop: '4px solid transparent',
+                  borderBottom: '4px solid transparent',
+                  borderRight: '5px solid rgba(20,20,24,0.96)',
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Top divider */}
@@ -86,7 +140,7 @@ export default function Dock() {
                         : 'transparent',
                   }}
                 >
-                  {/* Active pill — left edge, shared layoutId for spring animation */}
+                  {/* Active pill — left edge */}
                   {isActive && (
                     <motion.div
                       layoutId="dockActivePill"
@@ -103,7 +157,7 @@ export default function Dock() {
                     />
                   )}
 
-                  {/* AI pulse ring (design-spells) */}
+                  {/* AI pulse ring */}
                   {ai && (
                     <motion.div
                       className="absolute inset-0 rounded-2xl pointer-events-none"
@@ -149,7 +203,6 @@ export default function Dock() {
                   transition={{ duration: 0.12 }}
                 >
                   {label}
-                  {/* Arrow */}
                   <div
                     className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0"
                     style={{

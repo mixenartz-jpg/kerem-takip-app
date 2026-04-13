@@ -296,42 +296,78 @@ export default function Dashboard() {
           }
         </SectionCard>
 
-        {/* Bugünün Görevleri */}
-        <SectionCard title="Bugünün Görevleri" icon={TrendingUp} iconColor="text-blue-400"
-          action="Tümü" actionPath="/tasks">
-          {todayTasks.length === 0
-            ? <EmptyState text="Bugün için görev yok 🎉" />
-            : <>
-                <div className="mb-3">
-                  <div className="flex justify-between text-[11px] text-zinc-500 mb-1.5">
-                    <span>İlerleme</span>
-                    <span className="font-mono">{todayTasks.filter(t => t.completed).length}/{todayTasks.length}</span>
-                  </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(todayTasks.filter(t=>t.completed).length / todayTasks.length) * 100}%` }}
-                      transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
-                    />
-                  </div>
-                </div>
-                <ul className="space-y-1.5">
-                  {todayTasks.slice(0, 5).map((t, i) => (
-                    <motion.li key={t.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-                      className="flex items-center gap-2.5">
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
-                        t.completed ? 'bg-violet-500 border-violet-400' : 'border-zinc-700'}`}>
-                        {t.completed && <span className="text-white text-[9px] font-bold">✓</span>}
-                      </div>
-                      <span className={`text-sm truncate ${t.completed ? 'line-through text-zinc-600' : 'text-zinc-300'}`}>
-                        {t.title}
-                      </span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </>
-          }
+        {/* Bugün — Birleşik Görev + Yapılacak Kartı */}
+        <SectionCard title="Bugünkü Plan" icon={ListTodo} iconColor="text-violet-400"
+          action="Planlama" actionPath="/planlama">
+          {/* Quick add */}
+          <form onSubmit={handleAddTodo} className="flex gap-2 mb-3">
+            <input
+              value={newTodo}
+              onChange={e => setNewTodo(e.target.value)}
+              placeholder="Hızlı yapılacak ekle..."
+              className="flex-1 bg-zinc-800/60 border border-white/5 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+            />
+            <motion.button
+              type="submit"
+              whileTap={{ scale: 0.92 }}
+              disabled={!newTodo.trim()}
+              className="w-7 h-7 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 disabled:opacity-30 hover:bg-violet-600/30 transition-all"
+            >
+              <Plus size={13} />
+            </motion.button>
+          </form>
+
+          {/* Daily todos (today) */}
+          {todayDailyTodos.length > 0 && (
+            <ul className="space-y-1.5 mb-3">
+              {todayDailyTodos.slice(0, 4).map((t, i) => (
+                <motion.li
+                  key={t.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="flex items-center gap-2.5 group/todo"
+                >
+                  <motion.button
+                    onClick={() => toggleDailyTodo(t.id)}
+                    whileTap={{ scale: 0.85 }}
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                      t.completed ? 'bg-violet-500 border-violet-400' : 'border-zinc-700 hover:border-zinc-500'
+                    }`}
+                  >
+                    {t.completed && (
+                      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-white text-[9px] font-bold">✓</motion.span>
+                    )}
+                  </motion.button>
+                  <span className={`text-sm flex-1 truncate ${
+                    t.completed ? 'line-through text-zinc-600' : 'text-zinc-300 group-hover/todo:text-zinc-100'
+                  }`}>{t.text}</span>
+                </motion.li>
+              ))}
+            </ul>
+          )}
+
+          {todayDailyTodos.length === 0 && todayTasks.length === 0 && (
+            <EmptyState text="Bugün için plan yok — ekle! 🚀" />
+          )}
+
+          {/* Progress bar */}
+          {todayDailyTodos.length > 0 && (
+            <div className="pt-2 border-t border-white/5">
+              <div className="flex justify-between text-[10px] text-zinc-600 mb-1">
+                <span>{todayDailyTodos.filter(t => t.completed).length}/{todayDailyTodos.length} tamamlandı</span>
+                <span className="font-mono">{Math.round((todayDailyTodos.filter(t=>t.completed).length/todayDailyTodos.length)*100)}%</span>
+              </div>
+              <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(todayDailyTodos.filter(t=>t.completed).length/todayDailyTodos.length)*100}%` }}
+                  transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                />
+              </div>
+            </div>
+          )}
         </SectionCard>
 
         {/* Yaklaşan Sınavlar */}
@@ -357,78 +393,6 @@ export default function Dashboard() {
                 })}
               </ul>
           }
-        </SectionCard>
-
-        {/* Günlük Yapılacaklar */}
-        <SectionCard title="Günlük Yapılacaklar" icon={ListTodo} iconColor="text-violet-400"
-          action="Tümü" actionPath="/daily-todos">
-          <form onSubmit={handleAddTodo} className="flex gap-2 mb-3">
-            <input
-              value={newTodo}
-              onChange={e => setNewTodo(e.target.value)}
-              placeholder="Yeni görev ekle..."
-              className="flex-1 bg-zinc-800/60 border border-white/5 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
-            />
-            <motion.button
-              type="submit"
-              whileTap={{ scale: 0.92 }}
-              disabled={!newTodo.trim()}
-              className="w-7 h-7 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 disabled:opacity-30 hover:bg-violet-600/30 transition-all"
-            >
-              <Plus size={13} />
-            </motion.button>
-          </form>
-          {todayDailyTodos.length === 0
-            ? <EmptyState text="Bugün için yapılacak yok — ekle! 🚀" />
-            : <ul className="space-y-1.5">
-                {todayDailyTodos.slice(0, 6).map((t, i) => (
-                  <motion.li
-                    key={t.id}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className="flex items-center gap-2.5 group/todo"
-                  >
-                    <motion.button
-                      onClick={() => toggleDailyTodo(t.id)}
-                      whileTap={{ scale: 0.85 }}
-                      className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
-                        t.completed ? 'bg-violet-500 border-violet-400' : 'border-zinc-700 hover:border-zinc-500'
-                      }`}
-                    >
-                      {t.completed && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="text-white text-[9px] font-bold"
-                        >✓</motion.span>
-                      )}
-                    </motion.button>
-                    <span className={`text-sm flex-1 truncate transition-colors ${
-                      t.completed ? 'line-through text-zinc-600' : 'text-zinc-300 group-hover/todo:text-zinc-100'
-                    }`}>
-                      {t.text}
-                    </span>
-                  </motion.li>
-                ))}
-              </ul>
-          }
-          {todayDailyTodos.length > 0 && (
-            <div className="mt-3 pt-2 border-t border-white/5">
-              <div className="flex justify-between text-[10px] text-zinc-600 mb-1">
-                <span>{todayDailyTodos.filter(t => t.completed).length}/{todayDailyTodos.length} tamamlandı</span>
-                <span className="font-mono">{Math.round((todayDailyTodos.filter(t=>t.completed).length/todayDailyTodos.length)*100)}%</span>
-              </div>
-              <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(todayDailyTodos.filter(t=>t.completed).length/todayDailyTodos.length)*100}%` }}
-                  transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                />
-              </div>
-            </div>
-          )}
         </SectionCard>
 
         {/* Aktif Hedefler */}
