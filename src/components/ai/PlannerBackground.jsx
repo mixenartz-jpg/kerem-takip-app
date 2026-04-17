@@ -1,9 +1,9 @@
 import { useReducedMotion, motion } from 'framer-motion';
 
 const BLOBS = [
-  { color: '#7c3aed', x: [0, 120, -80, 0], y: [0, -60, 90, 0], duration: 22, opacity: 0.35, size: 520, top: '10%', left: '15%' },
-  { color: '#4f46e5', x: [0, -90, 60, 0], y: [0, 80, -50, 0], duration: 18, opacity: 0.28, size: 440, top: '50%', left: '55%' },
-  { color: '#a855f7', x: [0, 70, -40, 0], y: [0, -40, 60, 0], duration: 26, opacity: 0.18, size: 380, top: '70%', left: '10%' },
+  { color: '#7c3aed', x: [0, 120, -80, 0], y: [0, -60, 90, 0], duration: 22, opacity: 0.55, size: 600, top: '5%', left: '10%' },
+  { color: '#4f46e5', x: [0, -90, 60, 0], y: [0, 80, -50, 0], duration: 18, opacity: 0.45, size: 500, top: '45%', left: '50%' },
+  { color: '#a855f7', x: [0, 70, -40, 0], y: [0, -40, 60, 0], duration: 26, opacity: 0.35, size: 440, top: '65%', left: '5%' },
 ];
 
 export default function PlannerBackground() {
@@ -18,7 +18,7 @@ export default function PlannerBackground() {
       {BLOBS.map((blob, i) => (
         <motion.div
           key={i}
-          className="absolute rounded-full mix-blend-screen"
+          className="absolute rounded-full"
           style={{
             width: blob.size,
             height: blob.size,

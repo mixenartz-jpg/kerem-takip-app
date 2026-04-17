@@ -159,12 +159,20 @@ export default function Dock({ onMenuOpen }) {
 
                   {/* AI pulse ring */}
                   {ai && (
-                    <motion.div
-                      className="absolute inset-0 rounded-2xl pointer-events-none"
-                      style={{ border: '1px solid rgba(124,58,237,0.35)' }}
-                      animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.04, 1] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                    />
+                    <>
+                      <motion.div
+                        className="absolute inset-0 rounded-2xl pointer-events-none"
+                        style={{ border: '1px solid rgba(124,58,237,0.5)' }}
+                        animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.06, 1] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      <motion.div
+                        className="absolute -inset-1 rounded-2xl pointer-events-none"
+                        style={{ border: '1px solid rgba(168,85,247,0.18)' }}
+                        animate={{ opacity: [0, 0.7, 0], scale: [1, 1.12, 1] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                      />
+                    </>
                   )}
 
                   {/* Hover bg */}
@@ -182,6 +190,17 @@ export default function Dock({ onMenuOpen }) {
                           : 'text-zinc-500'
                     }
                   />
+                  {ai && !isActive && (
+                    <span
+                      className="absolute -top-1 -right-1 text-[8px] font-bold px-1 rounded-full leading-tight"
+                      style={{
+                        background: 'linear-gradient(135deg, #7c3aed, #ec4899)',
+                        color: '#fff',
+                      }}
+                    >
+                      AI
+                    </span>
+                  )}
                 </motion.div>
               )}
             </NavLink>
