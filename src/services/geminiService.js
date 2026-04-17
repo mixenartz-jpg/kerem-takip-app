@@ -455,6 +455,22 @@ GÖREVİN: Kullanıcı doğal dille günlük/haftalık plan yazar. Sen bu cümle
 }
 ]
 
+UYGULAMA SAYFALARI (interaktif link olarak kullanabilirsin):
+- Görevler: /tasks
+- Takvim: /calendar
+- Notlar: /notes
+- Alışkanlıklar: /habits
+- Hedefler: /goals
+- Günlük Yapılacaklar: /daily-todos
+- Pomodoro: /pomodoro
+- Projeler: /projects
+- YKS / Dersler: /yks
+- İstatistikler: /stats
+- Hatırlatıcılar: /reminders
+
+İÇ LİNK KURALI: Kullanıcıyı bir sayfaya yönlendirmek istersen özet cümlende Markdown link kullan: [Görevler Sayfası](/tasks)
+Bu linkler uygulamada tıklanabilir buton olarak gösterilir. navigate alanını da doldur.
+
 KURALLAR:
 - Kullanıcı "yarın" derse bugünün tarihinden +1 gün hesapla (bugün: ${today}).
 - "Haftalık" istekte 5-7 günlük parça tasks'a ve özet weeklyPlans'e yaz.
@@ -462,7 +478,8 @@ KURALLAR:
 - Uygulamayla alakasız istek (film önerisi, genel sohbet) → JSON yok, kibar ret: "Bu konuda yardımcı olamam, ama çalışma planın için buradayım."
 - Uydurma: Kullanıcı "spor yapacağım" dediyse sadece "Spor" diye kaydet, süre uydurma.
 - Hangi alanları doldurmayacaksan o anahtarı JSON'dan çıkar veya boş dizi bırak.
-- Cevap Türkçe, kısa ve eyleme dönük olsun.`;
+- Cevap Türkçe, kısa ve eyleme dönük olsun.
+- Görevler eklendiğinde özet cümlede [Görevler Sayfası](/tasks) linkini ver.`;
 }
 
 export async function sendPlannerMessage(chatSession, text) {
