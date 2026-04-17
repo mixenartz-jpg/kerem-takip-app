@@ -10,16 +10,16 @@ import { useApp } from '../../context/AppContext';
 
 const NAV_ITEMS_YKS = [
   { to: '/',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
+  { to: '/planner',   icon: Sparkles,        label: 'AI Planlayıcı', ai: true },
   { to: '/planlama',  icon: CalendarDays,    label: 'Planlama' },
   { to: '/akademi',   icon: GraduationCap,   label: 'Akademi' },
-  { to: '/ai',        icon: Sparkles,        label: 'AI Krallığı',  ai: true },
   { to: '/sosyal',    icon: Users2,          label: 'Sosyal' },
 ];
 
 const NAV_ITEMS_DAILY = [
   { to: '/',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
+  { to: '/planner',   icon: Sparkles,        label: 'AI Planlayıcı', ai: true },
   { to: '/planlama',  icon: CalendarDays,    label: 'Planlama' },
-  { to: '/ai',        icon: Sparkles,        label: 'AI Krallığı',  ai: true },
   { to: '/sosyal',    icon: Users2,          label: 'Sosyal' },
 ];
 

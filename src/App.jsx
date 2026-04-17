@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MailCheck, RefreshCw } from 'lucide-react';
 import AdminGate from './pages/admin/AdminGate';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AIProvider } from './context/AIContext';
+import { PlannerAIProvider } from './context/PlannerAIContext';
+import AIPlanner from './pages/AIPlanner';
 import { PremiumProvider } from './context/PremiumContext';
 import PremiumGate from './components/ui/PremiumGate';
 import { initReminders } from './services/reminderService';
@@ -47,6 +49,7 @@ import HataDefteri from './pages/HataDefteri';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
+  '/planner': 'AI Planlayıcı',
   '/planlama': 'Planlama',
   '/akademi': 'Akademi',
   '/sosyal': 'Sosyal',
@@ -70,6 +73,24 @@ const PAGE_TITLES = {
   '/invite': 'Davet',
   '/hata-defteri': 'Hata Defteri',
 };
+
+function InitialRedirect() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!user) return;
+    const key = `gt-planner-seen-${user.uid}`;
+    if (!sessionStorage.getItem(key) && location.pathname === '/') {
+      sessionStorage.setItem(key, '1');
+      navigate('/planner', { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
 
 function AppLayout() {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -107,9 +128,11 @@ function AppLayout() {
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header onSearchOpen={() => setCmdOpen(true)} title={title} onMenuOpen={() => setDrawerOpen(o => !o)} drawerOpen={drawerOpen} />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0 relative">
+          <InitialRedirect />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
+              <Route path="/planner" element={<PageTransition><AIPlanner /></PageTransition>} />
               <Route path="/planlama" element={<PageTransition><PlanlamaHub /></PageTransition>} />
               <Route path="/akademi" element={<PageTransition><AkademiHub /></PageTransition>} />
               <Route path="/sosyal" element={<PageTransition><SosyalHub /></PageTransition>} />
@@ -318,7 +341,9 @@ function AuthGate() {
           <BrowserRouter>
             <PremiumProvider>
               <AIProvider>
-                <AppLayout />
+                <PlannerAIProvider>
+                  <AppLayout />
+                </PlannerAIProvider>
               </AIProvider>
             </PremiumProvider>
           </BrowserRouter>

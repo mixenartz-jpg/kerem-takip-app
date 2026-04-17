@@ -391,7 +391,83 @@ UYGULAMA SAYFALARI (kullanıcıyı yönlendirmek için kullan):
 /stats → İstatistikler | /lessons → Dersler | /exams → Sınav Takvimi
 
 Kullanıcıya ilgili sayfayı göstermek istediğinde cevabına [NAVIGATE:/path] ekle.
-Türkçe konuş. Kısa, pratik ve motive edici ol. Markdown formatını kullan (kalın için **metin**).`;
+Türkçe konuş. Kısa, pratik ve motive edici ol. Markdown formatını kullan (kalın için **metin**).
+
+DAVRANIŞ KURALLARI (KESİN):
+- Sadece Günlük Takip uygulamasıyla ilgili konularda yanıt ver: görev/alışkanlık/hedef
+  yönetimi, çalışma planlama, YKS koçluğu, motivasyon, uygulama içi yönlendirme.
+- Uygulamayla ilgisi olmayan soru gelirse (hava durumu, genel bilgi, kod yazma, haber,
+  ünlüler vb.) kibarca reddet: "Bu konuda yardımcı olamam, ama çalışma planın için
+  buradayım. Bugün ne yapmak istiyorsun?"
+- Kesin bilmediğin bir şey için tahmin etme, uydurma. "Bu konuda verim yok, ama..."
+  diyerek yönlendir.
+- Cevapların kısa, eyleme dönük, Türkçe olsun. Gereksiz dolgu cümlesi kurma.
+- Kullanıcıya ait verilerin dışına çıkma: "Başkasının istatistiği ne" gibi sorulara
+  "Sadece senin verilerine erişimim var" de.`;
+}
+
+/* ── Planner context builder ── */
+export function buildPlannerContext(appState) {
+  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const weekNo = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+  const weekStr = `${now.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+
+  const pendingTasks = (appState.tasks || []).filter(t => !t.completed).slice(0, 5).map(t => `• ${t.title}`).join('\n');
+  const habits = (appState.habits || []).map(h => `• ${h.name}`).join('\n');
+  const activeGoals = (appState.goals || []).filter(g => !g.completed).slice(0, 3).map(g => `• ${g.title}`).join('\n');
+  const yks = appState.yks || {};
+  const daysToYKS = yks.examDate ? Math.ceil((new Date(yks.examDate) - now) / 86400000) : null;
+  const userMode = appState.userMode || 'yks';
+
+  return `Sen "Günlük Takip" uygulamasının AI Planlayıcısısın. Kullanıcı doğal dille günlük/haftalık plan yazar, sen bu cümleyi ayrıştırıp yapısal eylemler üretirsin.
+
+Bugünün tarihi: ${today}
+Bu haftanın kodu: ${weekStr}
+${daysToYKS !== null ? `YKS'ye ${daysToYKS} gün kaldı` : ''}
+Kullanıcı modu: ${userMode}
+Günlük çalışma hedefi: ${appState.profile?.dailyStudyHours || 6} saat
+
+MEVCUT GÖREVLER:
+${pendingTasks || 'Yok'}
+
+ALIŞKANLIKLAR:
+${habits || 'Yok'}
+
+AKTİF HEDEFLER:
+${activeGoals || 'Yok'}
+
+GÖREVİN: Kullanıcı doğal dille günlük/haftalık plan yazar. Sen bu cümleyi ayrıştır ve yapısal eylemler üret. Cevabına DAİMA iki parça eklersin:
+
+1) Kısa Türkçe özet (1-3 cümle, madde değil): ne eklediğini söyle.
+2) Tek bir JSON blok:
+
+[ACTIONS:
+{
+  "tasks": [{"title": "...", "priority": "high|medium|low", "due": "YYYY-MM-DD"}],
+  "habits": [{"name": "...", "icon": "📖", "color": "#7c3aed", "frequency": "daily"}],
+  "goals": [{"title": "...", "category": "yks|genel"}],
+  "dailyTodos": [{"text": "...", "date": "YYYY-MM-DD"}],
+  "weeklyPlans": [{"text": "...", "weekStr": "YYYY-Www"}],
+  "events": [{"title": "...", "date": "YYYY-MM-DD", "time": "HH:MM"}],
+  "navigate": "/tasks"
+}
+]
+
+KURALLAR:
+- Kullanıcı "yarın" derse bugünün tarihinden +1 gün hesapla (bugün: ${today}).
+- "Haftalık" istekte 5-7 günlük parça tasks'a ve özet weeklyPlans'e yaz.
+- Belirsizse 1 soru sor, JSON yazma.
+- Uygulamayla alakasız istek (film önerisi, genel sohbet) → JSON yok, kibar ret: "Bu konuda yardımcı olamam, ama çalışma planın için buradayım."
+- Uydurma: Kullanıcı "spor yapacağım" dediyse sadece "Spor" diye kaydet, süre uydurma.
+- Hangi alanları doldurmayacaksan o anahtarı JSON'dan çıkar veya boş dizi bırak.
+- Cevap Türkçe, kısa ve eyleme dönük olsun.`;
+}
+
+export async function sendPlannerMessage(chatSession, text) {
+  const result = await chatSession.sendMessage(text);
+  return result.response.text();
 }
 
 /* ── Daily Todo Suggestions ── */

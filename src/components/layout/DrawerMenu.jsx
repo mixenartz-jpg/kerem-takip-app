@@ -24,6 +24,7 @@ const NAV_GROUPS_YKS = [
   {
     label: 'Planlama',
     items: [
+      { to: '/planner', icon: Sparkles, label: 'AI Planlayıcı', ai: true },
       { to: '/planlama', icon: CalendarDays, label: 'Planlama Hub' },
       { to: '/tasks', icon: CheckSquare, label: 'Görevler' },
       { to: '/calendar', icon: CalendarCheck, label: 'Takvim' },
@@ -70,6 +71,7 @@ const NAV_GROUPS_DAILY = [
   {
     label: 'Planlama',
     items: [
+      { to: '/planner', icon: Sparkles, label: 'AI Planlayıcı', ai: true },
       { to: '/planlama', icon: CalendarDays, label: 'Planlama Hub' },
       { to: '/tasks', icon: CheckSquare, label: 'Görevler' },
       { to: '/calendar', icon: CalendarCheck, label: 'Takvim' },
