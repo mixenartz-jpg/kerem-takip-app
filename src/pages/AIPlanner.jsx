@@ -123,26 +123,35 @@ export default function AIPlanner() {
   };
 
   return (
-    <div className="relative min-h-full overflow-hidden flex flex-col">
+    <div className="relative min-h-full overflow-hidden flex flex-col" style={{ isolation: 'isolate' }}>
       <PlannerBackground />
 
-      <div className="relative z-10 flex flex-col h-full">
+      <div className="relative z-10 flex flex-col h-full min-h-screen">
         {/* Hero header */}
-        <div className="px-6 pt-8 pb-4 text-center">
+        <div className="px-6 pt-14 pb-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2 bg-violet-600/15 border border-violet-500/25 rounded-full px-4 py-1.5 mb-5"
+          >
+            <Sparkles size={13} className="text-violet-400" />
+            <span className="text-xs text-violet-300 font-medium">AI Planlayıcı</span>
+          </motion.div>
           <motion.h1
-            initial={{ opacity: 0, y: -12 }}
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl md:text-5xl font-semibold tracking-tight text-zinc-100"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-lg"
           >
             Bugün ne{' '}
-            <span className="text-violet-400">yapacaksın?</span>
+            <span className="text-violet-400 drop-shadow-[0_0_24px_rgba(139,92,246,0.6)]">yapacaksın?</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-zinc-500 text-sm mt-2"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-zinc-400 text-base mt-3"
           >
             {todayLabel} · Planını yaz, gerisini ben hallederim
           </motion.p>
