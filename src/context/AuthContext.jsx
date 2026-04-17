@@ -1,8 +1,9 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   updateProfile,
   sendEmailVerification,
@@ -17,6 +18,10 @@ export function AuthProvider({ children }) {
   const [user, loading, error] = useAuthState(auth);
   const [verifiedOverride, setVerifiedOverride] = useState(false);
 
+  useEffect(() => {
+    getRedirectResult(auth).catch(() => {});
+  }, []);
+
   const register = async (email, password, displayName) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName });
@@ -28,7 +33,7 @@ export function AuthProvider({ children }) {
     signInWithEmailAndPassword(auth, email, password);
 
   const loginWithGoogle = () =>
-    signInWithPopup(auth, googleProvider);
+    signInWithRedirect(auth, googleProvider);
 
   const logout = () => signOut(auth);
 

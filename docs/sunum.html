@@ -8,8 +8,8 @@
 <style>
   :root {
     --bg: #09090b;
-    --surface: rgba(24, 24, 27, 0.4);
-    --surface2: rgba(39, 39, 42, 0.6);
+    --surface: rgba(24,24,27,0.5);
+    --surface2: rgba(39,39,42,0.7);
     --border: rgba(255,255,255,0.08);
     --accent: #7c3aed;
     --accent2: #6366f1;
@@ -18,408 +18,610 @@
     --green: #10b981;
     --orange: #f59e0b;
     --red: #ef4444;
+    --blue: #3b82f6;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background-color: var(--bg);
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 24px 24px;
-    background-position: 0 0;
-    color: var(--text);
-    overflow: hidden;
-    height: 100vh;
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    overflow:hidden;
+    height:100vh;
+    perspective:1200px;
   }
 
-  /* ── Dynamic Aurora Background ── */
-  .aurora-bg {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 65vw;
-    height: 65vh;
-    background: radial-gradient(circle at center, rgba(124, 58, 237, 0.15) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 70%);
-    filter: blur(80px);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 0;
-    animation: pulseAurora 12s ease-in-out infinite alternate;
+  /* ── Particle Canvas ── */
+  #particleCanvas{
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+    opacity:.6;
   }
-  @keyframes pulseAurora {
-    0% { transform: translate(-50%, -40%) scale(1); }
-    100% { transform: translate(-40%, -50%) scale(1.1); }
+
+  /* ── Grid overlay ── */
+  .grid-overlay{
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:40px 40px;
+  }
+
+  /* ── Aurora ── */
+  .aurora{
+    position:fixed;pointer-events:none;z-index:0;border-radius:50%;filter:blur(90px);
+    animation:auroraFloat 20s ease-in-out infinite alternate;
+  }
+  .aurora-1{
+    width:70vw;height:60vh;top:-10%;left:-10%;
+    background:radial-gradient(circle,rgba(124,58,237,.18) 0%,transparent 70%);
+  }
+  .aurora-2{
+    width:50vw;height:50vh;bottom:-10%;right:-10%;
+    background:radial-gradient(circle,rgba(99,102,241,.14) 0%,transparent 70%);
+    animation-delay:-10s;animation-duration:16s;
+  }
+  .aurora-3{
+    width:30vw;height:30vh;top:30%;left:40%;
+    background:radial-gradient(circle,rgba(16,185,129,.08) 0%,transparent 70%);
+    animation-delay:-5s;animation-duration:25s;
+  }
+  @keyframes auroraFloat{
+    0%{transform:translate(0,0) scale(1)}
+    100%{transform:translate(3vw,4vh) scale(1.08)}
   }
 
   /* ── Slide Container ── */
-  .slides { width: 100vw; height: 100vh; position: relative; z-index: 1; }
-  .slide {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    padding: 56px 72px;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: translateY(40px) scale(0.96);
+  .slides{width:100vw;height:100vh;position:relative;z-index:1}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    padding:52px 72px;
+    opacity:0;pointer-events:none;
+    transition:opacity .55s cubic-bezier(.16,1,.3,1),transform .55s cubic-bezier(.16,1,.3,1);
+    transform:translateY(48px) scale(.97) rotateX(4deg);
+    transform-origin:50% 60%;
+    transform-style:preserve-3d;
   }
-  .slide.active {
-    opacity: 1; pointer-events: auto; transform: translateY(0) scale(1);
+  .slide.active{
+    opacity:1;pointer-events:auto;
+    transform:translateY(0) scale(1) rotateX(0deg);
+  }
+  .slide.exit-up{
+    opacity:0;
+    transform:translateY(-48px) scale(.97) rotateX(-4deg);
   }
 
-  /* ── Staggered Inner Elements ── */
-  .slide > * {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ── Stagger children ── */
+  .slide>*{
+    opacity:0;transform:translateY(24px);
+    transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);
   }
-  .slide.active > * {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .slide.active > *:nth-child(1) { transition-delay: 0.1s; }
-  .slide.active > *:nth-child(2) { transition-delay: 0.15s; }
-  .slide.active > *:nth-child(3) { transition-delay: 0.2s; }
-  .slide.active > *:nth-child(4) { transition-delay: 0.25s; }
-  .slide.active > *:nth-child(5) { transition-delay: 0.3s; }
-  .slide.active > *:nth-child(6) { transition-delay: 0.35s; }
+  .slide.active>*{opacity:1;transform:translateY(0)}
+  .slide.active>*:nth-child(1){transition-delay:.08s}
+  .slide.active>*:nth-child(2){transition-delay:.14s}
+  .slide.active>*:nth-child(3){transition-delay:.20s}
+  .slide.active>*:nth-child(4){transition-delay:.26s}
+  .slide.active>*:nth-child(5){transition-delay:.32s}
+  .slide.active>*:nth-child(6){transition-delay:.38s}
 
   /* ── Nav ── */
-  .nav {
-    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-    display: flex; align-items: center; gap: 16px;
-    background: rgba(24,24,27,0.7); backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border); border-radius: 9999px;
-    padding: 10px 24px; z-index: 100;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  .nav{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;
+    background:rgba(15,15,18,.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+    border:1px solid var(--border);border-radius:9999px;
+    padding:8px 20px;z-index:100;
+    box-shadow:0 8px 30px -8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);
   }
-  .nav button {
-    background: none; border: none; color: var(--muted);
-    cursor: pointer; font-size: 18px; padding: 4px 8px;
-    transition: color 0.2s, transform 0.2s;
+  .nav button{
+    background:none;border:none;color:var(--muted);
+    cursor:pointer;font-size:16px;padding:4px 8px;
+    transition:color .2s,transform .2s;
   }
-  .nav button:hover { color: var(--text); transform: scale(1.2); }
-  .nav .counter { font-size: 13px; font-weight: 500; color: var(--muted); min-width: 64px; text-align: center; }
-  .nav .dots { display: flex; gap: 6px; align-items: center; }
-  .nav .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--surface2); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer;
+  .nav button:hover{color:var(--text);transform:scale(1.3)}
+  .nav .counter{font-size:12px;font-weight:600;color:var(--muted);min-width:56px;text-align:center;font-variant-numeric:tabular-nums}
+  .dots{display:flex;gap:5px;align-items:center}
+  .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--surface2);
+    transition:all .4s cubic-bezier(.34,1.56,.64,1);cursor:pointer;
   }
-  .nav .dot.active { background: var(--accent); width: 22px; border-radius: 4px; box-shadow: 0 0 10px rgba(124,58,237,0.5); }
+  .dot.active{background:var(--accent);width:20px;border-radius:4px;box-shadow:0 0 8px rgba(124,58,237,.6)}
+
+  /* ── Hint ── */
+  .hint{
+    position:fixed;top:22px;right:28px;
+    font-size:11px;color:var(--muted);font-weight:500;
+    background:rgba(15,15,18,.7);backdrop-filter:blur(12px);
+    border:1px solid var(--border);border-radius:10px;
+    padding:7px 14px;z-index:100;
+  }
+  kbd{
+    background:rgba(39,39,42,.8);border:1px solid rgba(255,255,255,.12);
+    border-radius:5px;padding:1px 5px;font-size:10px;font-weight:700;color:#fff;
+    box-shadow:0 2px 0 rgba(0,0,0,.3);
+  }
+
+  /* ── Progress bar (top) ── */
+  .progress-top{
+    position:fixed;top:0;left:0;height:2px;z-index:200;
+    background:linear-gradient(90deg,var(--accent),var(--accent2),var(--green));
+    transition:width .4s cubic-bezier(.34,1.56,.64,1);
+    box-shadow:0 0 10px var(--accent);
+  }
+
+  /* ── Slide number badge ── */
+  .slide-num{
+    position:fixed;top:22px;left:28px;
+    font-size:11px;font-weight:700;color:var(--muted);
+    background:rgba(15,15,18,.7);backdrop-filter:blur(12px);
+    border:1px solid var(--border);border-radius:10px;
+    padding:7px 14px;z-index:100;letter-spacing:.05em;
+  }
 
   /* ── Typography ── */
-  .slide-tag {
-    font-size: 11px; font-weight: 800; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--accent);
-    margin-bottom: 12px;
-    display: inline-flex; align-items: center; gap: 6px;
+  .slide-tag{
+    font-size:10px;font-weight:800;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--accent);
+    margin-bottom:10px;display:inline-flex;align-items:center;gap:7px;
   }
-  .slide-tag::before {
-    content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
+  .slide-tag::before{
+    content:'';display:inline-block;width:5px;height:5px;
+    border-radius:50%;background:var(--accent);
+    box-shadow:0 0 8px var(--accent);
+    animation:pulseDot 2s ease-in-out infinite;
   }
-  h1 { font-size: 52px; font-weight: 900; line-height: 1.1; color: #fff; letter-spacing: -0.02em; }
-  h2 { font-size: 36px; font-weight: 800; line-height: 1.2; color: #fff; margin-bottom: 12px; letter-spacing: -0.01em; }
-  .subtitle { font-size: 20px; color: var(--muted); margin-top: 14px; max-width: 680px; line-height: 1.6; font-weight: 400; }
-  .body { font-size: 16px; color: var(--muted); line-height: 1.7; }
+  @keyframes pulseDot{
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.5;transform:scale(.7)}
+  }
+  h1{font-size:58px;font-weight:900;line-height:1.05;color:#fff;letter-spacing:-.03em}
+  h1 .grad{
+    background:linear-gradient(135deg,#e9d5ff 0%,#a78bfa 40%,#818cf8 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  h2{font-size:34px;font-weight:800;line-height:1.2;color:#fff;margin-bottom:10px;letter-spacing:-.02em}
+  .subtitle{font-size:19px;color:var(--muted);margin-top:14px;max-width:680px;line-height:1.65;font-weight:400}
+  .body{font-size:15px;color:var(--muted);line-height:1.75}
 
-  /* ── Cards (Glassmorphism + 21st UI Vibe) ── */
-  .card-grid { display: grid; gap: 16px; margin-top: 24px; }
-  .card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-  .card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-  .card-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-  .card {
-    background: var(--surface);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 20px; padding: 22px 26px;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, border-color 0.4s ease;
-    position: relative; overflow: hidden;
+  /* ── Cards ── */
+  .card-grid{display:grid;gap:14px;margin-top:20px}
+  .card-grid.cols-2{grid-template-columns:1fr 1fr}
+  .card-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .card-grid.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+  .card{
+    background:var(--surface);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--border);
+    border-radius:20px;padding:20px 24px;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,border-color .3s ease;
+    position:relative;overflow:hidden;
+    transform-style:preserve-3d;
+    will-change:transform;
   }
-  .card::before {
-    content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent);
-    opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+  .card::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,.06),transparent 60%);
+    opacity:0;transition:opacity .3s;pointer-events:none;
   }
-  .card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 16px 40px -10px rgba(0,0,0,0.6);
-    border-color: rgba(255,255,255,0.15);
+  .card:hover{
+    transform:translateY(-6px) scale(1.015);
+    box-shadow:0 20px 40px -12px rgba(0,0,0,.5);
+    border-color:rgba(255,255,255,.14);
   }
-  .card:hover::before { opacity: 1; }
-  .card .card-icon { font-size: 30px; margin-bottom: 12px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-  .card h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: -0.01em; }
-  .card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
-  
-  .card.accent { border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.05); }
-  .card.accent:hover { border-color: rgba(124,58,237,0.7); box-shadow: 0 12px 40px -10px rgba(124,58,237,0.3); }
-  .card.green  { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
-  .card.green:hover { border-color: rgba(16,185,129,0.7); box-shadow: 0 12px 40px -10px rgba(16,185,129,0.25); }
-  .card.orange { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
-  .card.orange:hover { border-color: rgba(245,158,11,0.7); box-shadow: 0 12px 40px -10px rgba(245,158,11,0.25); }
-  .card.blue   { border-color: rgba(99,102,241,0.3); background: rgba(99,102,241,0.05); }
-  .card.blue:hover { border-color: rgba(99,102,241,0.7); box-shadow: 0 12px 40px -10px rgba(99,102,241,0.3); }
-  .card.red   { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
-  .card.red:hover { border-color: rgba(239,68,68,0.7); box-shadow: 0 12px 40px -10px rgba(239,68,68,0.3); }
+  .card:hover::after{opacity:1}
+  .card .card-icon{font-size:28px;margin-bottom:10px}
+  .card h3{font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-.01em}
+  .card p{font-size:13px;color:var(--muted);line-height:1.65}
+
+  .card.accent{border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.07)}
+  .card.accent:hover{border-color:rgba(124,58,237,.7);box-shadow:0 16px 40px -10px rgba(124,58,237,.3)}
+  .card.green{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06)}
+  .card.green:hover{border-color:rgba(16,185,129,.7);box-shadow:0 16px 40px -10px rgba(16,185,129,.25)}
+  .card.orange{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)}
+  .card.orange:hover{border-color:rgba(245,158,11,.7);box-shadow:0 16px 40px -10px rgba(245,158,11,.25)}
+  .card.blue{border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.06)}
+  .card.blue:hover{border-color:rgba(99,102,241,.7);box-shadow:0 16px 40px -10px rgba(99,102,241,.3)}
+  .card.red{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)}
+  .card.red:hover{border-color:rgba(239,68,68,.7);box-shadow:0 16px 40px -10px rgba(239,68,68,.3)}
+
+  /* 3D Tilt card wrapper */
+  .tilt-wrap{transform-style:preserve-3d;transition:transform .3s ease}
 
   /* ── Feature list ── */
-  .feature-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
-  .feature-item {
-    display: flex; align-items: flex-start; gap: 16px;
-    background: var(--surface); border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    border-radius: 16px; padding: 16px 20px;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, border-color 0.3s ease;
+  .feature-list{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+  .feature-item{
+    display:flex;align-items:flex-start;gap:14px;
+    background:var(--surface);border:1px solid var(--border);
+    backdrop-filter:blur(10px);border-radius:14px;padding:14px 18px;
+    transition:transform .25s cubic-bezier(.16,1,.3,1),background .25s,border-color .25s;
   }
-  .feature-item:hover {
-    transform: translateX(10px);
-    background: rgba(39, 39, 42, 0.7);
-    border-color: rgba(255,255,255,0.15);
+  .feature-item:hover{
+    transform:translateX(8px);
+    background:rgba(39,39,42,.8);
+    border-color:rgba(255,255,255,.14);
   }
-  .feature-item .fi-icon { font-size: 24px; flex-shrink: 0; width: 36px; text-align: center; }
-  .feature-item .fi-body h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .feature-item .fi-body p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .fi-icon{font-size:22px;flex-shrink:0;width:32px;text-align:center}
+  .fi-body h4{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
+  .fi-body p{font-size:12.5px;color:var(--muted);line-height:1.6}
 
-  /* ── Split layout ── */
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 28px; align-items: start; }
+  /* ── Split / Two-col ── */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:44px;margin-top:24px;align-items:start}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:20px}
+  .stack{display:flex;flex-direction:column;gap:14px}
 
-  /* ── Badge/pill ── */
-  .pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
-    text-transform: uppercase; padding: 6px 14px; border-radius: 9999px;
-    border: 1px solid; backdrop-filter: blur(8px);
+  /* ── Pill / Badge ── */
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:10px;font-weight:800;letter-spacing:.1em;
+    text-transform:uppercase;padding:5px 12px;border-radius:9999px;
+    border:1px solid;backdrop-filter:blur(8px);
   }
-  .pill.purple { color: #a78bfa; border-color: rgba(167,139,250,0.4); background: rgba(124,58,237,0.15); }
-  .pill.green  { color: #34d399; border-color: rgba(52,211,153,0.4);  background: rgba(16,185,129,0.15); }
-  .pill.orange { color: #fbbf24; border-color: rgba(251,191,36,0.4);  background: rgba(245,158,11,0.15); }
+  .pill.purple{color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(124,58,237,.15)}
+  .pill.green{color:#34d399;border-color:rgba(52,211,153,.4);background:rgba(16,185,129,.15)}
+  .pill.orange{color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(245,158,11,.15)}
+  .pill.blue{color:#93c5fd;border-color:rgba(147,197,253,.4);background:rgba(59,130,246,.15)}
 
   /* ── Big stat ── */
-  .big-stat { text-align: center; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .big-stat:hover { transform: scale(1.1); }
-  .big-stat .num { font-size: 72px; font-weight: 900; background: linear-gradient(135deg, #c4b5fd, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .big-stat .lbl { font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .big-stat{text-align:center;cursor:default}
+  .big-stat .num{
+    font-size:52px;font-weight:900;
+    background:linear-gradient(135deg,#c4b5fd,#818cf8);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    display:block;line-height:1;
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .big-stat:hover .num{transform:scale(1.12)}
+  .big-stat .lbl{font-size:12px;font-weight:600;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
 
   /* ── Progress bar ── */
-  .pbar-wrap { margin-top: 6px; }
-  .pbar-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .pbar-track { height: 8px; background: var(--surface2); border-radius: 999px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-  .pbar-fill  { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .pbar-wrap{margin-top:6px}
+  .pbar-label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px}
+  .pbar-track{height:7px;background:var(--surface2);border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)}
+  .pbar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width 1.2s cubic-bezier(.34,1.56,.64,1)}
 
   /* ── Timeline ── */
-  .timeline { display: flex; flex-direction: column; gap: 0; margin-top: 24px; }
-  .tl-item { display: flex; gap: 24px; }
-  .tl-left { display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0; }
-  .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; box-shadow: 0 0 10px var(--accent); }
-  .tl-line { flex: 1; width: 2px; background: linear-gradient(to bottom, var(--accent) 0%, var(--surface2) 50%, var(--surface2) 100%); margin: 6px 0; }
-  .tl-content { padding-bottom: 24px; flex: 1; }
-  .tl-content h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .tl-content p  { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+  .timeline{display:flex;flex-direction:column;gap:0;margin-top:20px}
+  .tl-item{display:flex;gap:20px}
+  .tl-left{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0}
+  .tl-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;box-shadow:0 0 10px var(--accent);transition:transform .3s,box-shadow .3s}
+  .tl-item:hover .tl-dot{transform:scale(1.4);box-shadow:0 0 18px var(--accent)}
+  .tl-line{flex:1;width:2px;background:linear-gradient(to bottom,var(--accent),var(--surface2));margin:4px 0}
+  .tl-content{padding-bottom:22px;flex:1}
+  .tl-content h4{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
+  .tl-content p{font-size:13px;color:var(--muted);line-height:1.6}
 
   /* ── Quote ── */
-  .quote-block {
-    border-left: 4px solid var(--accent); padding-left: 24px; margin-top: 24px;
-    background: linear-gradient(90deg, rgba(124,58,237,0.1), transparent);
-    padding: 20px 24px; border-radius: 0 16px 16px 0;
+  .quote-block{
+    border-left:3px solid var(--accent);
+    background:linear-gradient(90deg,rgba(124,58,237,.1),transparent);
+    padding:18px 22px;border-radius:0 14px 14px 0;margin-top:20px;
   }
-  .quote-block p { font-size: 18px; color: var(--text); font-style: italic; line-height: 1.7; font-weight: 500; }
-  .quote-block span { font-size: 13px; color: var(--muted); margin-top: 10px; display: block; font-weight: 500; }
+  .quote-block p{font-size:17px;color:var(--text);font-style:italic;line-height:1.7;font-weight:500}
+  .quote-block span{font-size:12px;color:var(--muted);margin-top:8px;display:block;font-weight:500}
 
-  /* ── Keyboard shortcut hint ── */
-  .hint {
-    position: fixed; top: 24px; right: 32px;
-    font-size: 12px; color: var(--muted); font-weight: 500;
-    background: var(--surface); backdrop-filter: blur(12px); border: 1px solid var(--border);
-    border-radius: 10px; padding: 8px 16px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  /* ── Mockup ── */
+  .mockup{
+    background:rgba(15,15,18,.6);border:1px solid rgba(255,255,255,.1);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-radius:22px;padding:24px;position:relative;overflow:hidden;
+    box-shadow:0 20px 50px -15px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
   }
-  kbd { background: var(--surface2); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 2px 6px; font-size: 11px; font-weight: 600; color: #fff; box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
-
-  /* ── Screenshot mockup (Glass) ── */
-  .mockup {
-    background: rgba(24, 24, 27, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-radius: 24px; padding: 28px; position: relative; overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-  }
-  .mockup::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--green));
+  .mockup::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2),var(--green));
   }
 
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; }
-  .stack { display: flex; flex-direction: column; gap: 16px; }
+  /* ── Stat row grid ── */
+  .stat-row{display:flex;gap:48px;padding-top:28px;border-top:1px solid var(--border)}
 
-  /* hide scrollbar */
-  ::-webkit-scrollbar { display: none; }
+  /* ── Cover ring animation ── */
+  .hero-ring{
+    position:absolute;right:-120px;top:50%;transform:translateY(-50%);
+    width:520px;height:520px;border-radius:50%;pointer-events:none;
+    border:1px solid rgba(124,58,237,.18);
+    box-shadow:inset 0 0 60px rgba(124,58,237,.06),0 0 80px rgba(124,58,237,.08);
+    animation:ringPulse 6s ease-in-out infinite;
+  }
+  .hero-ring::before{
+    content:'';position:absolute;inset:30px;border-radius:50%;
+    border:1px solid rgba(99,102,241,.12);
+  }
+  .hero-ring::after{
+    content:'';position:absolute;inset:80px;border-radius:50%;
+    border:1px solid rgba(124,58,237,.08);
+  }
+  @keyframes ringPulse{
+    0%,100%{transform:translateY(-50%) scale(1);opacity:.7}
+    50%{transform:translateY(-50%) scale(1.04);opacity:1}
+  }
+
+  /* ── Floating label ── */
+  .float-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);
+    border-radius:12px;padding:10px 18px;font-size:13px;font-weight:600;color:#c4b5fd;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+  }
+  .float-badge:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(124,58,237,.25)}
+
+  /* ── Comparison table ── */
+  .compare-table{width:100%;border-collapse:separate;border-spacing:0;margin-top:20px}
+  .compare-table th{
+    font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:10px 16px;text-align:left;
+    border-bottom:1px solid var(--border);
+  }
+  .compare-table td{
+    font-size:13px;font-weight:500;padding:11px 16px;
+    border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);
+    transition:background .2s;
+  }
+  .compare-table tr:hover td{background:rgba(255,255,255,.02)}
+  .compare-table .chk-yes{color:var(--green);font-weight:700}
+  .compare-table .chk-no{color:rgba(255,255,255,.2)}
+
+  /* ── Pricing cards ── */
+  .price-card{
+    border-radius:24px;padding:32px;position:relative;overflow:hidden;
+    border:1px solid var(--border);background:var(--surface);
+    backdrop-filter:blur(14px);
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+  }
+  .price-card:hover{transform:translateY(-8px);box-shadow:0 24px 50px -16px rgba(0,0,0,.5)}
+  .price-card.featured{
+    border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.1);
+    box-shadow:0 0 40px rgba(124,58,237,.15);
+  }
+  .price-card.featured::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+  }
+  .price-num{font-size:44px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1}
+  .price-period{font-size:13px;color:var(--muted);font-weight:500}
+  .price-list{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+  .price-list li{
+    display:flex;align-items:center;gap:10px;
+    font-size:13.5px;font-weight:500;color:var(--text);list-style:none;
+  }
+  .price-list .check{color:var(--green);font-size:15px;flex-shrink:0}
+  .price-list .star{color:#a78bfa;font-size:15px;flex-shrink:0}
+
+  /* ── Scroll hint arrow ── */
+  @keyframes bounceY{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(6px)}
+  }
+
+  /* ── CTA link box ── */
+  .cta-box{
+    background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.45);
+    border-radius:18px;padding:22px 40px;display:inline-block;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+    box-shadow:0 10px 40px rgba(124,58,237,.2);
+  }
+  .cta-box:hover{transform:scale(1.04);box-shadow:0 16px 50px rgba(124,58,237,.35)}
+
+  /* ── Tech badge ── */
+  .tech-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;font-weight:700;
+    background:rgba(39,39,42,.8);border:1px solid var(--border);
+    border-radius:8px;padding:4px 10px;color:var(--text);
+    transition:border-color .2s,background .2s;
+  }
+  .tech-badge:hover{border-color:rgba(255,255,255,.2);background:rgba(55,55,60,.9)}
+
+  /* ── Scrollbar hide ── */
+  ::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
 
-<div class="aurora-bg"></div>
+<canvas id="particleCanvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="aurora aurora-1"></div>
+<div class="aurora aurora-2"></div>
+<div class="aurora aurora-3"></div>
 
-<div class="hint"><kbd>←</kbd> <kbd>→</kbd> tuşları veya tıkla</div>
+<div class="progress-top" id="progressTop"></div>
+<div class="slide-num" id="slideNum">01 / 15</div>
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd> veya <kbd>Space</kbd></div>
 
 <div class="slides" id="slides">
 
-  <!-- ══════════ SLIDE 1: Cover ══════════ -->
+  <!-- ═══════════════════ SLIDE 1: Cover ═══════════════════ -->
   <div class="slide active" id="s0">
-    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:1;">
-      <div class="slide-tag">Öğrenci Takip Platformu — 2026</div>
-      <h1 style="font-size:64px; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">Dash YKS</h1>
+    <div class="hero-ring"></div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:700px;">
+      <div class="slide-tag">Öğrenci Takip Platformu · 2026</div>
+      <h1>Dash <span class="grad">YKS</span></h1>
       <p class="subtitle">
-        YKS hazırlık sürecini dijitalleştiren, yapay zeka destekli kişisel verimlilik ve sınav takip uygulaması.
+        YKS hazırlık sürecini dijitalleştiren, yapay zeka destekli kişisel verimlilik ve sınav takip platformu.
       </p>
-      <div style="display:flex; gap:12px; margin-top:36px; flex-wrap:wrap;">
-        <span class="pill purple">YKS Odaklı</span>
-        <span class="pill green">AI Destekli</span>
-        <span class="pill orange">Sosyal Motivasyon</span>
+      <div style="display:flex;gap:10px;margin-top:32px;flex-wrap:wrap;">
+        <span class="pill purple">⚡ YKS Odaklı</span>
+        <span class="pill green">🤖 AI Destekli</span>
+        <span class="pill orange">🏆 Gamified</span>
+        <span class="pill blue">☁️ Bulut Sync</span>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;">
+        <span class="tech-badge">⚛️ React 19</span>
+        <span class="tech-badge">🔥 Firebase</span>
+        <span class="tech-badge">✨ Gemini AI</span>
+        <span class="tech-badge">🎨 Framer Motion</span>
+        <span class="tech-badge">☁️ Vercel</span>
       </div>
     </div>
-    <div style="display:flex; gap:64px; padding-top:32px; border-top:1px solid var(--border); position:relative; z-index:1;">
-      <div class="big-stat"><div class="num" style="font-size:48px;">13+</div><div class="lbl">Özellik Modülü</div></div>
-      <div class="big-stat"><div class="num" style="font-size:48px;">AI</div><div class="lbl">Gemini Destekli</div></div>
-      <div class="big-stat"><div class="num" style="font-size:48px;">∞</div><div class="lbl">Veri Senkronizasyonu</div></div>
+    <div class="stat-row" style="position:relative;z-index:1;">
+      <div class="big-stat"><span class="num">15+</span><div class="lbl">Özellik Modülü</div></div>
+      <div class="big-stat"><span class="num">AI</span><div class="lbl">Gemini Destekli</div></div>
+      <div class="big-stat"><span class="num">96</span><div class="lbl">Konu Takibi</div></div>
+      <div class="big-stat"><span class="num">∞</span><div class="lbl">Bulut Sync</div></div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 2: Problem Statement ══════════ -->
+  <!-- ═══════════════════ SLIDE 2: Problem ═══════════════════ -->
   <div class="slide" id="s1">
-    <div class="slide-tag">Problem</div>
+    <div class="slide-tag">Problem Tanımı</div>
     <h2>Öğrenciler neden başarısız oluyor?</h2>
-    <p class="body" style="max-width:740px;">YKS hazırlığı yoğun planlama, sürekli takip ve motivasyon gerektiriyor. Ancak mevcut araçlar dağınık ve bağlantısız.</p>
-    <div class="card-grid cols-3" style="margin-top:32px;">
+    <p class="body" style="max-width:760px;">YKS hazırlığı yoğun planlama, sürekli takip ve yüksek motivasyon gerektiriyor. Ama mevcut araçlar dağınık, bağlantısız ve motivasyon kırıcı.</p>
+    <div class="card-grid cols-3" style="margin-top:28px;">
       <div class="card orange">
         <div class="card-icon">📊</div>
-        <h3>Takip Yok</h3>
-        <p>Kaç soru doğru yaptığını, hangi konularda zayıf olduğunu ve netlerin istikrarını bilmiyorlar.</p>
+        <h3>Takip Eksikliği</h3>
+        <p>Kaç soru çözdüklerini, hangi konularda zayıf olduklarını ve net gelişimlerini göremiyorlar. Körlük içinde çalışıyorlar.</p>
       </div>
       <div class="card red">
         <div class="card-icon">🔀</div>
         <h3>Dağınık Araçlar</h3>
-        <p>Notlar, takvim, görevler, pomodoro — hepsi farklı ve senkronize olmadan çalışıyor.</p>
+        <p>Not defterleri, takvim uygulamaları, pomodoro ve görev listeleri birbirinden kopuk. Entegrasyon sıfır.</p>
       </div>
       <div class="card blue">
         <div class="card-icon">😞</div>
         <h3>Motivasyon Kaybı</h3>
-        <p>Yalnız çalışmak, ilerlemeyi görmemek ve tatmin edici bir geri bildirim almamak yoruyor.</p>
+        <p>Uzun dönemli yalnız çalışmak, ilerlemeyi görememek ve tatmin edici geri bildirim alamamak tüketiyor.</p>
       </div>
     </div>
     <div class="quote-block">
       <p>"Sınava kaç gün kaldığını bile bilmeyen, plansızlıktan kaybolan öğrenciler var."</p>
       <span>— Sınav hazırlık koçlarından sık duyulan gözlem</span>
     </div>
+    <div style="margin-top:20px;display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px 18px;font-size:13px;color:#fca5a5;font-weight:600;">📉 Öğrencilerin %72'si YKS'ye hazırlıksız hissediyor</div>
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:12px 18px;font-size:13px;color:#fcd34d;font-weight:600;">⏰ Günde ort. 2.3 saat verimsiz "çalışma süresi"</div>
+    </div>
   </div>
 
-  <!-- ══════════ SLIDE 3: Solution Overview ══════════ -->
+  <!-- ═══════════════════ SLIDE 3: Solution ═══════════════════ -->
   <div class="slide" id="s2">
     <div class="slide-tag">Çözüm</div>
     <h2>Dash YKS: Tek platformda her şey</h2>
-    <p class="body" style="max-width:720px;">Öğrencinin tüm hazırlık sürecini — denemelerden bento modelli planlayıcıya, alışkanlıklardan AI koçuna — tek bir hub'da topluyoruz.</p>
-    <div class="card-grid cols-4" style="margin-top:28px;">
+    <p class="body" style="max-width:730px;">Denemelerden bento planlayıcıya, alışkanlıklardan AI koçuna — tüm hazırlık sürecini birbiriyle konuşan tek bir hub'da topluyoruz.</p>
+    <div class="card-grid cols-4" style="margin-top:24px;">
       <div class="card accent">
         <div class="card-icon">🎯</div>
         <h3>YKS Merkezi</h3>
-        <p>TYT + AYT deneme netleri, full konu ilerlemesi ve güncel hedefleme</p>
+        <p>TYT + AYT deneme netleri, ders ilerlemesi ve akıllı hedefleme</p>
       </div>
       <div class="card green">
         <div class="card-icon">🤖</div>
-        <h3>AI Koç & Özeleştiri</h3>
-        <p>Gemini destekli 10 üzerinden puanlayan haftalık yapay zeka analiz raporları</p>
+        <h3>AI Koç</h3>
+        <p>Gemini destekli haftalık 10 üzerinden puanlama ve plan jeneratörü</p>
       </div>
       <div class="card blue">
         <div class="card-icon">🏆</div>
-        <h3>Tatmin & Sosyal</h3>
-        <p>Arkadaş ligleri ve konfeti ödülleri ile donatılmış oyunlaştırma</p>
+        <h3>Sosyal Lig</h3>
+        <p>Arkadaş ligleri, rozetler ve konfeti ödülleriyle oyunlaştırma</p>
       </div>
       <div class="card orange">
         <div class="card-icon">📅</div>
         <h3>Bento Hub</h3>
-        <p>Karmaşadan uzak, odak noktası belirleyen Bento usulü planlama arayüzü</p>
+        <p>Odak noktası belirleyen modern Bento usulü planlama arayüzü</p>
       </div>
     </div>
-    <div style="margin-top:32px; padding:20px 24px; background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.4); border-radius:16px; display: flex; align-items: center; gap: 16px;">
-      <span style="font-size: 24px;">💡</span>
-      <p style="font-size:14px; color:#c4b5fd; line-height: 1.6;"><strong>Temel fark:</strong> Dash YKS, verileri birbirine bağlayan bütünsel bir sistem. Deneme sonuçları AI analizini, analiz ödül sistemini, çalışma planı ise istatistikleri besliyor.</p>
+    <div style="margin-top:24px;padding:18px 22px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.35);border-radius:14px;display:flex;align-items:center;gap:14px;">
+      <span style="font-size:22px;">💡</span>
+      <p style="font-size:13.5px;color:#c4b5fd;line-height:1.65;"><strong>Temel Fark:</strong> Dash YKS verileri birbirine bağlayan bütünsel bir sistem. Deneme → AI Analizi → Ödül Sistemi → Çalışma Planı → İstatistik döngüsü otomatik çalışır.</p>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 4: YKS Merkezi ══════════ -->
+  <!-- ═══════════════════ SLIDE 4: YKS Merkezi ═══════════════════ -->
   <div class="slide" id="s3">
-    <div class="slide-tag">Core Feature — YKS Merkezi</div>
+    <div class="slide-tag">Core Feature · YKS Merkezi</div>
     <h2>Deneme Takibi & Net Analizi</h2>
     <div class="split">
       <div>
-        <p class="body">Her deneme sınavının TYT ve AYT netlerini ders ders kaydediyoruz. Sistem otomatik olarak hesaplıyor ve hedeflerle karşılaştırıp grafiğe döküyor.</p>
+        <p class="body">Her deneme sınavının TYT ve AYT netlerini ders ders kaydediyoruz. Sistem otomatik hesaplıyor, hedeflerle karşılaştırıyor ve grafiğe döküyor.</p>
         <div class="feature-list">
           <div class="feature-item">
             <div class="fi-icon">📝</div>
             <div class="fi-body">
               <h4>Pratik Deneme Girişi</h4>
-              <p>Doğru / Yanlış girince net otomatik hesaplanır. Branşlar arası analitik kayıt oluşturulur.</p>
+              <p>Doğru / Yanlış girince net otomatik hesaplanır. Branşlar arası analitik kayıt oluşur.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="fi-icon">📈</div>
             <div class="fi-body">
               <h4>Hedef Net Karşılaştırması</h4>
-              <p>Her ders için hedef net belirlenebilir. Dinamik ilerleme çubuğuyla anlık görsel geri bildirim.</p>
+              <p>Her ders için hedef net belirlenir. Dinamik ilerleme çubuğuyla anlık görsel geri bildirim.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="fi-icon">⏳</div>
             <div class="fi-body">
               <h4>Akıllı Geri Sayım</h4>
-              <p>YKS tarihine kaç gün kaldığını renk kodlamayla gösterir, psikolojik baskıyı yönetir.</p>
+              <p>YKS tarihine kaç gün kaldığını renk kodlamasıyla gösterir, psikolojik baskıyı yönetir.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">📊</div>
+            <div class="fi-body">
+              <h4>Net Trend Grafiği</h4>
+              <p>Son 5 denemenin trend çizgisi — yükseliş mi, düşüş mü, sabit mi — anlık görünür.</p>
             </div>
           </div>
         </div>
       </div>
       <div class="mockup">
-        <div style="font-size:11px; font-weight: 700; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px;">Deneme Kartı (Glassmorphism)</div>
-        <div style="font-size:16px; font-weight:800; color:#fff; margin-bottom:8px;">Deneme 5 · 2026-04-10</div>
-        <div style="display:flex; gap:24px; margin-bottom:20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-          <div><span style="font-size:28px; font-weight:900; background: linear-gradient(135deg, #c4b5fd, #a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">89.50</span> <span style="font-size:13px; color:var(--muted); font-weight:600;">TYT net</span></div>
-          <div><span style="font-size:28px; font-weight:900; background: linear-gradient(135deg, #a5b4fc, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">45.25</span> <span style="font-size:13px; color:var(--muted); font-weight:600;">AYT net</span></div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">Deneme Kartı</div>
+        <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:8px;">Deneme 5 · 10 Nis 2026</div>
+        <div style="display:flex;gap:24px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.05);">
+          <div><span style="font-size:26px;font-weight:900;background:linear-gradient(135deg,#c4b5fd,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">89.5</span> <span style="font-size:12px;color:var(--muted);font-weight:600;">TYT</span></div>
+          <div><span style="font-size:26px;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">45.25</span> <span style="font-size:12px;color:var(--muted);font-weight:600;">AYT</span></div>
         </div>
-        <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px;">TYT Branşları</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
-          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; text-align:center;"><div style="font-weight:800; font-size:16px; color:#facc15;">32</div><div style="font-size:10px; font-weight:500; color:var(--muted); margin-top:2px;">Türkçe</div></div>
-          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; text-align:center;"><div style="font-weight:800; font-size:16px; color:#60a5fa;">28</div><div style="font-size:10px; font-weight:500; color:var(--muted); margin-top:2px;">Matematik</div></div>
-          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; text-align:center;"><div style="font-weight:800; font-size:16px; color:#34d399;">16</div><div style="font-size:10px; font-weight:500; color:var(--muted); margin-top:2px;">Fen</div></div>
-          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; text-align:center;"><div style="font-weight:800; font-size:16px; color:#f472b6;">13</div><div style="font-size:10px; font-weight:500; color:var(--muted); margin-top:2px;">Sosyal</div></div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">TYT Branşları</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;">
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px;text-align:center;"><div style="font-weight:800;font-size:15px;color:#facc15;">32</div><div style="font-size:9px;font-weight:600;color:var(--muted);margin-top:2px;">Türkçe</div></div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px;text-align:center;"><div style="font-weight:800;font-size:15px;color:#60a5fa;">28</div><div style="font-size:9px;font-weight:600;color:var(--muted);margin-top:2px;">Matematik</div></div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px;text-align:center;"><div style="font-weight:800;font-size:15px;color:#34d399;">16</div><div style="font-size:9px;font-weight:600;color:var(--muted);margin-top:2px;">Fen</div></div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px;text-align:center;"><div style="font-weight:800;font-size:15px;color:#f472b6;">13.5</div><div style="font-size:9px;font-weight:600;color:var(--muted);margin-top:2px;">Sosyal</div></div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Hedef vs Gerçek</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;"><span>TYT</span><span style="color:#34d399;">89.5 / 95 ↑</span></div><div style="height:5px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;"><div style="height:100%;width:94%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:999px;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;"><span>AYT</span><span style="color:#f59e0b;">45.25 / 60 →</span></div><div style="height:5px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;"><div style="height:100%;width:75%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:999px;"></div></div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 5: Konu Takibi ══════════ -->
+  <!-- ═══════════════════ SLIDE 5: Konu Takibi ═══════════════════ -->
   <div class="slide" id="s4">
-    <div class="slide-tag">Core Feature — Konu Takibi</div>
+    <div class="slide-tag">Core Feature · Konu Takibi</div>
     <h2>Müfredat Bazlı Konu İlerlemesi</h2>
     <div class="split">
       <div>
         <p class="body">TYT ve AYT'nin tüm konuları sisteme entegredir. Öğrenci bitirdiği konuyu işaretler, sistem yüzdelik dilimleriyle görselleştirir.</p>
-        <div style="margin-top:28px;" class="stack">
+        <div style="margin-top:24px;" class="stack" id="pbars">
           <div>
-            <div class="pbar-label"><span style="color:#e4e4e7">TYT Türkçe</span><span style="color:#f59e0b;">7 / 10</span></div>
-            <div class="pbar-track"><div class="pbar-fill" style="width:70%; background:linear-gradient(90deg, #f59e0b, #fbbf24);"></div></div>
+            <div class="pbar-label"><span>TYT Türkçe</span><span style="color:#f59e0b;">7 / 10</span></div>
+            <div class="pbar-track"><div class="pbar-fill" data-width="70" style="background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
           </div>
           <div>
-            <div class="pbar-label"><span style="color:#e4e4e7">TYT Matematik</span><span style="color:#3b82f6;">12 / 18</span></div>
-            <div class="pbar-track"><div class="pbar-fill" style="width:67%; background:linear-gradient(90deg, #3b82f6, #60a5fa);"></div></div>
+            <div class="pbar-label"><span>TYT Matematik</span><span style="color:#3b82f6;">12 / 18</span></div>
+            <div class="pbar-track"><div class="pbar-fill" data-width="67" style="background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
           </div>
           <div>
-            <div class="pbar-label"><span style="color:#e4e4e7">AYT Fizik</span><span style="color:#f59e0b;">3 / 8</span></div>
-            <div class="pbar-track"><div class="pbar-fill" style="width:38%; background:linear-gradient(90deg, #f59e0b, #fbbf24);"></div></div>
+            <div class="pbar-label"><span>AYT Fizik</span><span style="color:#f59e0b;">3 / 8</span></div>
+            <div class="pbar-track"><div class="pbar-fill" data-width="38" style="background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
           </div>
           <div>
-            <div class="pbar-label"><span style="color:#e4e4e7">AYT Kimya</span><span style="color:#a78bfa;">6 / 9</span></div>
-            <div class="pbar-track"><div class="pbar-fill" style="width:67%; background:linear-gradient(90deg, #a78bfa, #c4b5fd);"></div></div>
+            <div class="pbar-label"><span>AYT Kimya</span><span style="color:#a78bfa;">6 / 9</span></div>
+            <div class="pbar-track"><div class="pbar-fill" data-width="67" style="background:linear-gradient(90deg,#a78bfa,#c4b5fd)"></div></div>
+          </div>
+          <div>
+            <div class="pbar-label"><span>AYT Biyoloji</span><span style="color:#34d399;">8 / 10</span></div>
+            <div class="pbar-track"><div class="pbar-fill" data-width="80" style="background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
           </div>
         </div>
       </div>
       <div class="stack">
         <div class="card green">
           <h3>📚 Toplam Konu Havuzu</h3>
-          <p>YKS müfredatında yer alan <strong style="color:#34d399; font-size:16px;">96 konu</strong> sisteme hazır eklenmiştir. Ekstra giriş gerektirmez.</p>
+          <p>YKS müfredatında yer alan <strong style="color:#34d399;font-size:15px;">96 konu</strong> sisteme hazır eklenmiştir. Ekstra giriş gerektirmez.</p>
         </div>
         <div class="card accent">
           <h3>✅ Tamamlanma Görünümü</h3>
@@ -429,283 +631,392 @@
           <h3>🔗 AI ile Tam Entegrasyon</h3>
           <p>Konu ilerlemesi deneme verileriyle kesişerek AI analizinin iskeletini oluşturur.</p>
         </div>
+        <div class="card orange">
+          <h3>🎯 Öncelik Algoritması</h3>
+          <p>Düşük ilerleme + düşük net kombinasyonu olan konuları "Kritik" olarak öne çıkarır.</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 6: AI Koç ══════════ -->
+  <!-- ═══════════════════ SLIDE 6: AI Koç ═══════════════════ -->
   <div class="slide" id="s5">
-    <div class="slide-tag">AI Feature — Yapay Zeka Koçu</div>
+    <div class="slide-tag">AI Feature · Yapay Zeka Koçu</div>
     <h2>Gemini Destekli Kişisel Koç & Özeleştiri</h2>
     <div class="two-col">
       <div>
-        <p class="body">Google Gemini entegrasyonuyla haftalık verilerin analiz edilir. Uygulama, kullanıcısına 10 üzerinden objektif bir "Retropspektif Raporu" sunar.</p>
+        <p class="body">Google Gemini entegrasyonuyla haftalık verilerin analiz edilir. Uygulama kullanıcısına 10 üzerinden objektif bir "Retrospektif Raporu" sunar.</p>
         <div class="feature-list">
           <div class="feature-item">
             <div class="fi-icon">🔍</div>
             <div class="fi-body">
               <h4>Acımasız ama Motive Edici Özeleştiri</h4>
-              <p>Haftalık planlarına ne kadar uyduğunu yüzdesel olarak analiz eder, seni puanlar ve haftaya ne yapman gerektiğini direktiflerle verir.</p>
+              <p>Haftalık planına ne kadar uyduğunu analiz eder, puanlar ve direktifler verir.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="fi-icon">📊</div>
             <div class="fi-body">
               <h4>Performans Tespiti</h4>
-              <p>Deneme sonuçları + hedef netler karşılaştırılır. "Fizikte eksiksin, odağını mekaniğe kaydır" türünde tavsiyeler.</p>
+              <p>"Fizikte eksiksin, odağını mekaniğe kaydır" türünde spesifik tavsiyeler.</p>
             </div>
           </div>
           <div class="feature-item">
-            <div class="fi-icon">📋</div>
+            <div class="fi-icon">🗺️</div>
             <div class="fi-body">
-              <h4>Plan Jeneratörü</h4>
-              <p>Eksik konulara odaklanan, haftalık yapay zeka tarafından çizilmiş bir rota (roadmap) oluşturulur.</p>
+              <h4>AI Çalışma Planı Jeneratörü</h4>
+              <p>Eksik konulara odaklanan, haftalık yapay zeka tarafından çizilmiş roadmap oluşturulur.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">💬</div>
+            <div class="fi-body">
+              <h4>Serbest Soru-Cevap</h4>
+              <p>AI Merkezi sayfasından istediğin konuyu, stratejiyi veya psikolojik durumu sorabilirsin.</p>
             </div>
           </div>
         </div>
       </div>
-      <div class="mockup" style="border-top: 4px solid var(--accent); border-radius: 16px;">
-        <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">AI Retrospektif Çıktısı 🤖</div>
-        <div style="background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3); border-radius:12px; padding:16px; font-size:13px; color:#e4e4e7; line-height:1.7;">
-          <h4 style="color:#c4b5fd; margin-bottom: 8px; font-size: 15px;">Haftalık Değerlendirme Çıktısı</h4>
-          <p>
-            Haftalık planındaki 15 maddeden sadece 6'sını tamamladın (%40 başarı). Bu YKS sürecinde yeterli değil. Matematik türev konularını hep ertelemişsin.
-          </p>
-          <div style="background: rgba(0,0,0,0.3); border-radius:8px; padding: 12px; margin-top: 12px; border-left: 3px solid #818cf8;">
-            <strong style="color:#a5b4fc;">Puanım: 4/10 📉</strong><br>
-            <span style="font-size:12px; color:#a1a1aa;">Öneri: Önümüzdeki hafta telefon screen-time'ını düşür ve zorlandığın konuları sabah ilk iş olarak hallet.</span>
-          </div>
+      <div class="mockup">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">AI Retrospektif Çıktısı 🤖</div>
+        <div style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:14px;font-size:13px;color:#e4e4e7;line-height:1.7;margin-bottom:12px;">
+          <h4 style="color:#c4b5fd;margin-bottom:6px;font-size:14px;">Haftalık Değerlendirme</h4>
+          <p>Haftalık planındaki 15 maddeden sadece 6'sını tamamladın (%40 başarı). Matematik türev konularını hep ertelemişsin — bu pattern 3 hafta üst üste görünüyor.</p>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:12px;border-left:3px solid #818cf8;margin-bottom:10px;">
+          <strong style="color:#a5b4fc;font-size:13px;">Puanım: 4/10 📉</strong><br>
+          <span style="font-size:11.5px;color:#a1a1aa;line-height:1.6;">Öneri: Önümüzdeki hafta telefon screen-time'ını günde 1 saatin altına çek. Türev konusunu sabah ilk iş olarak hallet, akşama bırakma.</span>
+        </div>
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:10px 14px;">
+          <div style="font-size:10px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Güçlü Yönler</div>
+          <div style="font-size:12px;color:#a7f3d0;line-height:1.6;">✓ Pomodoro disiplini mükemmel (23/25 seans tamamlandı)<br>✓ Biyoloji ve Kimya netlerin istikrarlı yükseliyor</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 7: Verimlilik Araçları ══════════ -->
+  <!-- ═══════════════════ SLIDE 7: Verimlilik Araçları ═══════════════════ -->
   <div class="slide" id="s6">
     <div class="slide-tag">Productivity Features</div>
-    <h2>Odaklı Planlama Hub & Gamification</h2>
-    <p class="body">Tüm karmaşayı tek bir "Bento-Box" düzenine sokan yeni nesil arayüz ve ödül mekanizması.</p>
-    <div class="card-grid cols-3" style="margin-top:28px;">
+    <h2>Odaklı Planlama Hub & Verimlilik Araçları</h2>
+    <p class="body">Tüm karmaşayı tek bir Bento-Box düzenine sokan yeni nesil arayüz ve ödül mekanizması.</p>
+    <div class="card-grid cols-3" style="margin-top:22px;">
       <div class="card accent">
-        <div class="card-icon">🗂</div>
-        <h3>Bento Düzeni</h3>
-        <p>Bugün, Hafta ve Ay sekmelerine bölünmüş, her şeyi bir bakışta gördüğün ultra-modern "Planlama Hub" ekranı.</p>
+        <div class="card-icon">🗂️</div>
+        <h3>Bento Planlama Hub</h3>
+        <p>Bugün, Hafta ve Ay sekmelerine bölünmüş, her şeyi bir bakışta gördüğün modern planlama arayüzü.</p>
       </div>
       <div class="card green">
         <div class="card-icon">🎉</div>
-        <h3>Premium Konfeti Etkisi</h3>
-        <p>Zor bir denemeyi veya günlük hedefi işaretlediğinde ekranı kaplayan mikro-animasyonlar. Psikolojik tatmin zirvede.</p>
+        <h3>Premium Konfeti Efekti</h3>
+        <p>Zor bir denemeyi veya günlük hedefi işaretlediğinde ekranı kaplayan mikro-animasyonlar. Tatmin zirvede.</p>
       </div>
       <div class="card">
         <div class="card-icon">🍅</div>
         <h3>Pomodoro Zamanlayıcı</h3>
-        <p>25dk çalış / 5dk mola. Bloklar tamamlandıkça sisteme veri kaydeder ve günlük çalışmanı loglar.</p>
+        <p>25dk çalış / 5dk mola. Tamamlandıkça sisteme veri kaydeder ve günlük çalışmanı loglar.</p>
       </div>
       <div class="card blue">
         <div class="card-icon">🎯</div>
         <h3>Görev & Alışkanlık</h3>
-        <p>Hassas görev yönetimi ve zinciri kırma mantığı ile işleyen habits sistemi. Görsel istikrar tabloları.</p>
+        <p>Hassas görev yönetimi ve "zinciri kırma" mantığıyla çalışan habits sistemi. Görsel seri tabloları.</p>
       </div>
       <div class="card">
         <div class="card-icon">📓</div>
         <h3>Akıllı Not Defteri</h3>
-        <p>Markdown formatında zengin metin düzenleyici, etiketli ve klasörlenebilir dijital not tutma asistanı.</p>
+        <p>Markdown formatında zengin metin, etiketli ve klasörlenebilir dijital not asistanı.</p>
       </div>
       <div class="card orange">
-        <div class="card-icon">🗓</div>
+        <div class="card-icon">🗓️</div>
         <h3>Global Takvim</h3>
-        <p>Deneme tarihleri, hedefler ve okul sınavlarını merkezi olarak görebildiğin bir ajanda.</p>
+        <p>Deneme tarihleri, hedefler ve sınavları merkezi olarak görebildiğin ajanda görünümü.</p>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 8: Hata Defteri ══════════ -->
+  <!-- ═══════════════════ SLIDE 8: Hata Defteri ═══════════════════ -->
   <div class="slide" id="s7">
-    <div class="slide-tag">Premium Feature — Hata Defteri</div>
+    <div class="slide-tag">Premium Feature · Hata Defteri</div>
     <h2>SM-2 Algoritmasıyla Akıllı Tekrar</h2>
     <div class="split">
       <div>
-        <p class="body">Yanlış yapılan soruları veya anlaşılmayan konuları sisteme kaydet. SM-2 aralıklı tekrar algoritması, her sorunun <strong>ne zaman tekrar gösterileceğini</strong> optimize eder.</p>
+        <p class="body">Yanlış yapılan soruları veya anlaşılmayan konuları sisteme kaydet. SM-2 aralıklı tekrar algoritması, her sorunun ne zaman tekrar gösterileceğini optimize eder.</p>
         <div class="feature-list">
           <div class="feature-item">
             <div class="fi-icon">🧠</div>
             <div class="fi-body">
               <h4>Bilgi Kalıcılığı (Spaced Repetition)</h4>
-              <p>Soruyu ne kadar kolay hatırladığını puanla (0-3). Sistem bir sonraki tekrarını gün bazında ayarlar.</p>
+              <p>Soruyu ne kadar kolay hatırladığını 0-3 arasında puanla. Sistem sonraki tekrar gününü hesaplar.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="fi-icon">📅</div>
             <div class="fi-body">
-              <h4>Sade Tekrar Listesi</h4>
-              <p>"Bugün tekrar edilecek" sekmesi — sadece senin o gün görmen gereken kritik soruları gösterir, beyni yormaz.</p>
+              <h4>Sade Günlük Tekrar Listesi</h4>
+              <p>"Bugün tekrar edilecek" sekmesi — sadece o gün görülmesi gereken kritik soruları gösterir.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="fi-icon">🏷️</div>
+            <div class="fi-body">
+              <h4>Konu ve Ders Bazlı Filtreleme</h4>
+              <p>Fizik mi çalışıyorsun? Sadece fizik sorularını getir. Branş seçimli akıllı filtre.</p>
             </div>
           </div>
         </div>
       </div>
       <div class="stack">
         <div class="card accent">
-          <h3>🔬 SM-2 Arka Planı</h3>
-          <p>Kolay hatırlanan soruyu 7 gün sonra, zor olanı 1 gün sonra gösterir. Zamanla tekrar aralıkları uzar, bilgiyi "kısa süreli" bellekten "uzun süreli" belleğe zorlar.</p>
+          <h3>🔬 SM-2 Nasıl Çalışır?</h3>
+          <p style="line-height:1.8;">Kolay hatırlanan soru → 7 gün sonra. Zor olan → 1 gün sonra. Zaman içinde aralıklar uzar, bilgi kısa süreli bellekten uzun süreli belleğe geçer.</p>
         </div>
-        <div class="mockup" style="padding:20px;">
-          <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">Bugün Taranacak: 2 Soru</div>
-          <div style="display:flex; flex-direction:column; gap:10px;">
-             <!-- Hata Kartı -->
-             <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; padding:12px 16px; transition: transform 0.2s;">
-              <div style="font-size:11px; color:#fca5a5; font-weight:800; margin-bottom: 4px;">AYT FİZİK — DALGALAR</div>
-              <div style="font-size:14px; font-weight:500; color:#fff;">Durgun su dalgasının düğüm çizgisi formülü nedir?</div>
-             </div>
-             <!-- Hata Kartı -->
-             <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:12px 16px;">
-              <div style="font-size:11px; color:#fcd34d; font-weight:800; margin-bottom: 4px;">TYT MATEMATİK — OLASILIK</div>
-              <div style="font-size:14px; font-weight:500; color:#fff;">Koşullu olasılık hesaplama bağıntısı nasıldır?</div>
-             </div>
+        <div class="mockup" style="padding:18px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Bugün: 2 Soru Bekliyor</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:10px 14px;">
+              <div style="font-size:10px;color:#fca5a5;font-weight:800;margin-bottom:3px;">AYT FİZİK · DALGALAR</div>
+              <div style="font-size:13px;font-weight:500;color:#fff;">Durgun su dalgasının düğüm çizgisi formülü nedir?</div>
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <span style="font-size:10px;background:rgba(239,68,68,.2);color:#fca5a5;border-radius:6px;padding:2px 7px;font-weight:600;">Zor: 1</span>
+                <span style="font-size:10px;background:rgba(245,158,11,.15);color:#fcd34d;border-radius:6px;padding:2px 7px;font-weight:600;">Orta: 2</span>
+                <span style="font-size:10px;background:rgba(16,185,129,.15);color:#34d399;border-radius:6px;padding:2px 7px;font-weight:600;">Kolay: 3</span>
+              </div>
+            </div>
+            <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:10px 14px;">
+              <div style="font-size:10px;color:#fcd34d;font-weight:800;margin-bottom:3px;">TYT MATEMATİK · OLASILIK</div>
+              <div style="font-size:13px;font-weight:500;color:#fff;">Koşullu olasılık hesaplama bağıntısı?</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 9: Sosyal & Motivasyon ══════════ -->
+  <!-- ═══════════════════ SLIDE 9: Sosyal & Gamification ═══════════════════ -->
   <div class="slide" id="s8">
     <div class="slide-tag">Social & Gamification</div>
     <h2>Sosyal Motivasyon ve Oyunlaştırma</h2>
-    <p class="body" style="max-width:720px;">Tek başına çalışmanın verdiği izolasyonu kırmak için, Discord / Oyun benzeri lig mekanizması kullanan devrimsel yapı.</p>
-    <div class="card-grid cols-2" style="margin-top:28px;">
+    <p class="body" style="max-width:720px;">Tek başına çalışmanın verdiği izolasyonu kırmak için Discord/Oyun benzeri lig mekanizması ile donatılmış devrimsel yapı.</p>
+    <div class="card-grid cols-2" style="margin-top:22px;">
       <div>
         <div class="feature-list" style="margin-top:0;">
           <div class="feature-item">
             <div class="fi-icon">⚔️</div>
             <div class="fi-body">
               <h4>Klasman (Lig) Sistemi</h4>
-              <p>Net toplamına göre rütbe atama: Bronz → Platin → Elmas. Her ligin kendine has UI tasarım rengi ve ikonu vardır.</p>
+              <p>Net toplamına göre rütbe: Bronz → Gümüş → Altın → Platin → Elmas. Her ligin kendine özgü rengi ve ikonu vardır.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="fi-icon">👥</div>
             <div class="fi-body">
-              <h4>Arkadaş Davetleri</h4>
-              <p>Çalışma grubunu kur, aranızdaki tatlı rekabeti "Leaderboard" (Liderlik Tablosu) ekranından takip et.</p>
+              <h4>Arkadaş Davetleri & Gruplar</h4>
+              <p>Çalışma grubunu kur, aranızdaki tatlı rekabeti Leaderboard ekranından takip et.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="fi-icon">🎖️</div>
             <div class="fi-body">
               <h4>Başarı Rozetleri (Badges)</h4>
-              <p>Gizli başarımları tamamladıkça (İlk 100 Net, 7 Günlük Disiplin Serisi) profilinde rozetler birikir.</p>
+              <p>Gizli başarımlar: İlk 100 Net, 7 Günlük Disiplin Serisi, Konu Ustası… Profilde birikir.</p>
             </div>
           </div>
         </div>
       </div>
       <div class="mockup">
-        <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:16px;">Leaderboard Görünümü</div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; align-items:center; gap:16px; background:rgba(234,179,8,0.15); border:1px solid rgba(234,179,8,0.4); border-radius:16px; padding:12px 20px; transform: scale(1.02); box-shadow: 0 4px 20px rgba(234,179,8,0.2);">
-            <span style="font-size:24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">💎</span>
-            <div style="flex:1;"><div style="font-size:15px; font-weight:700; color:#fff;">Ahmet Y.</div><div style="font-size:11px; font-weight:500; color:#fde047;">Elmas Birlik</div></div>
-            <div style="text-align:right;"><div style="font-weight:800; font-size:18px; color:#fff;">187 <span style="font-size:12px; font-weight:500; color:var(--muted)">net</span></div></div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">🏆 Leaderboard</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:14px;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.4);border-radius:14px;padding:11px 18px;box-shadow:0 4px 20px rgba(234,179,8,.15);">
+            <span style="font-size:20px;">💎</span>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:#fff;">Ahmet Y.</div><div style="font-size:10px;font-weight:600;color:#fde047;">Elmas Birlik</div></div>
+            <div style="font-weight:800;font-size:16px;color:#fff;">187 <span style="font-size:11px;font-weight:500;color:var(--muted)">net</span></div>
           </div>
-          <div style="display:flex; align-items:center; gap:16px; background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.4); border-radius:16px; padding:12px 20px;">
-            <span style="font-size:24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🥇</span>
-            <div style="flex:1;"><div style="font-size:15px; font-weight:700; color:#c4b5fd;">Sen (Kerem)</div><div style="font-size:11px; font-weight:500; color:#a78bfa;">Altın Birlik</div></div>
-            <div style="text-align:right;"><div style="font-weight:800; font-size:18px; color:#c4b5fd;">163 <span style="font-size:12px; font-weight:500; color:var(--muted)">net</span></div></div>
+          <div style="display:flex;align-items:center;gap:14px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.5);border-radius:14px;padding:11px 18px;box-shadow:0 4px 16px rgba(124,58,237,.2);">
+            <span style="font-size:20px;">🥇</span>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:#c4b5fd;">Sen (Kerem)</div><div style="font-size:10px;font-weight:600;color:#a78bfa;">Altın Birlik</div></div>
+            <div style="font-weight:800;font-size:16px;color:#c4b5fd;">163 <span style="font-size:11px;font-weight:500;color:var(--muted)">net</span></div>
           </div>
-          <div style="display:flex; align-items:center; gap:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:12px 20px;">
-            <span style="font-size:22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🥈</span>
-            <div style="flex:1;"><div style="font-size:15px; font-weight:700; color:#e4e4e7;">Zeynep K.</div><div style="font-size:11px; font-weight:500; color:var(--muted);">Gümüş Birlik</div></div>
-            <div style="text-align:right;"><div style="font-weight:800; font-size:18px; color:#e4e4e7;">141 <span style="font-size:12px; font-weight:500; color:var(--muted)">net</span></div></div>
+          <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:11px 18px;">
+            <span style="font-size:20px;">🥈</span>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:#e4e4e7;">Zeynep K.</div><div style="font-size:10px;font-weight:600;color:var(--muted)">Gümüş Birlik</div></div>
+            <div style="font-weight:800;font-size:16px;color:#e4e4e7;">141 <span style="font-size:11px;font-weight:500;color:var(--muted)">net</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:11px 18px;">
+            <span style="font-size:20px;">🥉</span>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--muted);">Mert T.</div><div style="font-size:10px;font-weight:600;color:var(--muted)">Gümüş Birlik</div></div>
+            <div style="font-weight:800;font-size:16px;color:var(--muted)">128 <span style="font-size:11px;font-weight:500">net</span></div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 10: Teknik Altyapı ══════════ -->
+  <!-- ═══════════════════ SLIDE 10: Teknik Altyapı ═══════════════════ -->
   <div class="slide" id="s9">
     <div class="slide-tag">Technical Architecture</div>
     <h2>Modern ve Işık Hızında Altyapı</h2>
     <div class="two-col">
       <div>
-        <p class="body">Performanstan ödün vermeyen bulut tabanlı bir mimari. Animasyonlar React üzerinde sorunsuz 60 FPS çalışır.</p>
+        <p class="body">Performanstan ödün vermeyen bulut tabanlı mimari. Animasyonlar sorunsuz 60 FPS çalışır.</p>
         <div class="timeline">
           <div class="tl-item">
             <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
-            <div class="tl-content"><h4>React 19 + Vite</h4><p>Hot module replacement, ekstrem paket yükleme hızları, client-side routing.</p></div>
+            <div class="tl-content"><h4>React 19 + Vite</h4><p>Hot module replacement, sub-second yeniden yükleme, client-side routing.</p></div>
           </div>
           <div class="tl-item">
-            <div class="tl-left"><div class="tl-dot" style="background:var(--green); box-shadow: 0 0 10px var(--green)"></div><div class="tl-line"></div></div>
-            <div class="tl-content"><h4>Firebase Data Sync</h4><p>Çevrimdışı destekli Firestore. Verin saniyesinde buluta işlenir.</p></div>
+            <div class="tl-left"><div class="tl-dot" style="background:var(--green);box-shadow:0 0 10px var(--green)"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><h4>Firebase Firestore</h4><p>Offline destekli gerçek zamanlı veri sync. Verin saniyesinde buluta işlenir.</p></div>
           </div>
           <div class="tl-item">
-            <div class="tl-left"><div class="tl-dot" style="background:var(--orange); box-shadow: 0 0 10px var(--orange)"></div><div class="tl-line"></div></div>
-            <div class="tl-content"><h4>Google Gemini LLM</h4><p>Büyük dil modellerinin API üzerinden konuşlandırılması, düşük gecikmeli AI.</p></div>
+            <div class="tl-left"><div class="tl-dot" style="background:var(--orange);box-shadow:0 0 10px var(--orange)"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><h4>Google Gemini 2.0</h4><p>En güncel büyük dil modeli API'si, düşük gecikmeli AI yanıtları.</p></div>
           </div>
           <div class="tl-item">
-            <div class="tl-left"><div class="tl-dot" style="background:var(--accent2); box-shadow: 0 0 10px var(--accent2)"></div></div>
-            <div class="tl-content"><h4>21st MCP & UI Kütüphaneleri</h4><p>Framer Motion, Glassmorphism, TailwindCSS destekli premium UX yaklaşımı.</p></div>
+            <div class="tl-left"><div class="tl-dot" style="background:#f472b6;box-shadow:0 0 10px #f472b6"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><h4>Framer Motion + TailwindCSS</h4><p>GPU ivmeli animasyonlar, glassmorphism komponentler, 60 FPS garantili geçişler.</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:var(--accent2);box-shadow:0 0 10px var(--accent2)"></div></div>
+            <div class="tl-content"><h4>Vercel Edge Deploy</h4><p>CI/CD pipeline ile her push'ta otomatik deploy, global CDN dağıtımı.</p></div>
           </div>
         </div>
       </div>
       <div class="stack">
         <div class="card green">
           <h3>🔐 Güvenlik Standardı</h3>
-          <p>Oturum yönetimi kriptolanmıştır. Güvenlik kuralları veritabanı (Firestore Rules) aşamasında denetlenir.</p>
+          <p>Firebase Auth + Firestore güvenlik kuralları. Oturum JWT tabanlı, veri güvenli.</p>
         </div>
         <div class="card blue">
-          <h3>📱 Mobil Uyumlu / PWA</h3>
-          <p>Sistemin tamamı cep telefonu ekranına sığar. Tarayıcıdan Ana Ekran'a eklenerek native bir uygulama gibi kullanılabilir.</p>
+          <h3>📱 PWA Desteği</h3>
+          <p>Mobil uyumlu, ana ekrana eklenebilir. Service worker ile offline çalışma. Native uygulama hissi.</p>
         </div>
         <div class="card accent">
-          <h3>☁️ Zero-Downtime Deploy</h3>
-          <p>Vercel Edge ağı üzerinden CI/CD pipeline'ı ile kesintisiz güncelleme sunulur.</p>
+          <h3>⚡ Performans</h3>
+          <p>Lighthouse skoru 95+. Code splitting ve lazy loading ile ultra hızlı ilk yükleme.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 11: Freemium Model ══════════ -->
+  <!-- ═══════════════════ SLIDE 11: Rakip Karşılaştırma ═══════════════════ -->
   <div class="slide" id="s10">
-    <div class="slide-tag">Business Model</div>
-    <h2>Freemium — Ücretsiz Başla, Yapay Zeka ile Büyü</h2>
-    <p class="body" style="max-width:720px;">Platformun temel özellikleri hiçbir kısıtlama olmadan ücretsizdir. Bulut AI maliyetleri sebebiyle gelişmiş yetenekler Premium aboneliğe dahildir.</p>
-    <div class="card-grid cols-2" style="margin-top:32px;">
-      <div class="card" style="border-color:rgba(255,255,255,0.15);">
-        <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:16px;">Base Plan (Ücretsiz)</div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:var(--green); font-size:16px;">✓</span> YKS Merkezi (Deneme + Konu)</div>
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:var(--green); font-size:16px;">✓</span> Odaklı Bento Planlama Hub</div>
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:var(--green); font-size:16px;">✓</span> Pomodoro ve Alışkanlıklar</div>
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:var(--green); font-size:16px;">✓</span> Sosyal Lig, Rozetler & Arkadaşlar</div>
-        </div>
+    <div class="slide-tag">Rekabet Analizi</div>
+    <h2>Dash YKS vs Mevcut Çözümler</h2>
+    <p class="body" style="max-width:720px;">Piyasada çeşitli araçlar var ama hiçbiri YKS sürecini bütünsel olarak ele almıyor. Dash YKS bu boşluğu dolduruyor.</p>
+    <div style="margin-top:20px;overflow:hidden;border-radius:16px;border:1px solid var(--border);">
+      <table class="compare-table" style="width:100%;">
+        <thead>
+          <tr style="background:rgba(39,39,42,.6);">
+            <th>Özellik</th>
+            <th style="color:#c4b5fd;">Dash YKS ✦</th>
+            <th>Klasik Ajanda</th>
+            <th>Not Uygulamaları</th>
+            <th>YKS Siteleri</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Net Takibi & Grafik</td>
+            <td class="chk-yes">✓ Tam</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+            <td>Kısmi</td>
+          </tr>
+          <tr>
+            <td>AI Koç & Özeleştiri</td>
+            <td class="chk-yes">✓ Gemini</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+          </tr>
+          <tr>
+            <td>SM-2 Hata Defteri</td>
+            <td class="chk-yes">✓ Yerleşik</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+          </tr>
+          <tr>
+            <td>Sosyal Lig Sistemi</td>
+            <td class="chk-yes">✓ Tam</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+            <td class="chk-no">✗</td>
+          </tr>
+          <tr>
+            <td>Pomodoro + Görev + Takvim</td>
+            <td class="chk-yes">✓ Entegre</td>
+            <td>Kısmi</td>
+            <td>Kısmi</td>
+            <td class="chk-no">✗</td>
+          </tr>
+          <tr>
+            <td>Bulut Senkronizasyonu</td>
+            <td class="chk-yes">✓ Gerçek Zamanlı</td>
+            <td class="chk-no">✗</td>
+            <td>Kısmi</td>
+            <td class="chk-no">✗</td>
+          </tr>
+          <tr>
+            <td>Ücretsiz Temel Plan</td>
+            <td class="chk-yes">✓ Ücretsiz</td>
+            <td class="chk-yes">✓</td>
+            <td>Freemium</td>
+            <td>Ücretli</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SLIDE 12: Fiyatlandırma ═══════════════════ -->
+  <div class="slide" id="s11">
+    <div class="slide-tag">Business Model · Fiyatlandırma</div>
+    <h2>Freemium — Ücretsiz Başla, AI ile Büyü</h2>
+    <p class="body" style="max-width:720px;">Temel özellikler ücretsiz. Bulut AI maliyetleri sebebiyle gelişmiş yetenekler Premium'a dahil.</p>
+    <div class="card-grid cols-2" style="margin-top:24px;">
+      <div class="price-card">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;">Base Plan</div>
+        <div class="price-num">₺0</div>
+        <div class="price-period" style="margin-top:4px;">Süresiz ücretsiz</div>
+        <ul class="price-list">
+          <li><span class="check">✓</span> YKS Deneme & Konu Takibi</li>
+          <li><span class="check">✓</span> Bento Planlama Hub</li>
+          <li><span class="check">✓</span> Pomodoro & Alışkanlıklar</li>
+          <li><span class="check">✓</span> Görev & Takvim</li>
+          <li><span class="check">✓</span> Sosyal Lig & Rozetler</li>
+          <li><span class="check">✓</span> Temel İstatistikler</li>
+        </ul>
       </div>
-      <div class="card accent" style="border-width: 2px;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-          <span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:#c4b5fd;">👑 Premium Plan</span>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:#a78bfa; font-size:18px;">★</span> Haftalık Yapay Zeka Özeleştirisi</div>
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:#a78bfa; font-size:18px;">★</span> AI Çalışma Planı Jeneratörü</div>
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:#a78bfa; font-size:18px;">★</span> Hata Defteri (SM-2 Algoritması)</div>
-          <div style="display:flex; gap:10px; font-size:14px; font-weight:500; color:var(--text); align-items:center;"><span style="color:#a78bfa; font-size:18px;">★</span> Premium Konfeti Efektleri </div>
-        </div>
-        <div style="margin-top:20px; padding:12px 16px; background:rgba(124,58,237,0.2); border-radius:12px; font-size:13px; font-weight:500; color:#c4b5fd; text-align:center;">
-          Beta sürecinde tüm Premium özellikler geçici olarak ücretsizdir.
+      <div class="price-card featured">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#c4b5fd;margin-bottom:12px;">👑 Premium Plan</div>
+        <div class="price-num" style="background:linear-gradient(135deg,#c4b5fd,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">₺99</div>
+        <div class="price-period" style="margin-top:4px;">/ ay &nbsp;·&nbsp; ya da ₺799 / yıl (↓%33)</div>
+        <ul class="price-list">
+          <li><span class="star">★</span> Haftalık AI Özeleştiri & Rapor</li>
+          <li><span class="star">★</span> AI Çalışma Planı Jeneratörü</li>
+          <li><span class="star">★</span> Hata Defteri (SM-2 Algoritması)</li>
+          <li><span class="star">★</span> Sınırsız AI Sohbet (Gemini)</li>
+          <li><span class="star">★</span> Öncelik Algoritması</li>
+          <li><span class="star">★</span> Premium Konfeti Efektleri</li>
+        </ul>
+        <div style="margin-top:18px;padding:10px 14px;background:rgba(124,58,237,.2);border-radius:10px;font-size:12px;font-weight:600;color:#c4b5fd;text-align:center;">
+          🎁 Beta sürecinde tüm Premium özellikler geçici olarak ücretsiz
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 12: Öğretmen Perspektifi ══════════ -->
-  <div class="slide" id="s11">
+  <!-- ═══════════════════ SLIDE 13: Öğretmen Perspektifi ═══════════════════ -->
+  <div class="slide" id="s12">
     <div class="slide-tag">For Teachers & Counselors</div>
     <h2>Rehberlik İçin Biçilmiş Kaftan</h2>
-    <p class="body" style="max-width:720px;">Dash YKS öğrenciyi otonomi kazanmaya zorlar. Veliler ve öğretmenler içinse veriye dayalı şeffaf bir değerlendirme ortamı yaratır.</p>
-    <div class="card-grid cols-3" style="margin-top:28px;">
+    <p class="body" style="max-width:720px;">Dash YKS öğrenciyi otonomi kazanmaya zorlar. Öğretmenler ve veliler için ise veriye dayalı şeffaf bir değerlendirme ortamı yaratır.</p>
+    <div class="card-grid cols-3" style="margin-top:24px;">
       <div class="card green">
         <div class="card-icon">📊</div>
         <h3>Veri Destekli Görüşme</h3>
-        <p>Klasik "ders çalıştın mı" tartışmaları yerine öğrencinin istatistikleri ve AI raporu masaya yatırılır.</p>
+        <p>"Ders çalıştın mı?" tartışmaları yerine öğrencinin istatistikleri ve AI raporu masaya yatırılır.</p>
       </div>
       <div class="card accent">
         <div class="card-icon">🎯</div>
@@ -713,63 +1024,76 @@
         <p>Öğrenci ne kadar uzağında olduğunu grafiksel gördüğünde hayal kurmayı bırakıp gerçeğe odaklanır.</p>
       </div>
       <div class="card blue">
-        <div class="card-icon">📅</div>
+        <div class="card-icon">🔗</div>
         <h3>Çalışma Disiplini</h3>
-        <p>Konfeti, rozet ve lig gibi "dopamin kancaları" öğrenciyi sosyal medyanın ellerinden alıp tekrar uygulamaya odaklatır.</p>
+        <p>Konfeti, rozet ve lig gibi "dopamin kancaları" öğrenciyi sosyal medyadan alıp tekrar masaya oturttur.</p>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:14px;padding:16px 20px;">
+        <div style="font-size:12px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Öğrenci İçin</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.65;">Kendi kendine organize olmayı öğreniyor. Hangi konularda zayıf olduğunu biliyor. AI koçu her zaman yanında.</p>
+      </div>
+      <div style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);border-radius:14px;padding:16px 20px;">
+        <div style="font-size:12px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Veli / Öğretmen İçin</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.65;">Çalışma verilerine şeffaf erişim. Subjektif değil, nesnel değerlendirme. Rehberlik görüşmelerine güçlü veri.</p>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 13: Yol Haritası ══════════ -->
-  <div class="slide" id="s12">
-    <div class="slide-tag">Roadmap</div>
+  <!-- ═══════════════════ SLIDE 14: Yol Haritası ═══════════════════ -->
+  <div class="slide" id="s13">
+    <div class="slide-tag">Roadmap & Vision</div>
     <h2>Projenin Evrimi & Gelecek</h2>
     <div class="two-col">
       <div class="stack">
         <div class="card green">
-          <h3>🚀 Canlıdaki Sürüm (v1.0)</h3>
-          <p style="line-height:1.9;">YKS Deneme/Konu Merkezi · Odaklı Bento Planlayıcı · AI Puanlama & Raporu · Hata Defteri (SM-2) · Sosyal Lig ve Arkadaş Sistemi · Premium Efektler.</p>
+          <h3>🚀 Canlı Sürüm (v1.0) — Bugün</h3>
+          <p style="line-height:1.85;">YKS Deneme/Konu Merkezi · Bento Planlayıcı · AI Puanlama & Rapor · Hata Defteri (SM-2) · Sosyal Lig & Arkadaş · Premium Efektler · PWA Desteği</p>
         </div>
         <div class="card orange">
-          <h3>🔜 Yakında (v1.1)</h3>
-          <p style="line-height:1.9;">Öğrenci-Aygıt Senkronizasyonlu Ders Zili · Veliler için Salt Okunur Link Raporları · Youtube Videolarından Hızlı Madde Çıkarıcı AI Modülü.</p>
+          <h3>🔜 Yakında (v1.1) — Q3 2026</h3>
+          <p style="line-height:1.85;">Sesli Pomodoro Bildirimleri · Veli Paylaşım Linkleri · YouTube Videolarından AI Özet Çıkarıcı · Çoklu Cihaz Widget</p>
         </div>
       </div>
       <div class="stack">
         <div class="card blue">
-          <h3>🔭 Uzun Vadeli (Kurumsal)</h3>
-          <p style="line-height:1.9;">Dershaneler & Okullar için Toplu Sınıf Analiz Kurumsal Dashboard'u · Gerçek rehber öğretmenler ile entegre chat modülleri.</p>
+          <h3>🔭 Uzun Vadeli (v2.0) — 2027</h3>
+          <p style="line-height:1.85;">Dershaneler & Okullar için Kurumsal Dashboard · Rehber-Öğrenci Chat Modülleri · Sınıf Bazlı Analytics · Toplu Raporlama</p>
         </div>
         <div class="card accent">
-          <h3>💡 Vizyonumuz</h3>
-          <p>Türkiye'deki her YKS öğrencisine, sosyo-ekonomik arka planı ne olursa olsun, bir "Özel Öğretmen / AI Koç" tahsis ederek adil bir rekabet ortamı sağlamak.</p>
+          <h3>💡 Vizyon</h3>
+          <p style="line-height:1.75;">Türkiye'deki her YKS öğrencisine, sosyo-ekonomik arka planı ne olursa olsun, bir "Özel Öğretmen / AI Koç" tahsis ederek adil rekabet ortamı sağlamak.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SLIDE 14: Kapanış / CTA ══════════ -->
-  <div class="slide" id="s13">
-    <!-- Center text fully -->
-    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; position:relative; z-index:1;">
-      <div style="font-size:72px; margin-bottom:20px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); transform: translateY(0); animation: floatBtn 4s ease-in-out infinite;">🚀</div>
-      <h1 style="font-size:52px; margin-bottom:16px;">Geleceğe Odaklanın</h1>
-      <p class="subtitle" style="text-align:center; max-width:600px;">
+  <!-- ═══════════════════ SLIDE 15: CTA / Kapanış ═══════════════════ -->
+  <div class="slide" id="s14">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;z-index:1;">
+      <div style="font-size:64px;margin-bottom:18px;animation:floatEmoji 4s ease-in-out infinite;">🚀</div>
+      <h1 style="font-size:54px;margin-bottom:14px;">Geleceğe <span class="grad">Odaklanın</span></h1>
+      <p class="subtitle" style="text-align:center;max-width:580px;">
         Hemen uygulamayı ziyaret edin, öğrencilerinize dijital bir devrim hediye edin.
       </p>
-      <div style="display:flex; flex-direction:column; gap:20px; align-items:center; margin-top:40px;">
-        <div style="background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.5); border-radius:20px; padding:20px 40px; display:inline-block; transition: transform 0.3s ease; box-shadow: 0 10px 40px rgba(124,58,237,0.2);">
-          <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.15em;">Uygulama Bağlantısı</div>
-          <div style="font-size:26px; font-weight:900; color:#c4b5fd; letter-spacing: -0.02em;">keremtakip.vercel.app</div>
+      <div style="display:flex;gap:16px;margin-top:36px;flex-wrap:wrap;justify-content:center;">
+        <div class="cta-box">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.15em;">Uygulama Bağlantısı</div>
+          <div style="font-size:24px;font-weight:900;color:#c4b5fd;letter-spacing:-.02em;">keremtakip.vercel.app</div>
         </div>
-        <p style="font-size:14px; font-weight:500; color:var(--muted);"><span style="color:#a78bfa;">*</span> Beta sürüme ücretsiz kayıt olmak için ziyaret edin.</p>
+        <div class="float-badge" style="background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);color:#34d399;">
+          <span style="font-size:18px;">✓</span>
+          <span style="font-size:14px;">Beta'ya ücretsiz katıl</span>
+        </div>
       </div>
+      <p style="font-size:13px;font-weight:500;color:var(--muted);margin-top:16px;"><span style="color:#a78bfa;">*</span> Kayıt için yalnızca Google hesabı gereklidir.</p>
     </div>
-    <div style="display:flex; gap:64px; justify-content:center; padding-top:32px; border-top:1px solid var(--border); position:relative; z-index:1;">
-      <div class="big-stat"><div class="num" style="font-size:36px;">13+</div><div class="lbl">Modül</div></div>
-      <div class="big-stat"><div class="num" style="font-size:36px;">96</div><div class="lbl">Takip Edilebilir Konu</div></div>
-      <div class="big-stat"><div class="num" style="font-size:36px;">AI</div><div class="lbl">Gemini Destekli</div></div>
-      <div class="big-stat"><div class="num" style="font-size:36px;">∞</div><div class="lbl">Bulut Sync</div></div>
+    <div class="stat-row" style="justify-content:center;position:relative;z-index:1;">
+      <div class="big-stat"><span class="num" style="font-size:38px;">15+</span><div class="lbl">Modül</div></div>
+      <div class="big-stat"><span class="num" style="font-size:38px;">96</span><div class="lbl">Konu</div></div>
+      <div class="big-stat"><span class="num" style="font-size:38px;">AI</span><div class="lbl">Koç</div></div>
+      <div class="big-stat"><span class="num" style="font-size:38px;">∞</span><div class="lbl">Sync</div></div>
     </div>
   </div>
 
@@ -777,52 +1101,191 @@
 
 <!-- ── Navigation ── -->
 <div class="nav" id="nav">
-  <button id="prev">←</button>
+  <button id="prev" title="Önceki">←</button>
   <div class="dots" id="dots"></div>
-  <div class="counter" id="counter">1 / 14</div>
-  <button id="next">→</button>
+  <div class="counter" id="counter">1 / 15</div>
+  <button id="next" title="Sonraki">→</button>
 </div>
 
+<style>
+@keyframes floatEmoji{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  50%{transform:translateY(-12px) rotate(2deg)}
+}
+</style>
+
 <script>
-  const slides = document.querySelectorAll('.slide');
-  const dotsEl = document.getElementById('dots');
-  const counter = document.getElementById('counter');
-  let cur = 0;
+/* ══════════════════════════════════════
+   PARTICLE SYSTEM
+══════════════════════════════════════ */
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let W, H;
 
-  // Build dots
-  slides.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'dot' + (i === 0 ? ' active' : '');
-    d.onclick = () => go(i);
-    dotsEl.appendChild(d);
-  });
+function resizeCanvas(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-  function go(n) {
-    if(n < 0) n = 0;
-    if(n >= slides.length) n = slides.length - 1;
-    if(n === cur) return;
-
-    slides[cur].classList.remove('active');
-    dotsEl.children[cur].classList.remove('active');
-    
-    cur = n;
-    
-    slides[cur].classList.add('active');
-    dotsEl.children[cur].classList.add('active');
-    counter.textContent = (cur + 1) + ' / ' + slides.length;
+class Particle {
+  constructor(){
+    this.reset();
   }
+  reset(){
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.size = Math.random() * 1.5 + 0.3;
+    this.speedX = (Math.random() - 0.5) * 0.3;
+    this.speedY = (Math.random() - 0.5) * 0.3;
+    this.opacity = Math.random() * 0.5 + 0.1;
+    this.hue = Math.random() > 0.5 ? 268 : 238; // purple or indigo
+  }
+  update(){
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if(this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${this.hue}, 70%, 65%, ${this.opacity})`;
+    ctx.fill();
+  }
+}
 
-  document.getElementById('prev').onclick = () => go(cur - 1);
-  document.getElementById('next').onclick = () => go(cur + 1);
+for(let i = 0; i < 90; i++) particles.push(new Particle());
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
+function animateParticles(){
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => { p.update(); p.draw(); });
+  // Draw connections
+  for(let i = 0; i < particles.length; i++){
+    for(let j = i+1; j < particles.length; j++){
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 100){
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(124,58,237,${0.06 * (1 - dist/100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+/* ══════════════════════════════════════
+   3D TILT EFFECT ON CARDS
+══════════════════════════════════════ */
+function addTilt(card){
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const rx = (e.clientY - cy) / (rect.height / 2) * -8;
+    const ry = (e.clientX - cx) / (rect.width / 2) * 8;
+    card.style.transform = `translateY(-6px) scale(1.015) rotateX(${rx}deg) rotateY(${ry}deg)`;
   });
-  
-  // Hover effects on buttons & interactions via JS (mostly CSS handled)
-  const ctaButton = document.querySelector('.nav');
-  let moving = false;
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+}
+document.querySelectorAll('.card').forEach(addTilt);
+
+/* ══════════════════════════════════════
+   SLIDE ENGINE
+══════════════════════════════════════ */
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('dots');
+const counter = document.getElementById('counter');
+const slideNum = document.getElementById('slideNum');
+const progressTop = document.getElementById('progressTop');
+let cur = 0;
+const TOTAL = slides.length;
+
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  d.title = `Slayt ${i+1}`;
+  dotsEl.appendChild(d);
+});
+
+function updateProgress(n){
+  const pct = ((n + 1) / TOTAL) * 100;
+  progressTop.style.width = pct + '%';
+  counter.textContent = (n + 1) + ' / ' + TOTAL;
+  slideNum.textContent = String(n + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+}
+
+function go(n){
+  if(n < 0) n = 0;
+  if(n >= TOTAL) n = TOTAL - 1;
+  if(n === cur) return;
+
+  const prev = cur;
+  const direction = n > prev ? 1 : -1;
+
+  // Exit current
+  slides[prev].classList.add(direction > 0 ? 'exit-up' : '');
+  slides[prev].classList.remove('active');
+  dotsEl.children[prev].classList.remove('active');
+
+  setTimeout(() => {
+    slides[prev].classList.remove('exit-up');
+  }, 550);
+
+  cur = n;
+  slides[cur].classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  updateProgress(cur);
+
+  // Animate progress bars if on that slide
+  if(cur === 4){
+    setTimeout(() => {
+      document.querySelectorAll('.pbar-fill').forEach(bar => {
+        bar.style.width = (bar.dataset.width || 0) + '%';
+      });
+    }, 300);
+  }
+}
+
+document.getElementById('prev').onclick = () => go(cur - 1);
+document.getElementById('next').onclick = () => go(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(cur + 1);
+  if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
+  if(e.key === 'Home') go(0);
+  if(e.key === 'End')  go(TOTAL - 1);
+});
+
+// Swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 50) dx < 0 ? go(cur + 1) : go(cur - 1);
+});
+
+updateProgress(0);
+
+/* ══════════════════════════════════════
+   MOUSE PARALLAX AURORA
+══════════════════════════════════════ */
+document.addEventListener('mousemove', e => {
+  const mx = (e.clientX / window.innerWidth - 0.5) * 30;
+  const my = (e.clientY / window.innerHeight - 0.5) * 20;
+  document.querySelector('.aurora-1').style.transform = `translate(${mx*.4}px, ${my*.3}px)`;
+  document.querySelector('.aurora-2').style.transform = `translate(${-mx*.3}px, ${-my*.25}px)`;
+});
 </script>
 </body>
 </html>

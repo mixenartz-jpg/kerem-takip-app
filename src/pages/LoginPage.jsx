@@ -258,17 +258,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogle = () => {
     setError('');
     setLoading(true);
-    try {
-      await loginWithGoogle();
-      // Google logins are always verified
-    } catch (err) {
+    loginWithGoogle().catch((err) => {
       setError(toReadable(err));
-    } finally {
       setLoading(false);
-    }
+    });
   };
 
   return (
