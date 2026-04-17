@@ -1,6 +1,16 @@
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeKatex from 'rehype-katex';
+
+const sanitizeSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    span: [...(defaultSchema.attributes?.span || []), 'className', 'style'],
+    div: [...(defaultSchema.attributes?.div || []), 'className', 'style'],
+  },
+};
 
 const components = {
   p: ({ children }) => (
@@ -61,7 +71,7 @@ export default function MarkdownMessage({ content }) {
     <div className="text-zinc-300 text-sm leading-relaxed">
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[[rehypeSanitize, sanitizeSchema], rehypeKatex]}
         components={components}
       >
         {content}

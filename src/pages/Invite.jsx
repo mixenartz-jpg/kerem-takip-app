@@ -23,8 +23,10 @@ export default function Invite() {
   const params = new URLSearchParams(window.location.search);
   const inviterUid = params.get('uid');
 
+  const isValidUid = (uid) => uid && /^[a-zA-Z0-9]{20,128}$/.test(uid);
+
   useEffect(() => {
-    if (!inviterUid) {
+    if (!isValidUid(inviterUid)) {
       setError('Geçersiz davet linki.');
       setLoading(false);
       return;

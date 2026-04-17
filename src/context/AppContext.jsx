@@ -114,7 +114,7 @@ export function AppProvider({ children }) {
   const saveToFirestore = useCallback((uid, data) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      setDoc(doc(db, 'users', uid), data).catch(console.error);
+      setDoc(doc(db, 'users', uid), data).catch(() => {});
     }, 800);
   }, []);
 
@@ -329,7 +329,7 @@ export function AppProvider({ children }) {
       previousTytNet: prevTyt,
       previousAytNet: prevAyt,
       updatedAt: now(),
-    }, { merge: true }).catch(console.error);
+    }, { merge: true }).catch(() => {});
   };
 
   const addYKSTrial = (trial) => {
@@ -523,7 +523,7 @@ export function AppProvider({ children }) {
       try {
         await setDoc(docRef, { userMode: mode }, { merge: true });
       } catch (err) {
-        console.error('updateUserMode Firestore error:', err);
+        void err;
       }
     }
   }, [user]);

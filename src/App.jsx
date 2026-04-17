@@ -125,7 +125,10 @@ function AppLayout() {
       <Dock onMenuOpen={() => setDrawerOpen(o => !o)} />
       <DrawerMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div
+        className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300"
+        style={{ marginLeft: drawerOpen ? 280 : 0 }}
+      >
         <Header onSearchOpen={() => setCmdOpen(true)} title={title} onMenuOpen={() => setDrawerOpen(o => !o)} drawerOpen={drawerOpen} />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0 relative">
           <InitialRedirect />
@@ -365,7 +368,11 @@ export default function App() {
 
   // Admin route: /admin — gizli, menüde görünmez
   if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
-    return <AdminGate />;
+    return (
+      <AuthProvider>
+        <AdminGate />
+      </AuthProvider>
+    );
   }
 
   return (

@@ -1,42 +1,64 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Eye, EyeOff } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
 import AdminPanel from './AdminPanel';
 
-const ADMIN_PASSWORD = '4815926f';
-const SESSION_KEY = 'gt-admin-auth';
+const ADMIN_UIDS = (import.meta.env.VITE_ADMIN_UIDS || '').split(',').filter(Boolean);
 
 export default function AdminGate() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
+  const [authed, setAuthed] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
-  const inputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const emailRef = useRef(null);
 
   useEffect(() => {
     if (!authed) {
-      setTimeout(() => inputRef.current?.focus(), 300);
+      setTimeout(() => emailRef.current?.focus(), 300);
     }
   }, [authed]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, '1');
+    setLoading(true);
+    setError('');
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+
+      if (ADMIN_UIDS.length > 0 && !ADMIN_UIDS.includes(uid)) {
+        await auth.signOut();
+        throw new Error('Bu hesabın admin yetkisi yok.');
+      }
+
+      const snap = await getDoc(doc(db, 'admins', uid));
+      if (!snap.exists()) {
+        await auth.signOut();
+        throw new Error('Bu hesabın admin yetkisi yok.');
+      }
+
       setAuthed(true);
-      setError(false);
-    } else {
-      setError(true);
+    } catch (err) {
+      const msg = err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found'
+        ? 'E-posta veya şifre hatalı.'
+        : (err.message || 'Giriş başarısız.');
+      setError(msg);
       setShake(true);
       setPassword('');
       setTimeout(() => setShake(false), 600);
-      setTimeout(() => setError(false), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (authed) {
-    return <AdminPanel onLogout={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }} />;
+    return <AdminPanel onLogout={() => { auth.signOut(); setAuthed(false); }} />;
   }
 
   return (
@@ -56,18 +78,28 @@ export default function AdminGate() {
             <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-white/5 flex items-center justify-center mb-4">
               <Lock size={20} className="text-zinc-400" />
             </div>
-            <h2 className="text-sm font-semibold text-zinc-300 tracking-wide">Erişim</h2>
+            <h2 className="text-sm font-semibold text-zinc-300 tracking-wide">Admin Erişimi</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <input
+              ref={emailRef}
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="E-posta"
+              autoComplete="email"
+              required
+              className="w-full bg-zinc-800/60 border border-white/5 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+            />
             <div className="relative">
               <input
-                ref={inputRef}
                 type={showPw ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                autoComplete="off"
+                autoComplete="current-password"
+                required
                 className="w-full bg-zinc-800/60 border border-white/5 rounded-xl px-4 py-3 pr-10 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
               />
               <button
@@ -87,7 +119,7 @@ export default function AdminGate() {
                   exit={{ opacity: 0 }}
                   className="text-red-400 text-xs text-center"
                 >
-                  Hatalı şifre
+                  {error}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -96,10 +128,10 @@ export default function AdminGate() {
               type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              disabled={!password}
+              disabled={!email || !password || loading}
               className="w-full bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 font-medium rounded-xl py-3 text-sm transition-all border border-white/5"
             >
-              Devam
+              {loading ? 'Doğrulanıyor...' : 'Giriş Yap'}
             </motion.button>
           </form>
         </motion.div>

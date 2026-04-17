@@ -70,13 +70,17 @@ export default function AdminPanel({ onLogout }) {
   useEffect(() => {
     const load = async () => {
       try {
-        // Feature flags
-        const flagsSnap = await getDoc(doc(db, ...FEATURE_FLAGS_DOC.split('/')));
-        if (flagsSnap.exists()) setFlags({ ...DEFAULT_FLAGS, ...flagsSnap.data() });
+        // Feature flags (döküman yoksa default değerler kullan)
+        try {
+          const flagsSnap = await getDoc(doc(db, ...FEATURE_FLAGS_DOC.split('/')));
+          if (flagsSnap.exists()) setFlags({ ...DEFAULT_FLAGS, ...flagsSnap.data() });
+        } catch { /* döküman yok, default kullan */ }
 
         // Announcement
-        const annSnap = await getDoc(doc(db, ...ANNOUNCEMENT_DOC.split('/')));
-        if (annSnap.exists()) setAnnouncement(annSnap.data());
+        try {
+          const annSnap = await getDoc(doc(db, ...ANNOUNCEMENT_DOC.split('/')));
+          if (annSnap.exists()) setAnnouncement(annSnap.data());
+        } catch { /* döküman yok */ }
 
         // User count (limited query for efficiency)
         const usersSnap = await getDocs(query(collection(db, 'users'), limit(200)));

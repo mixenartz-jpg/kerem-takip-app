@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import FriendPanel from '../friends/FriendPanel';
 
-export default function Header({ onSearchOpen, title, onMenuOpen, drawerOpen }) {
+export default function Header({ onSearchOpen, title, onMenuOpen }) {
   const today = format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr });
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -17,7 +17,7 @@ export default function Header({ onSearchOpen, title, onMenuOpen, drawerOpen }) 
     : user?.email?.[0]?.toUpperCase() ?? 'K';
 
   return (
-    <header className="relative z-50 h-14 bg-zinc-900/80 backdrop-blur border-b border-zinc-800 flex items-center px-4 md:px-6 gap-3 shrink-0">
+    <header className="relative z-30 h-14 bg-zinc-900/80 backdrop-blur border-b border-zinc-800 flex items-center px-4 md:px-6 gap-3 shrink-0">
       {/* Hamburger — her ekran boyutunda görünür */}
       <button
         onClick={onMenuOpen}
@@ -26,7 +26,7 @@ export default function Header({ onSearchOpen, title, onMenuOpen, drawerOpen }) 
         <Menu size={18} />
       </button>
 
-      <div className={`flex-1 min-w-0 transition-all duration-300 ${drawerOpen ? 'md:pl-[280px]' : ''}`}>
+      <div className="flex-1 min-w-0">
         <h2 className="text-sm font-semibold text-zinc-100 truncate">{title}</h2>
         <p className="text-xs text-zinc-500 capitalize hidden sm:block">{today}</p>
       </div>

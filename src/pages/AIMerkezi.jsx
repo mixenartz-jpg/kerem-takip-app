@@ -289,7 +289,6 @@ export default function AIMerkezi() {
 
   async function handleAddError() {
     const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    if (errorPhoto) localStorage.setItem(`hataDefteriPhoto_${id}`, errorPhoto);
     addHataDefteri({ ...errorForm, id });
     addBadge('first_error');
     setShowAddError(false);
