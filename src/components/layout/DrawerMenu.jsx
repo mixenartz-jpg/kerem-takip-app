@@ -1,14 +1,16 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, LayoutDashboard, CalendarDays, GraduationCap, Sparkles, Users2,
   CheckSquare, StickyNote, FolderKanban, Repeat2, Timer,
   BookOpen, CalendarCheck, Target, Zap, BarChart2,
-  ListTodo, Video, Bell, Trophy, UserPlus, Star, Moon, Sun
+  ListTodo, Video, Bell, Trophy, UserPlus, Star, Moon, Sun,
+  ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePremium } from '../../context/PremiumContext';
 import { useApp } from '../../context/AppContext';
+import { useState, useEffect } from 'react';
 
 // Groups for YKS/student mode
 const NAV_GROUPS_YKS = [
@@ -140,6 +142,60 @@ function NavItem({ to, icon: Icon, label, end, ai, premium, onClick }) {
   );
 }
 
+function getActiveGroupLabel(pathname, groups) {
+  for (const group of groups) {
+    for (const item of group.items) {
+      const isMatch = item.end ? pathname === item.to : pathname.startsWith(item.to);
+      if (isMatch) return group.label;
+    }
+  }
+  return null;
+}
+
+function NavGroup({ group, onClose }) {
+  const location = useLocation();
+  const hasActive = group.items.some(item =>
+    item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
+  );
+  const [isOpen, setIsOpen] = useState(hasActive);
+
+  return (
+    <div>
+      <button
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 ${
+          hasActive ? 'text-violet-300' : 'text-zinc-500 hover:text-zinc-300'
+        }`}
+      >
+        <span className="text-[11px] font-semibold uppercase tracking-widest">
+          {group.label}
+        </span>
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown size={13} className="text-zinc-600" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="ml-2 pl-3 border-l border-white/[0.06] mt-0.5 mb-1 flex flex-col gap-0.5">
+              {group.items.map(item => (
+                <NavItem key={item.to} {...item} onClick={onClose} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function DrawerMenu({ open, onClose }) {
   const { user } = useAuth();
   const { isPremium } = usePremium();
@@ -208,7 +264,6 @@ export default function DrawerMenu({ open, onClose }) {
                         <span className="text-[10px] text-violet-400 font-medium">Premium</span>
                       </div>
                     )}
-                    {/* Mode badge */}
                     <div className="flex items-center gap-1">
                       {userMode === 'daily'
                         ? <Sun size={10} className="text-amber-400" />
@@ -230,18 +285,9 @@ export default function DrawerMenu({ open, onClose }) {
             </div>
 
             {/* Nav groups */}
-            <div className="flex-1 overflow-y-auto py-3 px-3 relative z-10 flex flex-col gap-5">
+            <div className="flex-1 overflow-y-auto py-3 px-3 relative z-10 flex flex-col gap-1">
               {NAV_GROUPS.map(group => (
-                <div key={group.label}>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 px-3 mb-1">
-                    {group.label}
-                  </p>
-                  <div className="flex flex-col gap-0.5">
-                    {group.items.map(item => (
-                      <NavItem key={item.to} {...item} onClick={onClose} />
-                    ))}
-                  </div>
-                </div>
+                <NavGroup key={group.label} group={group} onClose={onClose} />
               ))}
             </div>
 
