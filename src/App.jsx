@@ -46,6 +46,7 @@ import Reminders from './pages/Reminders';
 import Friends from './pages/Friends';
 import Invite from './pages/Invite';
 import HataDefteri from './pages/HataDefteri';
+import QuizMerkezi from './pages/QuizMerkezi';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
@@ -72,6 +73,7 @@ const PAGE_TITLES = {
   '/friends': 'Arkadaşlar',
   '/invite': 'Davet',
   '/hata-defteri': 'Hata Defteri',
+  '/quiz': 'Soru Merkezi',
 };
 
 function InitialRedirect() {
@@ -158,6 +160,7 @@ function AppLayout() {
               <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
               <Route path="/invite" element={<PageTransition><Invite /></PageTransition>} />
               <Route path="/hata-defteri" element={<PageTransition><PremiumGate feature="hata_defteri"><HataDefteri /></PremiumGate></PageTransition>} />
+              <Route path="/quiz" element={<PageTransition><PremiumGate feature="quiz"><QuizMerkezi /></PremiumGate></PageTransition>} />
             </Routes>
           </AnimatePresence>
         </main>

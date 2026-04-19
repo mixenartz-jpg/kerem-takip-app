@@ -5,7 +5,7 @@ import {
   CheckSquare, StickyNote, FolderKanban, Repeat2, Timer,
   BookOpen, CalendarCheck, Target, Zap, BarChart2,
   ListTodo, Video, Bell, Trophy, UserPlus, Star, Moon, Sun,
-  ChevronDown,
+  ChevronDown, BrainCircuit,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePremium } from '../../context/PremiumContext';
@@ -43,6 +43,7 @@ const NAV_GROUPS_YKS = [
       { to: '/exams', icon: CalendarCheck, label: 'Sınav Takvimi' },
       { to: '/yks', icon: Zap, label: 'YKS Merkezi' },
       { to: '/hata-defteri', icon: BookOpen, label: 'Hata Defteri', premium: 'hata_defteri' },
+      { to: '/quiz', icon: BrainCircuit, label: 'Soru Merkezi', ai: true, premium: 'quiz' },
       { to: '/habits', icon: Repeat2, label: 'Alışkanlıklar' },
     ],
   },
@@ -88,6 +89,7 @@ const NAV_GROUPS_DAILY = [
     items: [
       { to: '/ai', icon: Sparkles, label: 'AI Merkezi', ai: true, premium: 'ai' },
       { to: '/video-summarizer', icon: Video, label: 'Video Özetleyici', ai: true },
+      { to: '/quiz', icon: BrainCircuit, label: 'Soru Merkezi', ai: true, premium: 'quiz' },
       { to: '/sosyal', icon: Users2, label: 'Sosyal Hub' },
       { to: '/friends', icon: UserPlus, label: 'Arkadaşlar' },
       { to: '/leaderboard', icon: Trophy, label: 'Sıralama' },

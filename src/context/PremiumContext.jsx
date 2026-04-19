@@ -12,6 +12,7 @@ export function PremiumProvider({ children }) {
     ai_merkezi: false,
     ileri_istatistikler: false,
     hata_defteri: false,
+    quiz: false,
   });
 
   // Listen to user's isPremium field in Firestore

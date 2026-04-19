@@ -19,6 +19,11 @@ const FEATURE_META = {
     label: 'Hata Defteri',
     description: 'SM-2 algoritmasıyla aralıklı tekrar sistemi ve akıllı tekrar planı.',
   },
+  quiz: {
+    icon: BookOpen,
+    label: 'Soru Merkezi',
+    description: 'AI destekli kişiselleştirilmiş soru üretimi. Konuya özel 5 soru, tekrar engelleme ve detaylı açıklamalar.',
+  },
 };
 
 function UpgradeModal({ feature, onClose }) {

@@ -487,6 +487,74 @@ export async function sendPlannerMessage(chatSession, text) {
   return result.response.text();
 }
 
+/* ── Quiz Soru Üretici ── */
+export async function generateQuizQuestions(subject, topic, previousHashes = []) {
+  const m = getModel();
+
+  const hashNote = previousHashes.length > 0
+    ? `Aşağıdaki hash değerlerine sahip sorularla AYNI veya ÇOK BENZER sorular üretme (önceki oturumlardan):\n${previousHashes.slice(0, 50).join(', ')}`
+    : '';
+
+  const prompt = `Sen bir YKS ve genel lise soru üreticisisin.
+Ders: ${subject}
+Konu: ${topic}
+${hashNote}
+
+Tam olarak 5 soru üret. Her soru için uygun tipi seç:
+- Hesaplama, tanımlama, şık gerektiren → "multiple_choice" (A/B/C/D)
+- Kısa açıklama, kavram, yorum → "open_ended"
+
+SADECE aşağıdaki JSON formatında döndür, başka hiçbir metin yazma:
+[
+  {
+    "question": "Soru metni",
+    "type": "multiple_choice",
+    "options": {"A": "...", "B": "...", "C": "...", "D": "..."},
+    "answer": "A",
+    "explanation": "Neden A doğru, kısa açıklama"
+  },
+  {
+    "question": "Soru metni",
+    "type": "open_ended",
+    "answer": "Beklenen cevap veya anahtar kelimeler",
+    "explanation": "Açıklama"
+  }
+]`;
+
+  const result = await m.generateContent(prompt);
+  const text = result.response.text();
+  const match = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\[[\s\S]*\])/);
+  try {
+    return match ? JSON.parse(match[1]) : JSON.parse(text);
+  } catch {
+    throw new Error('Soru formatı ayrıştırılamadı. Lütfen tekrar dene.');
+  }
+}
+
+/* ── Open-ended Cevap Değerlendirici ── */
+export async function evaluateOpenAnswer(question, expectedAnswer, userAnswer) {
+  const m = getModel();
+  const prompt = `Bir öğrencinin cevabını değerlendir.
+
+Soru: ${question}
+Beklenen cevap: ${expectedAnswer}
+Öğrencinin cevabı: ${userAnswer}
+
+SADECE bu JSON formatında döndür:
+{"correct": true, "feedback": "Kısa geri bildirim (1-2 cümle)"}
+
+Cevap tam doğru olmasa bile anahtar kavramları içeriyorsa correct: true kabul et.`;
+
+  const result = await m.generateContent(prompt);
+  const text = result.response.text();
+  const jsonMatch = text.match(/(\{[\s\S]*?\})/);
+  try {
+    return jsonMatch ? JSON.parse(jsonMatch[1]) : { correct: false, feedback: 'Değerlendirme yapılamadı.' };
+  } catch {
+    return { correct: false, feedback: 'Değerlendirme yapılamadı.' };
+  }
+}
+
 /* ── Daily Todo Suggestions ── */
 export async function buildDailyTodoSuggestions({ tasks, habits, yks }) {
   const m = getModel();
