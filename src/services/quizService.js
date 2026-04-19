@@ -1,5 +1,5 @@
 import {
-  collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, serverTimestamp,
+  collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -17,8 +17,7 @@ export async function hashQuestion(subject, topic, questionText) {
 
 export async function fetchPreviousHashes(uid) {
   const col = collection(db, 'users', uid, 'quizHistory');
-  const q = query(col, orderBy('createdAt', 'desc'), limit(MAX_HASHES));
-  const snap = await getDocs(q);
+  const snap = await getDocs(col);
   return snap.docs.map(d => ({ id: d.id, hash: d.data().questionHash }));
 }
 

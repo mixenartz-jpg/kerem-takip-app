@@ -41,6 +41,7 @@ export default function QuizMerkezi() {
       setAnswers([]);
       setPhase(PHASE.QUIZ);
     } catch (err) {
+      console.error('[QuizMerkezi] hata:', err);
       setError(parseGeminiError(err));
       setPhase(PHASE.SETUP);
     }
