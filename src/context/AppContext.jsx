@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { useAuth } from './AuthContext';
+import { getDefaultWorkspace } from '../utils/workspaceConfig';
 
 const AppContext = createContext(null);
 
@@ -39,6 +40,7 @@ export const DEFAULT_STATE = {
   aiStreak: { count: 0, lastDate: null },
   badges: [],
   userMode: null, // 'yks' | 'daily' | null
+  activeWorkspace: null, // 'akademi' | 'gunluk' | null — derived from userMode if null
   // New fields
   dailyTodos: [],  // { id, text, completed, date }
   weeklyPlans: [], // { id, text, completed, weekStr }
@@ -528,6 +530,22 @@ export function AppProvider({ children }) {
     }
   }, [user]);
 
+  // ── ACTIVE WORKSPACE ───────────────────────────────────
+  const setActiveWorkspace = useCallback(async (workspace) => {
+    setState(prev => ({ ...prev, activeWorkspace: workspace }));
+    if (user) {
+      localStorage.setItem(`gt-active-workspace-${user.uid}`, workspace);
+      const docRef = doc(db, 'users', user.uid);
+      try {
+        await setDoc(docRef, { activeWorkspace: workspace }, { merge: true });
+      } catch (err) {
+        void err;
+      }
+    }
+  }, [user]);
+
+  const activeWorkspace = state.activeWorkspace || getDefaultWorkspace(state.userMode);
+
   const value = {
     state,
     dbLoading,
@@ -579,6 +597,9 @@ export function AppProvider({ children }) {
     // User mode
     updateUserMode,
     userMode: state.userMode,
+    // Active workspace
+    activeWorkspace,
+    setActiveWorkspace,
     // Daily todos
     addDailyTodo, toggleDailyTodo, deleteDailyTodo,
     // Weekly plans

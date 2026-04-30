@@ -1,34 +1,35 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, CalendarDays, GraduationCap,
-  Sparkles, Users2, LogOut, Menu,
+  LayoutDashboard, Sparkles, Users2, LogOut, Menu, Zap,
+  CheckSquare, StickyNote,
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 
-const NAV_ITEMS_YKS = [
+const NAV_ITEMS_AKADEMI = [
   { to: '/',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
   { to: '/planner',   icon: Sparkles,        label: 'AI Planlayıcı', ai: true },
-  { to: '/planlama',  icon: CalendarDays,    label: 'Planlama' },
-  { to: '/akademi',   icon: GraduationCap,   label: 'Akademi' },
+  { to: '/yks',       icon: Zap,             label: 'YKS Merkezi' },
+  { to: '/notes',     icon: StickyNote,      label: 'Notlar' },
   { to: '/sosyal',    icon: Users2,          label: 'Sosyal' },
 ];
 
-const NAV_ITEMS_DAILY = [
+const NAV_ITEMS_GUNLUK = [
   { to: '/',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
-  { to: '/planner',   icon: Sparkles,        label: 'AI Planlayıcı', ai: true },
-  { to: '/planlama',  icon: CalendarDays,    label: 'Planlama' },
+  { to: '/tasks',     icon: CheckSquare,     label: 'Görevler' },
+  { to: '/ai',        icon: Sparkles,        label: 'AI Merkezi',   ai: true },
+  { to: '/notes',     icon: StickyNote,      label: 'Notlar' },
   { to: '/sosyal',    icon: Users2,          label: 'Sosyal' },
 ];
 
 export default function Dock({ onMenuOpen }) {
   const { user, logout } = useAuth();
-  const { userMode } = useApp();
+  const { activeWorkspace } = useApp();
   const [tooltip, setTooltip] = useState(null);
 
-  const NAV_ITEMS = userMode === 'daily' ? NAV_ITEMS_DAILY : NAV_ITEMS_YKS;
+  const NAV_ITEMS = activeWorkspace === 'akademi' ? NAV_ITEMS_AKADEMI : NAV_ITEMS_GUNLUK;
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()

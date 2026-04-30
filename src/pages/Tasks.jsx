@@ -1,12 +1,187 @@
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronRight, Tag, Calendar, Flag } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Trash2, ChevronDown, ChevronRight, Tag, Calendar, CheckSquare, Sparkles, Loader2, CheckCircle2, Circle } from 'lucide-react';
+import { format } from 'date-fns';
+import { tr } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/ui/Modal';
-import Badge from '../components/ui/Badge';
 import { formatDate, todayStr, getPriorityColor } from '../utils/dateUtils';
+import { buildDailyTodoSuggestions, parseGeminiError } from '../services/geminiService';
 
 const PRIORITIES = ['acil', 'yüksek', 'normal', 'düşük'];
 const PRIORITY_LABELS = { acil: '🔴 Acil', yüksek: '🟠 Yüksek', normal: '🔵 Normal', düşük: '⚪ Düşük' };
+
+const TABS = [
+  { id: 'bugun', label: 'Bugün' },
+  { id: 'tumü', label: 'Tümü' },
+];
+
+// ── DailyTodos inline sub-component ──────────────────────────────────────────
+
+function TodoItem({ todo, onToggle, onDelete }) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all group ${
+        todo.completed
+          ? 'bg-zinc-900/40 border-zinc-800/50'
+          : 'bg-zinc-900 border-zinc-800 hover:border-violet-500/30'
+      }`}
+    >
+      <button onClick={() => onToggle(todo.id)} className="shrink-0 transition-transform active:scale-90">
+        {todo.completed
+          ? <CheckCircle2 size={20} className="text-violet-500" />
+          : <Circle size={20} className="text-zinc-600 hover:text-violet-400 transition-colors" />
+        }
+      </button>
+      <span className={`flex-1 text-sm ${todo.completed ? 'line-through text-zinc-600' : 'text-zinc-200'}`}>
+        {todo.text}
+      </span>
+      <button
+        onClick={() => onDelete(todo.id)}
+        className="opacity-0 group-hover:opacity-100 p-1 text-zinc-700 hover:text-red-400 rounded-lg transition-all"
+      >
+        <Trash2 size={13} />
+      </button>
+    </motion.div>
+  );
+}
+
+function BugunTab() {
+  const { dailyTodos, addDailyTodo, toggleDailyTodo, deleteDailyTodo, tasks, habits, yks } = useApp();
+  const [input, setInput] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const todayTodos = (dailyTodos || []).filter(t => t.date === today);
+  const completed = todayTodos.filter(t => t.completed);
+  const pending = todayTodos.filter(t => !t.completed);
+  const completionPct = todayTodos.length > 0
+    ? Math.round((completed.length / todayTodos.length) * 100)
+    : 0;
+
+  const handleAdd = () => {
+    const text = input.trim();
+    if (!text) return;
+    addDailyTodo(text, today);
+    setInput('');
+  };
+
+  const handleAISuggest = async () => {
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const suggestions = await buildDailyTodoSuggestions({ tasks, habits, yks });
+      suggestions.forEach(s => addDailyTodo(s, today));
+    } catch (err) {
+      setAiError(parseGeminiError(err));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const circumference = 2 * Math.PI * 20;
+  const strokeDash = circumference - (completionPct / 100) * circumference;
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-4">
+      {/* Header with ring */}
+      <div className="flex items-center gap-4">
+        <div className="relative w-14 h-14 shrink-0">
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="#27272a" strokeWidth="4" />
+            <circle
+              cx="24" cy="24" r="20" fill="none"
+              stroke={completionPct === 100 ? '#22c55e' : '#7c3aed'}
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDash}
+              style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-bold text-zinc-200">{completionPct}%</span>
+          </div>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-zinc-200">
+            {format(new Date(), 'd MMMM yyyy, EEEE', { locale: tr })}
+          </p>
+          <p className="text-xs text-zinc-500 mt-0.5">{completed.length}/{todayTodos.length} tamamlandı</p>
+        </div>
+      </div>
+
+      {/* Quick add */}
+      <div className="flex gap-2">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleAdd()}
+          placeholder="Yeni madde ekle..."
+          className="flex-1 bg-zinc-900 border border-zinc-800 focus:border-violet-500/60 rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-all"
+        />
+        <button
+          onClick={handleAdd}
+          disabled={!input.trim()}
+          className="w-10 h-10 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all"
+        >
+          <Plus size={18} />
+        </button>
+      </div>
+
+      {/* AI Suggest */}
+      <div>
+        <button
+          onClick={handleAISuggest}
+          disabled={aiLoading}
+          className="flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/15 border border-violet-500/20 rounded-xl px-4 py-2 transition-all disabled:opacity-60"
+        >
+          {aiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+          AI Öneri Al
+        </button>
+        {aiError && <p className="text-xs text-red-400 mt-1.5">{aiError}</p>}
+      </div>
+
+      {/* Todo list */}
+      <div className="flex flex-col gap-2">
+        <AnimatePresence>
+          {pending.map(todo => (
+            <TodoItem key={todo.id} todo={todo} onToggle={toggleDailyTodo} onDelete={deleteDailyTodo} />
+          ))}
+        </AnimatePresence>
+
+        {completed.length > 0 && (
+          <div className="mt-2">
+            <p className="text-xs text-zinc-600 font-medium uppercase tracking-wide mb-2">
+              Tamamlananlar ({completed.length})
+            </p>
+            <AnimatePresence>
+              {completed.map(todo => (
+                <TodoItem key={todo.id} todo={todo} onToggle={toggleDailyTodo} onDelete={deleteDailyTodo} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {todayTodos.length === 0 && (
+          <div className="text-center py-12 text-zinc-600">
+            <CheckCircle2 size={36} className="mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Henüz madde yok.</p>
+            <p className="text-xs mt-1">Üstten ekle veya AI öneri al.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── TaskForm & TaskItem (unchanged) ──────────────────────────────────────────
 
 function TaskForm({ initial = {}, onSave, onCancel }) {
   const [form, setForm] = useState({
@@ -86,11 +261,10 @@ function TaskForm({ initial = {}, onSave, onCancel }) {
 }
 
 function TaskItem({ task }) {
-  const { toggleTask, deleteTask, updateTask } = useApp();
+  const { toggleTask, deleteTask, updateTask, addSubtask, toggleSubtask } = useApp();
   const [expanded, setExpanded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [newSub, setNewSub] = useState('');
-  const { addSubtask, toggleSubtask } = useApp();
 
   const prioClass = getPriorityColor(task.priority);
   const isOverdue = task.dueDate && !task.completed && task.dueDate < todayStr();
@@ -192,8 +366,7 @@ function TaskItem({ task }) {
   );
 }
 
-export default function Tasks() {
-  const { tasks, addTask } = useApp();
+function TumuTab({ tasks, addTask }) {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('all');
   const [priority, setPriority] = useState('all');
@@ -203,7 +376,6 @@ export default function Tasks() {
     let list = [...tasks];
     if (filter === 'active') list = list.filter(t => !t.completed);
     if (filter === 'done') list = list.filter(t => t.completed);
-    if (filter === 'today') list = list.filter(t => t.dueDate === todayStr());
     if (filter === 'overdue') list = list.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr());
     if (priority !== 'all') list = list.filter(t => t.priority === priority);
     if (search) list = list.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
@@ -218,29 +390,14 @@ export default function Tasks() {
     all: tasks.length,
     active: tasks.filter(t => !t.completed).length,
     done: tasks.filter(t => t.completed).length,
-    today: tasks.filter(t => t.dueDate === todayStr()).length,
     overdue: tasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr()).length,
   }), [tasks]);
 
   return (
-    <div className="p-6 space-y-5 animate-fadeIn">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-zinc-100">Görevler</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{counts.active} aktif, {counts.done} tamamlandı</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Plus size={16} /> Görev Ekle
-        </button>
-      </div>
-
-      {/* Filters */}
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
-          {[['all','Tümü'], ['active','Aktif'], ['today','Bugün'], ['overdue','Gecikmiş'], ['done','Bitti']].map(([v, l]) => (
+          {[['all','Tümü'], ['active','Aktif'], ['overdue','Gecikmiş'], ['done','Bitti']].map(([v, l]) => (
             <button
               key={v}
               onClick={() => setFilter(v)}
@@ -268,11 +425,10 @@ export default function Tasks() {
         />
       </div>
 
-      {/* Task list */}
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <div className="text-center py-16 text-zinc-500">
-            <CheckSquare2 />
+            <CheckSquare size={40} className="mx-auto mb-2 text-zinc-700" />
             <p className="mt-2 text-sm">Görev bulunamadı</p>
             <button onClick={() => setShowForm(true)} className="mt-3 text-xs text-violet-400 hover:text-violet-300">
               + Yeni görev ekle
@@ -293,10 +449,76 @@ export default function Tasks() {
   );
 }
 
-function CheckSquare2() {
+// ── Main Tasks page ───────────────────────────────────────────────────────────
+
+export default function Tasks() {
+  const { tasks, addTask } = useApp();
+  const [activeTab, setActiveTab] = useState('bugun');
+  const [showForm, setShowForm] = useState(false);
+
+  const activeCounts = useMemo(() => tasks.filter(t => !t.completed).length, [tasks]);
+
   return (
-    <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="mx-auto text-zinc-700">
-      <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-    </svg>
+    <div className="p-6 space-y-5 animate-fadeIn">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-100">Görevler</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">{activeCounts} aktif görev</p>
+        </div>
+        {activeTab === 'tumü' && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <Plus size={16} /> Görev Ekle
+          </button>
+        )}
+      </div>
+
+      {/* Tab switcher */}
+      <div className="relative flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 w-fit">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`relative z-10 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === tab.id ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            {activeTab === tab.id && (
+              <motion.div
+                layoutId="tasksTabActive"
+                className="absolute inset-0 bg-violet-600 rounded-md"
+                style={{ zIndex: -1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+              />
+            )}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.15 }}
+        >
+          {activeTab === 'bugun' && <BugunTab />}
+          {activeTab === 'tumü' && <TumuTab tasks={tasks} addTask={addTask} />}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Add task modal (from header button in Tümü tab) */}
+      <Modal open={showForm} onClose={() => setShowForm(false)} title="Yeni Görev">
+        <TaskForm
+          onSave={(data) => { addTask(data); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      </Modal>
+    </div>
   );
 }

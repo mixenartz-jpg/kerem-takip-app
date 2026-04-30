@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import FriendPanel from '../friends/FriendPanel';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 
 export default function Header({ onSearchOpen, title, onMenuOpen }) {
   const today = format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr });
@@ -26,9 +27,13 @@ export default function Header({ onSearchOpen, title, onMenuOpen }) {
         <Menu size={18} />
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 hidden sm:block">
         <h2 className="text-sm font-semibold text-zinc-100 truncate">{title}</h2>
-        <p className="text-xs text-zinc-500 capitalize hidden sm:block">{today}</p>
+        <p className="text-xs text-zinc-500 capitalize hidden md:block">{today}</p>
+      </div>
+
+      <div className="flex-1 sm:flex-initial flex justify-center sm:justify-start">
+        <WorkspaceSwitcher compact />
       </div>
 
       <button

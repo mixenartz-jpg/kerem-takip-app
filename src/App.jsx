@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MailCheck, RefreshCw } from 'lucide-react';
 import AdminGate from './pages/admin/AdminGate';
@@ -24,9 +24,6 @@ import ModeSelectScreen from './components/ModeSelectScreen';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
-import PlanlamaHub from './pages/PlanlamaHub';
-import AkademiHub from './pages/AkademiHub';
-import SosyalHub from './pages/SosyalHub';
 import Tasks from './pages/Tasks';
 import Calendar from './pages/Calendar';
 import Notes from './pages/Notes';
@@ -34,25 +31,15 @@ import Projects from './pages/Projects';
 import Habits from './pages/Habits';
 import Pomodoro from './pages/Pomodoro';
 import Stats from './pages/Stats';
-import Lessons from './pages/Lessons';
-import Exams from './pages/Exams';
 import Goals from './pages/Goals';
 import YKS from './pages/YKS';
 import AIMerkezi from './pages/AIMerkezi';
-import DailyTodos from './pages/DailyTodos';
 import VideoSummarizer from './pages/VideoSummarizer';
-import Leaderboard from './pages/Leaderboard';
-import Reminders from './pages/Reminders';
-import Friends from './pages/Friends';
-import Invite from './pages/Invite';
-import HataDefteri from './pages/HataDefteri';
-import QuizMerkezi from './pages/QuizMerkezi';
+import Sosyal from './pages/Sosyal';
 
 const PAGE_TITLES = {
   '/': 'Dashboard',
   '/planner': 'AI Planlayıcı',
-  '/planlama': 'Planlama',
-  '/akademi': 'Akademi',
   '/sosyal': 'Sosyal',
   '/tasks': 'Görevler',
   '/calendar': 'Takvim',
@@ -61,19 +48,10 @@ const PAGE_TITLES = {
   '/habits': 'Alışkanlıklar',
   '/pomodoro': 'Pomodoro',
   '/stats': 'İstatistikler',
-  '/lessons': 'Dersler',
-  '/exams': 'Sınav Takvimi',
   '/yks': 'YKS Merkezi',
   '/goals': 'Hedefler',
   '/ai': 'AI Merkezi',
-  '/daily-todos': 'Günlük Yapılacaklar',
   '/video-summarizer': 'Video Özetleyici',
-  '/leaderboard': 'Sıralama',
-  '/reminders': 'Hatırlatmalar',
-  '/friends': 'Arkadaşlar',
-  '/invite': 'Davet',
-  '/hata-defteri': 'Hata Defteri',
-  '/quiz': 'Soru Merkezi',
 };
 
 function InitialRedirect() {
@@ -138,9 +116,7 @@ function AppLayout() {
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
               <Route path="/planner" element={<PageTransition><AIPlanner /></PageTransition>} />
-              <Route path="/planlama" element={<PageTransition><PlanlamaHub /></PageTransition>} />
-              <Route path="/akademi" element={<PageTransition><AkademiHub /></PageTransition>} />
-              <Route path="/sosyal" element={<PageTransition><SosyalHub /></PageTransition>} />
+              <Route path="/sosyal" element={<PageTransition><Sosyal /></PageTransition>} />
               <Route path="/tasks" element={<PageTransition><Tasks /></PageTransition>} />
               <Route path="/calendar" element={<PageTransition><Calendar /></PageTransition>} />
               <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
@@ -148,19 +124,22 @@ function AppLayout() {
               <Route path="/habits" element={<PageTransition><Habits /></PageTransition>} />
               <Route path="/pomodoro" element={<PageTransition><Pomodoro /></PageTransition>} />
               <Route path="/stats" element={<PageTransition><PremiumGate feature="istatistikler"><Stats /></PremiumGate></PageTransition>} />
-              <Route path="/lessons" element={<PageTransition><Lessons /></PageTransition>} />
-              <Route path="/exams" element={<PageTransition><Exams /></PageTransition>} />
               <Route path="/yks" element={<PageTransition><YKS /></PageTransition>} />
               <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
               <Route path="/ai" element={<PageTransition><PremiumGate feature="ai"><AIMerkezi /></PremiumGate></PageTransition>} />
-              <Route path="/daily-todos" element={<PageTransition><DailyTodos /></PageTransition>} />
               <Route path="/video-summarizer" element={<PageTransition><VideoSummarizer /></PageTransition>} />
-              <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
-              <Route path="/reminders" element={<PageTransition><Reminders /></PageTransition>} />
-              <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
-              <Route path="/invite" element={<PageTransition><Invite /></PageTransition>} />
-              <Route path="/hata-defteri" element={<PageTransition><PremiumGate feature="hata_defteri"><HataDefteri /></PremiumGate></PageTransition>} />
-              <Route path="/quiz" element={<PageTransition><PremiumGate feature="quiz"><QuizMerkezi /></PremiumGate></PageTransition>} />
+              {/* Backward-compat redirects */}
+              <Route path="/lessons" element={<Navigate to="/yks" replace />} />
+              <Route path="/exams" element={<Navigate to="/yks" replace />} />
+              <Route path="/hata-defteri" element={<Navigate to="/yks" replace />} />
+              <Route path="/quiz" element={<Navigate to="/yks" replace />} />
+              <Route path="/daily-todos" element={<Navigate to="/tasks" replace />} />
+              <Route path="/friends" element={<Navigate to="/sosyal" replace />} />
+              <Route path="/leaderboard" element={<Navigate to="/sosyal" replace />} />
+              <Route path="/invite" element={<Navigate to="/sosyal" replace />} />
+              <Route path="/reminders" element={<Navigate to="/" replace />} />
+              <Route path="/planlama" element={<Navigate to="/" replace />} />
+              <Route path="/akademi" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>
         </main>

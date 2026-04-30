@@ -606,7 +606,7 @@ export async function summarizeYouTubeVideo(youtubeUrl) {
   const videoId = vidIdMatch ? vidIdMatch[1] : '';
 
   const videoGenAI = new GoogleGenerativeAI(API_KEY);
-  const videoModel = videoGenAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
+  const videoModel = videoGenAI.getGenerativeModel({ model: MODEL_NAME });
 
   // Step 3: Send real metadata to Gemini so it's grounded in the actual video
   const summaryPrompt = `YouTube videosunu analiz et ve Türkçe detaylı özet çıkar.

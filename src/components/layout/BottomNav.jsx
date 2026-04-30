@@ -1,28 +1,23 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, GraduationCap, Sparkles, Users2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const PRIMARY_NAV = [
-  { to: '/', icon: LayoutDashboard, label: 'Ana Sayfa' },
-  { to: '/planlama', icon: CalendarDays, label: 'Planlama' },
-  { to: '/akademi', icon: GraduationCap, label: 'Akademi' },
-  { to: '/ai', icon: Sparkles, label: 'AI', ai: true },
-  { to: '/sosyal', icon: Users2, label: 'Sosyal' },
-];
+import { useApp } from '../../context/AppContext';
+import { getBottomNavItems } from '../../utils/workspaceConfig';
 
 export default function BottomNav() {
+  const { activeWorkspace } = useApp();
+  const items = getBottomNavItems(activeWorkspace);
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 flex items-center px-1 pb-safe pt-1">
-      {PRIMARY_NAV.map(({ to, icon: Icon, label, ai }) => (
+      {items.map(({ to, icon: Icon, label, ai, end }) => (
         <NavLink
           key={to}
           to={to}
-          end={to === '/'}
+          end={end}
           className="flex-1 flex flex-col items-center justify-center pt-2 pb-3 relative"
         >
           {({ isActive }) => (
             <>
-              {/* Highlight background */}
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
@@ -35,8 +30,7 @@ export default function BottomNav() {
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              
-              {/* Active top line */}
+
               {isActive && (
                 <motion.div
                   layoutId="bottomNavActiveLine"
@@ -45,7 +39,7 @@ export default function BottomNav() {
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              
+
               <Icon
                 size={22}
                 className={
