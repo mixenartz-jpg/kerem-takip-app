@@ -67,7 +67,7 @@ export default function Header({ onSearchOpen, title, onMenuOpen }) {
                 onClick={() => { setMenuOpen(false); setFriendPanelOpen(false); }}
               />
               <motion.div
-                className="absolute right-0 top-10 z-40 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden"
+                className="absolute right-0 top-10 z-40 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden max-w-[calc(100vw-2rem)]"
                 initial={{ opacity: 0, scale: 0.95, y: -6 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -6 }}

@@ -55,7 +55,7 @@ export default function Notes() {
   return (
     <div className="flex h-full animate-fadeIn">
       {/* Note list */}
-      <div className="w-72 shrink-0 border-r border-zinc-800 flex flex-col bg-zinc-900/50">
+      <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-72 md:shrink-0 border-r border-zinc-800 flex-col bg-zinc-900/50`}>
         <div className="p-4 border-b border-zinc-800 space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="font-semibold text-zinc-100 text-sm">Notlar</h1>
@@ -114,10 +114,16 @@ export default function Notes() {
       </div>
 
       {/* Editor */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
         {currentNote ? (
           <>
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-zinc-800 bg-zinc-900/30">
+            <div className="flex items-center gap-2 px-4 md:px-6 py-3 border-b border-zinc-800 bg-zinc-900/30">
+              <button
+                onClick={() => setSelected(null)}
+                className="md:hidden p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors mr-1"
+              >
+                ←
+              </button>
               <input
                 value={currentNote.title}
                 onChange={e => updateNote(currentNote.id, { title: e.target.value })}

@@ -115,6 +115,18 @@ body {
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.30s; }
 
+/* ── Safe area padding ── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+/* ── Mobile touch targets ── */
+@media (max-width: 639px) {
+  button, a[role="button"] {
+    min-height: 40px;
+  }
+}
+
 /* ── Noise texture overlay ── */
 .noise::after {
   content: '';

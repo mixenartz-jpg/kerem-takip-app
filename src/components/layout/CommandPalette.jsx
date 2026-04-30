@@ -84,7 +84,7 @@ export default function CommandPalette({ open, onClose }) {
     : PAGES;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 md:pt-24 px-3" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 md:pt-20 px-3 sm:px-4" onClick={onClose}>
       <div
         className="w-full max-w-xl bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden animate-scaleIn"
         onClick={e => e.stopPropagation()}

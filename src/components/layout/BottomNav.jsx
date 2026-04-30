@@ -8,7 +8,7 @@ export default function BottomNav() {
   const items = getBottomNavItems(activeWorkspace);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 flex items-center px-1 pb-safe pt-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 flex items-center px-1 pt-1" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
       {items.map(({ to, icon: Icon, label, ai, end }) => (
         <NavLink
           key={to}

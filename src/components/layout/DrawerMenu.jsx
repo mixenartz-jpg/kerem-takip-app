@@ -152,7 +152,7 @@ export default function DrawerMenu({ open, onClose }) {
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
             className="fixed left-0 top-0 bottom-0 z-50 flex flex-col"
             style={{
-              width: 280,
+              width: 'min(280px, 85vw)',
               background: 'rgba(10,10,13,0.98)',
               backdropFilter: 'blur(24px)',
               borderRight: '1px solid rgba(255,255,255,0.05)',

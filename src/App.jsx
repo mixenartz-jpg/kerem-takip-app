@@ -106,11 +106,10 @@ function AppLayout() {
       <DrawerMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div
-        className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300"
-        style={{ marginLeft: drawerOpen ? 280 : 0 }}
+        className="flex-1 flex flex-col overflow-hidden min-w-0"
       >
         <Header onSearchOpen={() => setCmdOpen(true)} title={title} onMenuOpen={() => setDrawerOpen(o => !o)} drawerOpen={drawerOpen} />
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 relative">
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0 relative">
           <InitialRedirect />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>

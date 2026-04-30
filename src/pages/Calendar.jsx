@@ -93,18 +93,18 @@ export default function Calendar() {
   const selectedMonthlyPlans = (monthlyPlans || []).filter(p => p.monthStr === selectedMonthStr);
 
   return (
-    <div className="p-6 animate-fadeIn h-full flex flex-col">
+    <div className="p-4 md:p-6 animate-fadeIn h-full flex flex-col">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold text-zinc-100">Takvim</h1>
         <button onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-          <Plus size={16} /> Etkinlik Ekle
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <Plus size={16} /> <span className="hidden sm:inline">Etkinlik Ekle</span><span className="sm:hidden">Ekle</span>
         </button>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
         {/* Calendar */}
-        <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl p-3 md:p-5 min-w-0">
           {/* Month nav */}
           <div className="flex items-center justify-between mb-5">
             <button onClick={() => setCurrent(prevMonth(current))} className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors">
@@ -161,7 +161,7 @@ export default function Calendar() {
         </div>
 
         {/* Sidebar — selected day */}
-        <div className="w-64 shrink-0 space-y-4">
+        <div className="w-full md:w-64 md:shrink-0 space-y-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <h3 className="font-semibold text-zinc-100 text-sm mb-3">
               {format(selected, 'dd MMMM yyyy', { locale: tr })}
