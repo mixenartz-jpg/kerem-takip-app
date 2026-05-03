@@ -36,13 +36,15 @@ export const DEFAULT_STATE = {
     targetUni: '',
   },
   hataDefteriItems: [],
+  yksResources: [],
   aiPlanCache: null,
   aiStreak: { count: 0, lastDate: null },
   badges: [],
   userMode: null, // 'yks' | 'daily' | null
   activeWorkspace: null, // 'akademi' | 'gunluk' | null — derived from userMode if null
   // New fields
-  dailyTodos: [],  // { id, text, completed, date }
+  dailyTodos: [],   // { id, text, completed, date }
+  akademiTodos: [], // { id, text, completed, date }
   weeklyPlans: [], // { id, text, completed, weekStr }
   monthlyPlans: [],// { id, text, completed, monthStr }
   reminders: [],   // { id, title, datetime, type, pageRef, recurring }
@@ -381,6 +383,22 @@ export function AppProvider({ children }) {
     targetNets: { ...yks.targetNets, [key]: value }
   }));
 
+  // ── YKS RESOURCES ─────────────────────────────────────
+  const addYKSResource = (data) => update('yksResources', items => [
+    ...items,
+    {
+      id: genId(),
+      ders: '', konu: '', kaynakAdi: '', tur: 'kitap',
+      videoLink: '', yazar: '', notlar: '', durum: 'baslamamadi',
+      createdAt: now(),
+      ...data,
+    }
+  ]);
+  const updateYKSResource = (id, data) => update('yksResources', items =>
+    items.map(i => i.id === id ? { ...i, ...data } : i)
+  );
+  const deleteYKSResource = (id) => update('yksResources', items => items.filter(i => i.id !== id));
+
   // ── HATA DEFTERİ ───────────────────────────────────────
   const addHataDefteri = (data) => update('hataDefteriItems', items => [
     ...items,
@@ -471,6 +489,19 @@ export function AppProvider({ children }) {
   );
   const deleteDailyTodo = (id) => update('dailyTodos', todos => todos.filter(t => t.id !== id));
 
+  // ── AKADEMİ TODOS ─────────────────────────────────────
+  const addAkademiTodo = (text, date, extra = {}) => update('akademiTodos', todos => [
+    ...todos,
+    { id: genId(), text, completed: false, date: date || format(new Date(), 'yyyy-MM-dd'), createdAt: now(), ...extra }
+  ]);
+  const toggleAkademiTodo = (id) => update('akademiTodos', todos =>
+    todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
+  );
+  const updateAkademiTodo = (id, data) => update('akademiTodos', todos =>
+    todos.map(t => t.id === id ? { ...t, ...data } : t)
+  );
+  const deleteAkademiTodo = (id) => update('akademiTodos', todos => todos.filter(t => t.id !== id));
+
   // ── WEEKLY PLANS ───────────────────────────────────────
   const addWeeklyPlan = (text, weekStr) => update('weeklyPlans', plans => [
     ...plans, { id: genId(), text, completed: false, weekStr, createdAt: now() }
@@ -560,10 +591,12 @@ export function AppProvider({ children }) {
     goals: state.goals,
     yks: state.yks,
     hataDefteriItems: state.hataDefteriItems,
+    yksResources: state.yksResources || [],
     aiPlanCache: state.aiPlanCache,
     aiStreak: state.aiStreak,
     badges: state.badges,
     dailyTodos: state.dailyTodos,
+    akademiTodos: state.akademiTodos || [],
     weeklyPlans: state.weeklyPlans,
     monthlyPlans: state.monthlyPlans,
     reminders: state.reminders,
@@ -590,6 +623,8 @@ export function AppProvider({ children }) {
     // YKS actions
     updateYKS, addYKSTrial, updateYKSTrial, deleteYKSTrial,
     toggleYKSTopic, setYKSExamDate, setYKSTargetNet,
+    // YKS resource actions
+    addYKSResource, updateYKSResource, deleteYKSResource,
     // Hata defteri actions
     addHataDefteri, updateHataDefteri, deleteHataDefteri, reviewHataDefteri,
     // AI plan actions
@@ -602,6 +637,8 @@ export function AppProvider({ children }) {
     setActiveWorkspace,
     // Daily todos
     addDailyTodo, toggleDailyTodo, deleteDailyTodo,
+    // Akademi todos
+    addAkademiTodo, toggleAkademiTodo, updateAkademiTodo, deleteAkademiTodo,
     // Weekly plans
     addWeeklyPlan, toggleWeeklyPlan, deleteWeeklyPlan,
     // Monthly plans

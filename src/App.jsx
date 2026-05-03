@@ -33,6 +33,8 @@ import Pomodoro from './pages/Pomodoro';
 import Stats from './pages/Stats';
 import Goals from './pages/Goals';
 import YKS from './pages/YKS';
+import Kaynaklar from './pages/Kaynaklar';
+import GunlukPlan from './pages/GunlukPlan';
 import AIMerkezi from './pages/AIMerkezi';
 import VideoSummarizer from './pages/VideoSummarizer';
 import Sosyal from './pages/Sosyal';
@@ -49,6 +51,8 @@ const PAGE_TITLES = {
   '/pomodoro': 'Pomodoro',
   '/stats': 'İstatistikler',
   '/yks': 'YKS Merkezi',
+  '/kaynaklar': 'Çalışma Kaynakları',
+  '/gunluk-plan': 'Günlük Plan',
   '/goals': 'Hedefler',
   '/ai': 'AI Merkezi',
   '/video-summarizer': 'Video Özetleyici',
@@ -124,6 +128,8 @@ function AppLayout() {
               <Route path="/pomodoro" element={<PageTransition><Pomodoro /></PageTransition>} />
               <Route path="/stats" element={<PageTransition><PremiumGate feature="istatistikler"><Stats /></PremiumGate></PageTransition>} />
               <Route path="/yks" element={<PageTransition><YKS /></PageTransition>} />
+              <Route path="/kaynaklar" element={<PageTransition><Kaynaklar /></PageTransition>} />
+              <Route path="/gunluk-plan" element={<PageTransition><GunlukPlan /></PageTransition>} />
               <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
               <Route path="/ai" element={<PageTransition><PremiumGate feature="ai"><AIMerkezi /></PremiumGate></PageTransition>} />
               <Route path="/video-summarizer" element={<PageTransition><VideoSummarizer /></PageTransition>} />

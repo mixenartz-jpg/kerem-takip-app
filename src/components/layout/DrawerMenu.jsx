@@ -13,6 +13,7 @@ import {
   NAV_GROUPS_ORTAK,
 } from '../../utils/workspaceConfig';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
+import TodayPanel from './TodayPanel';
 
 function NavItem({ to, icon: Icon, label, end, ai, premium, onClick }) {
   const { canAccess } = usePremium();
@@ -209,6 +210,8 @@ export default function DrawerMenu({ open, onClose }) {
 
             {/* Nav groups */}
             <div className="flex-1 overflow-y-auto py-3 px-3 relative z-10 flex flex-col gap-1">
+              <TodayPanel onNavClose={onClose} />
+              <div className="my-1 mx-3 border-t border-white/[0.05]" />
               {NAV_GROUPS.map((group, idx) => (
                 <div key={group.label}>
                   {idx === workspaceGroups.length && (

@@ -2,7 +2,7 @@ import {
   LayoutDashboard, CalendarCheck, Sparkles, Users2,
   CheckSquare, StickyNote, FolderKanban, Repeat2, Timer,
   Target, Zap, BarChart2,
-  Video, GraduationCap,
+  Video, GraduationCap, BookMarked, ListChecks,
 } from 'lucide-react';
 
 export const WORKSPACES = {
@@ -39,8 +39,10 @@ export const NAV_GROUPS_AKADEMI = [
     label: 'Akademi',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
+      { to: '/gunluk-plan', icon: ListChecks, label: 'Günlük Plan' },
       { to: '/planner', icon: Sparkles, label: 'AI Planlayıcı', ai: true },
       { to: '/yks', icon: Zap, label: 'YKS Merkezi' },
+      { to: '/kaynaklar', icon: BookMarked, label: 'Çalışma Kaynakları' },
     ],
   },
 ];
